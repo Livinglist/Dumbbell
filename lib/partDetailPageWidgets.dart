@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'main.dart';
 import 'model.dart';
 import 'partEditPage.dart';
@@ -7,6 +8,8 @@ typedef void PartTapCallback(Part part);
 
 class PartCard extends StatefulWidget {
   VoidCallback onDelete;
+  VoidCallback onPartLongPressed;
+  VoidCallback onPartLongPressedUp;
   VoidCallback onPartTap;
   StringCallback onTextEdited;
   bool isEmptyMove = true;
@@ -18,6 +21,8 @@ class PartCard extends StatefulWidget {
   PartCard(
       {Key key,
       @required this.onDelete,
+        this.onPartLongPressed,
+        this.onPartLongPressedUp,
         this.onPartTap,
       this.onTextEdited,
       @required this.part})
@@ -50,64 +55,67 @@ class PartCardState extends State<PartCard> {
     //else print('is null!!');
     _part = widget.part;
     final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: widget.onPartTap,
-      child: Padding(
+    return Padding(
         padding: EdgeInsets.only(top: 6, bottom: 6, left: 8, right: 8),
         child: Card(
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(8))),
             elevation: 12,
             color: _getColor(_part.setType),
-            child: Padding(
-              padding: EdgeInsets.only(top: 4, bottom: 4, left: 8, right: 8),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  ListTile(
-                    leading: targetedBodyPartToImageConverter(
-                        _part.targetedBodyPart ?? TargetedBodyPart.Arm),
-                    title: Text(
-                      _part.setType == null
-                          ? 'To be edited'
-                          : setTypeToStringConverter(_part.setType),
-                      style: _defaultTextStyle,
+            child: InkWell(
+              onTap: widget.onPartTap,
+              onLongPress: widget.onPartLongPressed,
+              splashColor: _getSplashColor(_part.setType),
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+              child: Padding(
+                padding: EdgeInsets.only(top: 4, bottom: 4, left: 8, right: 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    ListTile(
+                      leading: targetedBodyPartToImageConverter(
+                          _part.targetedBodyPart ?? TargetedBodyPart.Arm),
+                      title: Text(
+                        _part.setType == null
+                            ? 'To be edited'
+                            : setTypeToStringConverter(_part.setType),
+                        style: _defaultTextStyle,
+                      ),
+                      subtitle: Text(
+                        _part.targetedBodyPart == null
+                            ? 'To be edited'
+                            : targetedBodyPartToStringConverter(
+                            _part.targetedBodyPart),
+                        style: _defaultTextStyle,
+                      ),
                     ),
-                    subtitle: Text(
-                      _part.targetedBodyPart == null
-                          ? 'To be edited'
-                          : targetedBodyPartToStringConverter(
-                          _part.targetedBodyPart),
-                      style: _defaultTextStyle,
+                    Padding(
+                        padding:
+                        EdgeInsets.only(left: 12, right: 12, top: 4, bottom: 4),
+                        child: Container(
+                          height: _getHeight(_part.setType),
+                          child: _buildExerciseListView(_part),
+                        ) //_buildExerciseListView(_part)
                     ),
-                  ),
-                  Padding(
-                      padding:
-                      EdgeInsets.only(left: 12, right: 12, top: 4, bottom: 4),
-                      child: Container(
-                        height: _getHeight(_part.setType),
-                        child: _buildExerciseListView(_part),
-                      ) //_buildExerciseListView(_part)
-                  ),
-                ],
+                  ],
+                ),
               ),
             )),
-      ),
     );
   }
 
   double _getHeight(SetType setType) {
     switch (setType) {
       case SetType.Regular:
-        return 40;
+        return 60;
       case SetType.Drop:
-        return 40;
+        return 60;
       case SetType.Super:
-        return 80;
-      case SetType.Tri:
         return 100;
+      case SetType.Tri:
+        return 120;
       case SetType.Giant:
-        return 140;
+        return 160;
     }
   }
 
@@ -135,7 +143,7 @@ class PartCardState extends State<PartCard> {
             Expanded(
               flex: 3,
               child: Text(
-                'Sets: ' + part.exercises[i].sets,
+                'Sets: ' + part.exercises[i].sets.toString(),
                 style: _defaultTextStyle,
               ),
             ),
@@ -187,6 +195,23 @@ class PartCardState extends State<PartCard> {
         return Colors.red;
       default:
         return Colors.lightBlue;
+    }
+  }
+
+  Color _getSplashColor(SetType setType) {
+    switch (setType) {
+      case SetType.Regular:
+        return Colors.lightBlueAccent;
+      case SetType.Drop:
+        return Colors.greenAccent;
+      case SetType.Super:
+        return Colors.tealAccent;
+      case SetType.Tri:
+        return Colors.pinkAccent;
+      case SetType.Giant:
+        return Colors.redAccent;
+      default:
+        return Colors.lightBlueAccent;
     }
   }
 }

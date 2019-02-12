@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'model.dart';
 
 class PartEditPage extends StatelessWidget {
@@ -79,7 +80,11 @@ class CriteriaState extends State<Criterias> {
       //widget.part.exercises.add(new Exercise(name: null, weight: null, sets: null, reps: null));
       for (int i = 0; i < 4; i++) {
         var exCopy =
-            new Exercise(name: null, weight: null, sets: null, reps: null);
+        new Exercise(name: null,
+            weight: null,
+            sets: null,
+            reps: null,
+            exHistory: {});
         _tempExs.add(exCopy);
       }
       _isNewlyCreated = true;
@@ -89,11 +94,19 @@ class CriteriaState extends State<Criterias> {
         if (i < widget.part.exercises.length) {
           var ex = widget.part.exercises[i];
           var exCopy = new Exercise(
-              name: ex.name, weight: ex.weight, sets: ex.sets, reps: ex.reps);
+              name: ex.name,
+              weight: ex.weight,
+              sets: ex.sets,
+              reps: ex.reps,
+              exHistory: ex.exHistory);
           _tempExs.add(exCopy);
         } else {
           _tempExs.add(
-              new Exercise(name: null, weight: null, sets: null, reps: null));
+              new Exercise(name: null,
+                  weight: null,
+                  sets: null,
+                  reps: null,
+                  exHistory: {}));
         }
       }
       _isNewlyCreated = false;
@@ -155,8 +168,10 @@ class CriteriaState extends State<Criterias> {
       for (int i = 0, j = 0; i < 16; i++, j += 4) {
         if (i < widget.part.exercises.length) {
           _textControllers[j].text = widget.part.exercises[i].name;
-          _textControllers[j + 1].text = widget.part.exercises[i].weight;
-          _textControllers[j + 2].text = widget.part.exercises[i].sets;
+          _textControllers[j + 1].text =
+              widget.part.exercises[i].weight.toString();
+          _textControllers[j + 2].text =
+              widget.part.exercises[i].sets.toString();
           _textControllers[j + 3].text = widget.part.exercises[i].reps;
         } else {}
       }
@@ -363,21 +378,34 @@ class CriteriaState extends State<Criterias> {
             ? Text('Exercise ' + (i + 1).toString())
             : Container());
         widgets.add(_enabledList[i]
-            ? TextFormField(
-                controller: _textControllers[j],
-                onFieldSubmitted: (str) {
-                  setState(() {
-                    //widget.part.exercises[i].name = str;
-                  });
-                },
-                decoration: InputDecoration(labelText: 'Name'),
-                validator: (str) {
-                  if (str.isEmpty)
-                    return 'Please enter the name of exercise';
-                  else
-                    _tempExs[i].name = _textControllers[j].text;
-                },
-              )
+            ? Builder(builder: (context) =>
+            TextFormField(
+              controller: _textControllers[j],
+              onFieldSubmitted: (str) {
+                setState(() {
+                  //widget.part.exercises[i].name = str;
+                });
+              },
+              decoration: InputDecoration(labelText: 'Name'),
+              validator: (str) {
+                if (str.isEmpty) {
+                  Scaffold.of(context).showSnackBar(SnackBar(
+                    backgroundColor: Colors.red,
+                    content: Row(
+                      children: <Widget>[
+                        Padding(padding: EdgeInsets.only(right: 4),
+                          child: Icon(Icons.report),),
+                        Text(
+                            "Name cannot be blank.")
+                      ],
+                    ),
+                  ));
+                  return 'Please enter the name of exercise';
+                }
+                else
+                  _tempExs[i].name = _textControllers[j].text;
+              },
+            ),)
             : Container());
         widgets.add(_enabledList[i]
             ? Row(
@@ -392,16 +420,34 @@ class CriteriaState extends State<Criterias> {
                               decoration: InputDecoration(labelText: 'Weight'),
                               validator: (str) {
                                 if (str.isEmpty)
-                                  _tempExs[i].weight = '0';
-                                else if (str.contains(RegExp(r"(,|\.|-)"))) {
+                                  _tempExs[i].weight = 0;
+                                else if (str.contains(RegExp(r"(,|-)"))) {
                                   Scaffold.of(context).showSnackBar(SnackBar(
-                                    content: Text(
-                                        "Weight can only contain numbers."),
+                                    backgroundColor: Colors.red,
+                                    content: Row(
+                                      children: <Widget>[
+                                        Padding(
+                                          padding: EdgeInsets.only(right: 4),
+                                          child: Icon(Icons.report),),
+                                        Text(
+                                            "Weight can only contain numbers.")
+                                      ],
+                                    ),
                                   ));
                                   return "Numbers only";
-                                } else
-                                  _tempExs[i].weight =
-                                      _textControllers[j + 1].text;
+                                } else {
+                                  double tempWeight =
+                                  double.parse(
+                                      _textControllers[j + 1].text);
+
+                                  //the weight below 20 doesn't need floating point, it's just unnecessary
+                                  if (tempWeight < 20) {
+                                    _tempExs[i].weight = tempWeight;
+                                  } else {
+                                    _tempExs[i].weight =
+                                        tempWeight.floorToDouble();
+                                  }
+                                }
                               },
                             )),
                   ),
@@ -414,7 +460,8 @@ class CriteriaState extends State<Criterias> {
                       decoration: InputDecoration(labelText: 'Sets'),
                       validator: (str) {
                         if (str.isEmpty)
-                          _tempExs[i].sets = '0';
+                          _tempExs[i].sets =
+                          1; //number of sets must be none zero
                         else if (str.contains(RegExp(r"(,|\.|-)"))) {
                           Scaffold.of(context).showSnackBar(SnackBar(
                             content: Text(
@@ -422,7 +469,8 @@ class CriteriaState extends State<Criterias> {
                           ));
                           return "Numbers only";
                         } else
-                          _tempExs[i].sets = _textControllers[j + 2].text;
+                          _tempExs[i].sets =
+                              int.parse(_textControllers[j + 2].text);
                       },
                     ),
                   ),
@@ -559,7 +607,6 @@ class CriteriaState extends State<Criterias> {
 
     Scaffold scaffold = new Scaffold(
       appBar: new AppBar(
-        backgroundColor: Colors.grey[800],
         title: new Text("Criteria Selection"),
         actions: <Widget>[
           Builder(
@@ -582,7 +629,8 @@ class CriteriaState extends State<Criterias> {
                           name: _tempExs[i].name,
                           weight: _tempExs[i].weight,
                           sets: _tempExs[i].sets,
-                          reps: _tempExs[i].reps));
+                          reps: _tempExs[i].reps,
+                          exHistory: _tempExs[i].exHistory));
                     }
                     widget.part.additionalNotes =
                         _addtionalNotesTextEditingController.text;

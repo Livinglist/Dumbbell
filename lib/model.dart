@@ -1,46 +1,97 @@
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
+
 import 'database/database.dart';
 
-enum TargetedBodyPart { Abs, Arm, Back, Chest, Leg, Shoulder, FullBody, Tricep, Bicep}
-enum MainTargetedBodyPart {Abs, Arm, Back, Chest, Leg, Shoulder, FullBody}
+enum TargetedBodyPart {
+  Abs,
+  Arm,
+  Back,
+  Chest,
+  Leg,
+  Shoulder,
+  FullBody,
+  Tricep,
+  Bicep
+}
+enum MainTargetedBodyPart { Abs, Arm, Back, Chest, Leg, Shoulder, FullBody }
 enum SetType { Regular, Drop, Super, Tri, Giant }
-enum AddOrEdit{Add, Edit}
-enum WorkoutType{Cardio, Weight}
+enum AddOrEdit { Add, Edit }
+enum WorkoutType { Cardio, Weight }
 
 class Exercise {
   String name;
-  String weight;
-  String sets;
+  double weight;
+  int sets;
   String reps;
+
+  //Map<DateTime, List<double>> exHistory;
+  Map exHistory;
 
   Exercise(
       {@required this.name,
       @required this.weight,
       @required this.sets,
-      @required this.reps}){
-    if(name == null) name = '';
-    if(weight == null) weight = '';
-    if(sets == null) sets = '';
-    if(reps == null) reps = '';
+        @required this.reps,
+        this.exHistory}) {
+    if (name == null) name = '';
+    if (weight == null) weight = 0;
+    if (sets == null) sets = 0;
+    if (reps == null) reps = '';
+    if (exHistory == null) {
+      exHistory = {};
+    }
   }
 
-  Exercise.fromJson(Map<String, dynamic> json)
-      : name = json["name"],
-        weight = json["weight"],
-        sets = json["sets"],
-        reps = json["reps"];
+  Exercise.fromJson(Map<String, dynamic> myJson) {
+    exHistory = Map();
+    name = myJson["name"];
+    weight = double.parse(myJson["weight"] == '' ? '0' : myJson["weight"]);
+    sets = int.parse(myJson["sets"].toString());
+    reps = myJson["reps"];
+    exHistory.addAll(myJson["history"] == null
+        ? {}
+        : jsonDecode(myJson['history']));
+  }
+
+//      : name = json["name"],
+//        weight = json["weight"],
+//        sets = int.parse(json["sets"]),
+//        reps = json["reps"],
+//        exHistory = json["history"] == null
+//            ? {DateTime.now():[12]}
+//            : jsonDecode(json["history"]);
 
   Map<String, dynamic> toJson() =>
-      {'name': name, 'weight': weight, 'sets': sets, 'reps': reps};
+      {
+        'name': name,
+        'weight': weight.toStringAsFixed(1),
+        'sets': sets,
+        'reps': reps,
+        'history': jsonEncode(exHistory)
+      };
 
-  Exercise.copyFromExercise(Exercise ex){
+  Exercise.copyFromExercise(Exercise ex) {
     name = ex.name;
     weight = ex.weight;
     sets = ex.sets;
     reps = ex.reps;
+    //exHistory = ex.exHistory; this seems to be shallow copy?
+    exHistory = {};
+    for (var key in ex.exHistory.keys) {
+      exHistory[key] = ex.exHistory[key];
+    }
+  }
+
+  Exercise.copyFromExerciseWithoutHistory(Exercise ex) {
+    name = ex.name;
+    weight = ex.weight;
+    sets = ex.sets;
+    reps = ex.reps;
+    //exHistory = ex.exHistory; this seems to be shallow copy?
+    exHistory = {};
   }
 }
 
@@ -78,41 +129,42 @@ class Part {
           break;
       }
     }
-    if(targetedBodyPart == null) targetedBodyPart = TargetedBodyPart.Abs;
-    if(setType == null) setType = SetType.Regular;
-    if(exercises == null){
+    if (targetedBodyPart == null) targetedBodyPart = TargetedBodyPart.Abs;
+    if (setType == null) setType = SetType.Regular;
+    if (exercises == null) {
       exercises = new List<Exercise>();
     }
-    if(additionalNotes==null){
+    if (additionalNotes == null) {
       additionalNotes = '';
     }
-    if(workoutType == null){
+    if (workoutType == null) {
       workoutType = WorkoutType.Weight;
     }
   }
 
-  static Map<bool, String> checkIfAnyNull(Part part){
-    if(part.setType == null){
+  static Map<bool, String> checkIfAnyNull(Part part) {
+    if (part.setType == null) {
       return {false: 'Please select a type of set.'};
     }
-    if(part.targetedBodyPart == null){
+    if (part.targetedBodyPart == null) {
       return {false: 'Please select a targeted body part.'};
     }
-    for(int i = 0; i< part.exercises.length; i++){
-      if(part.exercises[i].name == null || part.exercises[i].name.trim() == '' ){
+    for (int i = 0; i < part.exercises.length; i++) {
+      if (part.exercises[i].name == null ||
+          part.exercises[i].name.trim() == '') {
         return {false: 'Please complete the names of exercises.'};
       }
-      if(part.exercises[i].reps == null){
+      if (part.exercises[i].reps == null) {
         return {false: 'Reps of exercises need to be defined.'};
       }
-      if(part.exercises[i].sets == null){
+      if (part.exercises[i].sets == null) {
         return {false: 'Sets of exercises need to be defined.'};
       }
-      if(part.exercises[i].weight == null){
+      if (part.exercises[i].weight == null) {
         return {false: 'Weight of exercises need to be defined. '};
       }
     }
-    return {true:''};
+    return {true: ''};
   }
 
   Part.fromMap(Map<String, dynamic> json) {
@@ -124,12 +176,13 @@ class Part {
     additionalNotes = json['notes'];
     exercises =
         (json['exercises'] as List).map((e) => Exercise.fromJson(e)).toList();
+    print("ok???");
   }
 
   Map<String, dynamic> toMap() {
     return {
       'isDefaultName': defaultName,
-      'workoutType':workoutTypeToIntConverter(workoutType),
+      'workoutType': workoutTypeToIntConverter(workoutType),
       'setType': setTypeToIntConverter(setType),
       'bodyPart': targetedBodyPartToIntConverter(targetedBodyPart),
       'notes': additionalNotes,
@@ -137,13 +190,24 @@ class Part {
     };
   }
 
-  Part.copyFromPart(Part part){
+  Part.copyFromPart(Part part) {
     defaultName = part.defaultName;
     workoutType = part.workoutType;
     setType = part.setType;
     targetedBodyPart = part.targetedBodyPart;
     additionalNotes = part.additionalNotes;
-    exercises = part.exercises.map((ex)=>Exercise.copyFromExercise(ex)).toList();
+    exercises =
+        part.exercises.map((ex) => Exercise.copyFromExercise(ex)).toList();
+  }
+
+  Part.copyFromPartWithoutHistory(Part part) {
+    defaultName = part.defaultName;
+    workoutType = part.workoutType;
+    setType = part.setType;
+    targetedBodyPart = part.targetedBodyPart;
+    additionalNotes = part.additionalNotes;
+    exercises =
+        part.exercises.map((ex) => Exercise.copyFromExercise(ex)).toList();
   }
 }
 
@@ -167,28 +231,28 @@ class Routine {
     if (completionCount == null) {
       completionCount = 0;
     }
-    if(parts == null){
+    if (parts == null) {
       parts = new List<Part>();
     }
-    if(createdDate == null){
+    if (createdDate == null) {
       createdDate = DateTime.now();
     }
-    if(lastCompletedDate == null){
+    if (lastCompletedDate == null) {
       lastCompletedDate = DateTime.now();
     }
   }
 
-  static Map<bool, String> checkIfAnyNull(Routine routine){
-    for(int i = 0; i< routine.parts.length; i++){
+  static Map<bool, String> checkIfAnyNull(Routine routine) {
+    for (int i = 0; i < routine.parts.length; i++) {
       var map = Part.checkIfAnyNull(routine.parts[i]);
-      if(!map.keys.first){
+      if (!map.keys.first) {
         return map;
       }
     }
-    if(routine.routineName == null || routine.routineName.trim() == ''){
+    if (routine.routineName == null || routine.routineName.trim() == '') {
       return {false: 'Please give your routine a name. '};
     }
-    if(routine.mainTargetedBodyPart==null){
+    if (routine.mainTargetedBodyPart == null) {
       return {false: 'Please select a main targeted body part.'};
     }
     return {true: ''};
@@ -198,73 +262,95 @@ class Routine {
     id = map["Id"];
     routineName = map['RoutineName'];
     mainTargetedBodyPart = intToMainTargetedBodyPartConverter(map['MainPart']);
-    parts = map['Parts']!=null?(jsonDecode(map['Parts']) as List)
+    parts = map['Parts'] != null
+        ? (jsonDecode(map['Parts']) as List)
         .map((partMap) => Part.fromMap(partMap))
-        .toList():null;
-    lastCompletedDate = map['LastCompletedDate']!= null?stringToDateTimeConverter(map['LastCompletedDate']):DateTime.now();
-    createdDate = map['CreatedDate'] != null?stringToDateTimeConverter(map['CreatedDate']):DateTime.now();
+        .toList()
+        : null;
+    lastCompletedDate = map['LastCompletedDate'] != null
+        ? stringToDateTimeConverter(map['LastCompletedDate'])
+        : DateTime.now();
+    createdDate = map['CreatedDate'] != null
+        ? stringToDateTimeConverter(map['CreatedDate'])
+        : DateTime.now();
     completionCount = map['Count'];
   }
 
-  Map<String, dynamic> toMap(){
+  Map<String, dynamic> toMap() {
     return {
-      'Id':id,
-      'RoutineName':routineName,
-      'MainPart':mainTargetedBodyPartToIntConverter(mainTargetedBodyPart),
-      'Parts':jsonEncode(parts.map((part)=>part.toMap()).toList()),
-      'LastCompletedDate':dateTimeToStringConverter(lastCompletedDate),
-      'CreatedDate':dateTimeToStringConverter(createdDate),
-      'Count':completionCount
+      'Id': id,
+      'RoutineName': routineName,
+      'MainPart': mainTargetedBodyPartToIntConverter(mainTargetedBodyPart),
+      'Parts': jsonEncode(parts.map((part) => part.toMap()).toList()),
+      'LastCompletedDate': dateTimeToStringConverter(lastCompletedDate),
+      'CreatedDate': dateTimeToStringConverter(createdDate),
+      'Count': completionCount
     };
   }
 
-  Routine.copyFromRoutine(Routine routine){
+  Routine.copyFromRoutine(Routine routine) {
     id = routine.id;
     routineName = routine.routineName;
     mainTargetedBodyPart = routine.mainTargetedBodyPart;
-    parts = routine.parts.map((part)=>Part.copyFromPart(part)).toList();
+    parts = routine.parts.map((part) => Part.copyFromPart(part)).toList();
+    lastCompletedDate = routine.lastCompletedDate;
+    createdDate = routine.createdDate;
+    completionCount = routine.completionCount;
+  }
+
+  Routine.copyFromRoutineWithoutHistory(Routine routine) {
+    id = routine.id;
+    routineName = routine.routineName;
+    mainTargetedBodyPart = routine.mainTargetedBodyPart;
+    parts = routine.parts.map((part) => Part.copyFromPart(part)).toList();
     lastCompletedDate = routine.lastCompletedDate;
     createdDate = routine.createdDate;
     completionCount = routine.completionCount;
   }
 }
 
-WorkoutType intToWorkoutTypeConverter(int i){
+WorkoutType intToWorkoutTypeConverter(int i) {
   print('reached!!');
-  switch(i){
+  switch (i) {
     case 0:
       return WorkoutType.Cardio;
     case 1:
       return WorkoutType.Weight;
     default:
-      throw Exception('Inside of intToWorkoutTypeConverter, i is ${i.toString()}');
+      throw Exception(
+          'Inside of intToWorkoutTypeConverter, i is ${i.toString()}');
   }
 }
 
-int workoutTypeToIntConverter(WorkoutType wt){
-  switch(wt){
+int workoutTypeToIntConverter(WorkoutType wt) {
+  switch (wt) {
     case WorkoutType.Cardio:
       return 0;
     case WorkoutType.Weight:
       return 1;
     default:
-      throw Exception('Inside of WorkoutTypeToIntConverter, wt is ${wt.toString()}');
+      throw Exception(
+          'Inside of WorkoutTypeToIntConverter, wt is ${wt.toString()}');
   }
 }
 
 String dateTimeToStringConverter(DateTime date) {
-  return date.month.toString() +
-      '/' +
-      date.day.toString() +
-      '/' +
-      date.year.toString();
+//  return date.month.toString() +
+//      '/' +
+//      date.day.toString() +
+//      '/' +
+//      date.year.toString();
+  return date
+      .toString()
+      .split(' ')
+      .first;
 }
 
 DateTime stringToDateTimeConverter(String str) {
-  var strs = str.split('/');
-  DateTime date = new DateTime(int.tryParse(strs[2]) ?? 2019,
-      int.tryParse(strs[0]) ?? 1, int.tryParse(strs[1]) ?? 1);
-  return date;
+//  var strs = str.split('/');
+//  DateTime date = new DateTime(int.tryParse(strs[2]) ?? 2019,
+//      int.tryParse(strs[0]) ?? 1, int.tryParse(strs[1]) ?? 1);
+  return DateTime.parse(str);
 }
 
 int mainTargetedBodyPartToIntConverter(MainTargetedBodyPart targetedBodyPart) {
@@ -391,11 +477,13 @@ TargetedBodyPart intToTargetedBodyPartConverter(int i) {
     case 8:
       return TargetedBodyPart.Bicep;
     default:
-  throw Exception("Inside intToTargetedBodyPartConverter, i is ${i.toString()}");
+      throw Exception(
+          "Inside intToTargetedBodyPartConverter, i is ${i.toString()}");
   }
 }
 
-String mainTargetedBodyPartToStringConverter(MainTargetedBodyPart targetedBodyPart) {
+String mainTargetedBodyPartToStringConverter(
+    MainTargetedBodyPart targetedBodyPart) {
   switch (targetedBodyPart) {
     case MainTargetedBodyPart.Abs:
       return 'Abs';
@@ -475,7 +563,7 @@ String setTypeToStringConverter(SetType setType) {
   }
 }
 
-int setTypeToExerciseCountConverter(SetType setType){
+int setTypeToExerciseCountConverter(SetType setType) {
   switch (setType) {
     case SetType.Regular:
       return 1;
@@ -488,7 +576,8 @@ int setTypeToExerciseCountConverter(SetType setType){
     case SetType.Giant:
       return 4;
     default:
-      throw Exception('setTypeToExerciseCountConverter(), setType is '+ setType.toString());
+      throw Exception('setTypeToExerciseCountConverter(), setType is ' +
+          setType.toString());
   }
 }
 
@@ -533,130 +622,35 @@ Widget targetedBodyPartToImageConverter(TargetedBodyPart targetedBodyPart) {
   }
 }
 
-
 class RoutinesContext extends InheritedWidget {
   List<Routine> _routines;
-  List<Routine> get routines=>_routines;
-  set routines(List<Routine> routines){
+
+  List<Routine> get routines => _routines;
+
+  set routines(List<Routine> routines) {
     _routines = routines;
   }
 
   List<Routine> _recRoutines;
-  List<Routine> get recRoutines=>_recRoutines;
-  set recRoutines(List<Routine> routines){
+
+  List<Routine> get recRoutines => _recRoutines;
+
+  set recRoutines(List<Routine> routines) {
     _recRoutines = routines;
   }
 
   Routine _curRoutine;
   Routine get curRoutine => _curRoutine;
-  set curRoutine(Routine routine){
+
+  set curRoutine(Routine routine) {
     _curRoutine = routine;
   }
 
   Future<List<Routine>> getAllRoutines() async {
     return DBProvider.db.getAllRoutines();
-    if(_routines == null){
-    List<Exercise> ex1;
-    List<Exercise> ex2;
-    List<Exercise> ex3;
-    List<Part> p1;
-    List<Routine> r1;
-    ex1 = <Exercise>[
-      new Exercise(name: 'Curls', weight: '50', sets: '5', reps: '20'),
-    ];
-
-    ex2 = <Exercise>[
-      new Exercise(name: 'Burpee', weight: '0', sets: '5', reps: '30'),
-    ];
-
-    ex3 = <Exercise>[
-      new Exercise(name: 'Skull crusher', weight: '90', sets: '4', reps: '10'),
-      new Exercise(name: 'Incline curl', weight: '25', sets: '4', reps: '10'),
-    ];
-
-    p1 = <Part>[
-      new Part(
-          setType: SetType.Regular,
-          targetedBodyPart: TargetedBodyPart.Arm,
-          exercises: ex1),
-      new Part(
-          setType: SetType.Regular,
-          targetedBodyPart: TargetedBodyPart.Arm,
-          exercises: ex2),
-      new Part(
-          setType: SetType.Super,
-          targetedBodyPart: TargetedBodyPart.Arm,
-          exercises: ex3),
-    ];
-
-    List<Exercise> ex4;
-    List<Exercise> ex5;
-    List<Exercise> ex6;
-    List<Exercise> ex7;
-    List<Part> p2;
-    ex4 = <Exercise>[
-      new Exercise(name: 'Curls', weight: '50', sets: '5', reps: '20'),
-      new Exercise(name: 'Tricep extension', weight: '30', sets: '4', reps: '12'),
-    ];
-
-    ex5 = <Exercise>[
-      new Exercise(name: 'Burpee', weight: '0', sets: '5', reps: '30'),
-    ];
-
-    ex6 = <Exercise>[
-      new Exercise(name: 'Skull crusher', weight: '90', sets: '4', reps: '10'),
-      new Exercise(name: 'Incline curl', weight: '25', sets: '4', reps: '10'),
-    ];
-
-    ex7 = <Exercise>[
-      new Exercise(name: 'Skull crusher', weight: '90', sets: '4', reps: '10'),
-      new Exercise(name: 'Incline curl', weight: '25', sets: '4', reps: '10'),
-      new Exercise(name: 'Skull crusher', weight: '90', sets: '4', reps: '10'),
-      new Exercise(name: 'Incline curl', weight: '25', sets: '4', reps: '10'),
-    ];
-    p2 = <Part>[
-      new Part(
-          setType: SetType.Super,
-          targetedBodyPart: TargetedBodyPart.Arm,
-          exercises: ex4),
-      new Part(
-          setType: SetType.Regular,
-          targetedBodyPart: TargetedBodyPart.Arm,
-          exercises: ex5),
-      new Part(
-          setType: SetType.Super,
-          targetedBodyPart: TargetedBodyPart.Chest,
-          exercises: ex6),
-      new Part(
-          setType: SetType.Giant,
-          targetedBodyPart: TargetedBodyPart.Arm,
-          exercises: ex7),
-    ];
-
-
-    r1 = <Routine>[
-      new Routine(
-          createdDate: DateTime.now(),
-          mainTargetedBodyPart: MainTargetedBodyPart.Leg,
-          routineName: 'Arm workout',
-          parts: p1),
-      new Routine(
-          createdDate: DateTime.now(),
-          mainTargetedBodyPart: MainTargetedBodyPart.Shoulder,
-          routineName: 'Arm and Chest workout',
-          parts: p2)
-    ];
-
-    //routines = r1;
-    r1[0].id = await DBProvider.db.getLastId();
-    print('before database');
-
-    await DBProvider.db.newRoutine(r1[0]);
-    return DBProvider.db.getAllRoutines();
-    }
   }
 
-  Future<List<Routine>> getAllRecRoutines() async{
+  Future<List<Routine>> getAllRecRoutines() async {
     return DBProvider.db.getAllRecRoutines();
   }
 
@@ -693,15 +687,13 @@ class _RoutinesContextWrapper extends StatefulWidget {
 }
 
 class _RoutinesContextWrapperState extends State<_RoutinesContextWrapper> {
-
   List<Routine> routines = new List<Routine>();
   String _error;
 
   @override
-  void initState()  {
+  void initState() {
     super.initState();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -710,5 +702,14 @@ class _RoutinesContextWrapperState extends State<_RoutinesContextWrapper> {
       //routines: routines,
       child: widget.child,
     );
+  }
+}
+
+class StringHelper {
+  static String weightToString(double weight) {
+    if (weight - weight.truncate() != 0)
+      return weight.toStringAsFixed(1);
+    else
+      return weight.toStringAsFixed(0);
   }
 }

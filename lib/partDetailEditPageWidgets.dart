@@ -1,57 +1,65 @@
 import 'package:flutter/material.dart';
+
 import 'main.dart';
 import 'model.dart';
 import 'partEditPage.dart';
 
-class PartEditCard extends StatefulWidget {
+//class PartEditCard extends StatefulWidget {
+//  AddOrEdit addOrEdit;
+//  VoidCallback onDelete;
+//  StringCallback onTextEdited;
+//  bool isEmptyMove = true;
+//  Part part;
+//
+//  @override
+//  PartEditCardState createState() => new PartEditCardState();
+//
+//  PartEditCard(
+//      {Key key,
+//      @required this.onDelete,
+//      this.onTextEdited,
+//      @required this.part})
+//      : assert(onDelete != null),
+//        super(key: key);
+//}
+
+enum WhyFarther { harder, smarter, selfStarter, tradingCharter }
+
+class PartEditCard extends StatelessWidget {
+  final _defaultTextStyle = TextStyle(color: Colors.white);
+
+  //bool _visibility = true;
+  final textController = TextEditingController();
+  final textSetController = TextEditingController();
+  final textRepController = TextEditingController();
+  Part part;
+
   AddOrEdit addOrEdit;
   VoidCallback onDelete;
   StringCallback onTextEdited;
   bool isEmptyMove = true;
-  Part part;
 
-  @override
-  PartEditCardState createState() => new PartEditCardState();
+  //Part part;
 
   PartEditCard(
       {Key key,
-      @required this.onDelete,
-      this.onTextEdited,
-      @required this.part})
+        @required this.onDelete,
+        this.onTextEdited,
+        @required this.part})
       : assert(onDelete != null),
         super(key: key);
-}
 
-enum WhyFarther { harder, smarter, selfStarter, tradingCharter }
-
-class PartEditCardState extends State<PartEditCard> {
-  final _defaultTextStyle = TextStyle(color: Colors.white);
-  bool _visibility = true;
-  final textController = TextEditingController();
-  final textSetController = TextEditingController();
-  final textRepController = TextEditingController();
-  Part _part;
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    _part = widget.part;
-    print('reache buildered length is ' + _part.exercises.length.toString());
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return !_visibility
-        ? Container()
-        : Padding(
+    return Padding(
             padding: EdgeInsets.only(top: 6, bottom: 6, left: 8, right: 8),
             child: Card(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(8))),
                 elevation: 12,
-                color: _getColor(_part.setType),
+                color: _getColor(part.setType),
                 child: Padding(
                   padding:
                       EdgeInsets.only(top: 4, bottom: 4, left: 8, right: 8),
@@ -60,18 +68,18 @@ class PartEditCardState extends State<PartEditCard> {
                     children: <Widget>[
                       ListTile(
                         leading: targetedBodyPartToImageConverter(
-                            _part.targetedBodyPart ?? TargetedBodyPart.Arm),
+                            part.targetedBodyPart ?? TargetedBodyPart.Arm),
                         title: Text(
-                          _part.setType == null
+                          part.setType == null
                               ? 'To be edited'
-                              : setTypeToStringConverter(_part.setType),
+                              : setTypeToStringConverter(part.setType),
                           style: TextStyle(color: Colors.white),
                         ),
                         subtitle: Text(
-                          _part.targetedBodyPart == null
+                          part.targetedBodyPart == null
                               ? 'To be edited'
                               : targetedBodyPartToStringConverter(
-                                  _part.targetedBodyPart),
+                              part.targetedBodyPart),
                           style: TextStyle(color: Colors.white),
                         ),
                       ),
@@ -79,8 +87,8 @@ class PartEditCardState extends State<PartEditCard> {
                           padding: EdgeInsets.only(
                               left: 12, right: 12, top: 4, bottom: 4),
                           child: Container(
-                            height: _getHeight(_part.setType),
-                            child: _buildExerciseListView(_part),
+                            height: _getHeight(part.setType),
+                            child: _buildExerciseListView(part),
                           ) //_buildExerciseListView(_part)
                           ),
                       ButtonTheme.bar(
@@ -99,7 +107,7 @@ class PartEditCardState extends State<PartEditCard> {
                                       MaterialPageRoute(
                                           builder: (context) => PartEditPage(
                                                 addOrEdit: AddOrEdit.Edit,
-                                                part: _part,
+                                            part: part,
                                               )));
                                 }),
                             FlatButton(
@@ -124,10 +132,7 @@ class PartEditCardState extends State<PartEditCard> {
                                             ),
                                             new FlatButton(
                                               onPressed: () {
-                                                setState(() {
-                                                  _visibility = false;
-                                                  widget.onDelete();
-                                                });
+                                                onDelete();
                                                 Navigator.of(context).pop(true);
                                               },
                                               child: new Text('Yes'),
@@ -183,7 +188,7 @@ class PartEditCardState extends State<PartEditCard> {
               Expanded(
                 flex: 3,
                 child: Text(
-                  'Sets: ' + part.exercises[i].sets,
+                  'Sets: ' + part.exercises[i].sets.toString(),
                   style: _defaultTextStyle,
                 ),
               ),
@@ -203,26 +208,26 @@ class PartEditCardState extends State<PartEditCard> {
     }
   }
 
-  _navigateAndDisplaySelection(BuildContext context) async {
-    // Navigator.push returns a Future that will complete after we call
-    // Navigator.pop on the Selection Screen!
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => PartEditPage(part: _part)),
-    );
-
-    if (result != null) {
-      setState(() {
-        _part = result;
-      });
-    }
-
-    // After the Selection Screen returns a result, hide any previous snackbars
-    // and show the new result!
-//    Scaffold.of(context)
-//      ..repartCurrentSnackBar()
-//      ..showSnackBar(SnackBar(content: Text("$result")));
-  }
+//  _navigateAndDisplaySelection(BuildContext context) async {
+//    // Navigator.push returns a Future that will complete after we call
+//    // Navigator.pop on the Selection Screen!
+//    final result = await Navigator.push(
+//      context,
+//      MaterialPageRoute(builder: (context) => PartEditPage(part: part)),
+//    );
+//
+//    if (result != null) {
+//      setState(() {
+//        part = result;
+//      });
+//    }
+//
+//    // After the Selection Screen returns a result, hide any previous snackbars
+//    // and show the new result!
+////    Scaffold.of(context)
+////      ..repartCurrentSnackBar()
+////      ..showSnackBar(SnackBar(content: Text("$result")));
+//  }
 
   Color _getColor(SetType setType) {
     print('reached _getColor');

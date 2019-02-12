@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'main.dart';
+
+import 'database/database.dart';
 import 'model.dart';
 import 'partDetailEditPageWidgets.dart';
 import 'partEditPage.dart';
-import 'database/database.dart';
 import 'routineDetailPage.dart';
 
 List<String> texts = <String>['asd', 'asd'];
@@ -33,17 +33,14 @@ class RoutineEditPageState extends State<RoutineEditPage> {
 
   @override
   void initState() {
-    // TODO: implement initState
-
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     final RoutinesContext roc = RoutinesContext.of(context);
     final List<Routine> routines = RoutinesContext.of(context).routines;
-    if(!_initialized) {
+    if (!_initialized) {
       curRoutineCopy =
           Routine.copyFromRoutine(RoutinesContext
               .of(context)
@@ -51,19 +48,15 @@ class RoutineEditPageState extends State<RoutineEditPage> {
       if (widget.addOrEdit == AddOrEdit.Edit) {
         selectedTB = curRoutineCopy.mainTargetedBodyPart;
         textEditingController.text = curRoutineCopy.routineName;
-      } else if (widget.addOrEdit == AddOrEdit.Add) {
-
-      }
+      } else if (widget.addOrEdit == AddOrEdit.Add) {}
       _initialized = true;
     }
-
 
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
         appBar: AppBar(
           title: Text('Design Your Rouitne'),
-          backgroundColor: Colors.grey[800],
           actions: <Widget>[
             widget.addOrEdit == AddOrEdit.Edit
                 ? IconButton(
@@ -104,6 +97,7 @@ class RoutineEditPageState extends State<RoutineEditPage> {
                     onPressed: () {
                       setState(() {
                         if (selectedTB == null) {
+                          //Newly created routine
                           showDialog(
                             context: context,
                             builder: (context) => new AlertDialog(
@@ -128,7 +122,11 @@ class RoutineEditPageState extends State<RoutineEditPage> {
                             routines.add(curRoutineCopy);
                             DBProvider.db.newRoutine(curRoutineCopy);
                             Navigator.pop(context);
-                            Navigator.push(context, MaterialPageRoute(builder: (BuildContext context)=>RoutineDetailPage()));
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (BuildContext context) =>
+                                        RoutineDetailPage()));
                           } else {
                             roc.curRoutine = curRoutineCopy;
                             int indexOfRoutine = roc.routines
@@ -151,6 +149,7 @@ class RoutineEditPageState extends State<RoutineEditPage> {
           child: _columnBuilder(),
         ),
         floatingActionButton: new FloatingActionButton.extended(
+            backgroundColor: Colors.blueGrey[700],
             icon: Icon(Icons.add),
             label: Text('Add an exercise'),
             onPressed: () {
@@ -166,7 +165,7 @@ class RoutineEditPageState extends State<RoutineEditPage> {
                               onTap: () {
                                 setState(() {
                                   Navigator.pop(context);
-                                  curRoutineCopy.parts.add(new Part(
+                                  curRoutineCopy.parts.add(Part(
                                       workoutType: WorkoutType.Weight,
                                       setType: null,
                                       targetedBodyPart: null,
@@ -175,9 +174,9 @@ class RoutineEditPageState extends State<RoutineEditPage> {
                                       _scrollController
                                           .position.maxScrollExtent,
                                       duration:
-                                          const Duration(milliseconds: 300),
+                                      const Duration(milliseconds: 300),
                                       curve: Curves.easeOut);
-                                  _startTimeout(200);
+                                  _startTimeout(300);
                                 });
                               }),
                           ListTile(
@@ -186,7 +185,7 @@ class RoutineEditPageState extends State<RoutineEditPage> {
                             onTap: () {
                               setState(() {
                                 Navigator.pop(context);
-                                curRoutineCopy.parts.add(new Part(
+                                curRoutineCopy.parts.add(Part(
                                     workoutType: WorkoutType.Cardio,
                                     setType: null,
                                     targetedBodyPart: null,
@@ -195,7 +194,7 @@ class RoutineEditPageState extends State<RoutineEditPage> {
                                     _scrollController.position.maxScrollExtent,
                                     duration: const Duration(milliseconds: 300),
                                     curve: Curves.easeOut);
-                                _startTimeout(200);
+                                _startTimeout(300);
                               });
                             },
                           ),
@@ -209,22 +208,29 @@ class RoutineEditPageState extends State<RoutineEditPage> {
   }
 
   Widget _columnBuilder() {
-    List<Widget> _exerciseDetails = <Widget>[];
-    print('the length of parts:: '+ curRoutineCopy.parts.length.toString());
-    _exerciseDetails
+    List<Widget> exerciseDetails = <Widget>[];
+    print('the length of parts:: ' + curRoutineCopy.parts.length.toString());
+    exerciseDetails
         .add(Form(key: formKey, child: _routineDescriptionEditCard()));
-    _exerciseDetails.addAll(curRoutineCopy.parts.map((part) => PartEditCard(
-          onDelete: () {
-            curRoutineCopy.parts.remove(part);
-          },
-          part: part,
-        )));
-    _exerciseDetails.add(Container(
+    if (curRoutineCopy.parts.length != 0) {
+      exerciseDetails.addAll(curRoutineCopy.parts.map((part) =>
+          PartEditCard(
+            onDelete: () {
+              setState(() {
+                curRoutineCopy.parts.remove(part);
+              });
+            },
+            part: part,
+          )));
+    }
+    exerciseDetails.add(Container(
       color: Colors.transparent,
       height: 60,
     ));
 
-    return new Column(children: _exerciseDetails);
+    return Column(
+      children: exerciseDetails,
+    );
   }
 
   Widget _routineDescriptionEditCard() {
@@ -362,21 +368,17 @@ class RoutineEditPageState extends State<RoutineEditPage> {
   var ms = const Duration(milliseconds: 1);
 
   _startTimeout([int milliseconds]) {
-    print("_startTimeout the length of parts ${curRoutineCopy.parts.length.toString()}");
-    print("_startTimeout ${curRoutineCopy.parts.last.workoutType.toString()}");
     var duration = milliseconds == null ? timeout : ms * milliseconds;
     return new Timer(duration, () {
-      setState(() {
-        print("ok");
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => PartEditPage(
-                      addOrEdit: AddOrEdit.Add,
-                      part: curRoutineCopy.parts.last,
-                      curRoutine: curRoutineCopy,
-                    )));
-      });
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  PartEditPage(
+                    addOrEdit: AddOrEdit.Add,
+                    part: curRoutineCopy.parts.last,
+                    curRoutine: curRoutineCopy,
+                  )));
     });
   }
 }

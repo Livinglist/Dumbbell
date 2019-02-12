@@ -1,27 +1,35 @@
 {
   "project_info": {
-    "project_number": "422738994350",
-    "firebase_url": "https://workout-planner-76f1f.firebaseio.com",
-    "project_id": "workout-planner-76f1f",
-    "storage_bucket": "workout-planner-76f1f.appspot.com"
+    "project_number": "151876813222",
+    "firebase_url": "https://workout-planner-49ab8.firebaseio.com",
+    "project_id": "workout-planner-49ab8",
+    "storage_bucket": "workout-planner-49ab8.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:422738994350:android:ac2ec1249520a11d",
+        "mobilesdk_app_id": "1:151876813222:android:0a53063453efe5fe",
         "android_client_info": {
           "package_name": "jiaqifeng.workoutplanner"
         }
       },
       "oauth_client": [
         {
-          "client_id": "422738994350-8mq8pf0bsunv330lv7avdaa6dkhohf23.apps.googleusercontent.com",
+          "client_id": "151876813222-0hkmdhmcdr3jhbop67ehj560mnjdcej6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "jiaqifeng.workoutplanner",
+            "certificate_hash": "ef13065249013badfc9d54f930da91abe0cfef7f"
+          }
+        },
+        {
+          "client_id": "151876813222-ffmv3crqe5dba7neu8ghbft56j72f8ss.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyBR4PkpQK1-VPWeP1kE3LT9roMQklixnOo"
+          "current_key": "AIzaSyB4wIrZeleGGPHjmWSmHEJYSbcdi9159Dc"
         }
       ],
       "services": {
@@ -29,8 +37,13 @@
           "status": 1
         },
         "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "151876813222-ffmv3crqe5dba7neu8ghbft56j72f8ss.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         },
         "ads_service": {
           "status": 2

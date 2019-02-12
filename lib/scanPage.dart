@@ -2,11 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:barcode_scan/barcode_scan.dart';
-import 'model.dart';
+
 import 'category.dart';
 import 'database/database.dart';
+import 'model.dart';
+//import 'package:barcode_scan/barcode_scan.dart';
+
 
 class ScanPage extends StatefulWidget {
   @override
@@ -26,7 +27,6 @@ class ScanPageState extends State<ScanPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: new AppBar(
-          backgroundColor: Colors.grey[800],
           title: new Text('Scan'),
         ),
         body: new Center(
@@ -78,23 +78,24 @@ class ScanPageState extends State<ScanPage> {
   }
 
   Future scan() async {
-    try {
-      String barcode = await BarcodeScanner.scan();
-      setState(() => this.barcode = barcode);
-    } on PlatformException catch (e) {
-      if (e.code == BarcodeScanner.CameraAccessDenied) {
-        setState(() {
-          this.barcode = 'The user did not grant the camera permission!';
-        });
-      } else {
-        setState(() => this.barcode = 'Unknown error: $e');
-      }
-    } on FormatException {
-      setState(() => this.barcode =
-          'null (User returned using the "back"-button before scanning anything. Result)');
-    } catch (e) {
-      setState(() => this.barcode = 'Unknown error: $e');
-    }
+//    try {
+//      String barcode = await BarcodeScanner.scan();
+//      setState(() => this.barcode = barcode);
+//    } on PlatformException catch (e) {
+//      if (e.code == BarcodeScanner.CameraAccessDenied) {
+//        setState(() {
+//          this.barcode = 'The user did not grant the camera permission!';
+//        });
+//      } else {
+//        setState(() => this.barcode = 'Unknown error: $e');
+//      }
+//    } on FormatException {
+//      setState(() => this.barcode =
+//          'null (User returned using the "back"-button before scanning anything. Result)');
+//    } catch (e) {
+//      setState(() => this.barcode = 'Unknown error: $e');
+//    }
+//    print(this.barcode);
   }
 
   bool _isValidRoutineJsonStr(String str) {

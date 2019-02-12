@@ -1,17 +1,22 @@
 import 'dart:async';
 
-import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
-import 'model.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import 'database/database.dart';
+import 'model.dart';
 
 typedef int Operation(int);
 
 class RoutineStepPage extends StatefulWidget {
+  VoidCallback celebrateCallback;
+
+  RoutineStepPage({this.celebrateCallback});
+
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
-    return new RoutineStepPageState();
+    return new _RoutineStepPageState();
   }
 }
 
@@ -19,10 +24,12 @@ const LabelTextStyle = TextStyle(color: Colors.white70);
 const SmallBoldTextStyle =
     TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold);
 
-class RoutineStepPageState extends State<RoutineStepPage> {
+class _RoutineStepPageState extends State<RoutineStepPage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final ScrollController _scrollController = new ScrollController();
   double maxOffset;
   Routine routine;
+  Routine routineCopy;
   MediaQueryData queryData;
   bool upEnabled = true;
   bool downEnabled = true;
@@ -30,11 +37,17 @@ class RoutineStepPageState extends State<RoutineStepPage> {
   int _curExIndex = 0;
   Widget _fabIcon;
   String _title;
-  int _currentStep = 0;
   List<int> _currentSteps;
   bool _initialized = false;
   List<int> _setsLeft;
   bool _fabEnabled = false;
+
+  //List<Part> _partsCopy;
+  int totalLength = 0;
+  int postion = 0;
+  bool shouldIncre = false;
+  bool shouldDecre = false;
+  bool shouldBreak = false;
 
   var timeout = const Duration(seconds: 1);
   var ms = const Duration(milliseconds: 1);
@@ -54,9 +67,38 @@ class RoutineStepPageState extends State<RoutineStepPage> {
     });
   }
 
+  startIncTimeout(Exercise ex, int milliseconds) {
+    var duration =
+    milliseconds == null ? Duration(seconds: 1) : ms * milliseconds;
+    return new Timer(duration, () {
+      if (shouldIncre) {
+        setState(() {
+          ex.weight = _increWeight(ex.weight);
+        });
+        startIncTimeout(ex, milliseconds);
+      } else {
+        //DBProvider.db.updateRoutine(routine);
+      }
+    });
+  }
+
+  startDecTimeout(Exercise ex, int milliseconds) {
+    var duration =
+    milliseconds == null ? Duration(seconds: 1) : ms * milliseconds;
+    return new Timer(duration, () {
+      if (shouldDecre) {
+        setState(() {
+          ex.weight = _decreWeight(ex.weight);
+        });
+        startDecTimeout(ex, milliseconds);
+      } else {
+        //DBProvider.db.updateRoutine(routine);
+      }
+    });
+  }
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
 
@@ -80,57 +122,121 @@ class RoutineStepPageState extends State<RoutineStepPage> {
 
     if (!_initialized) {
       _currentSteps = routine.parts.map((p) => 0).toList();
-      _setsLeft =
-          routine.parts.map((p) => int.parse(p.exercises.first.sets)-1).toList();
+      _setsLeft = routine.parts.map((p) => p.exercises.first.sets - 1).toList();
+
+      routineCopy = Routine.copyFromRoutine(routine);
+
+      String tempDateStr = dateTimeToStringConverter(DateTime(
+          DateTime
+              .now()
+              .year, DateTime
+          .now()
+          .month, DateTime
+          .now()
+          .day));
+      for (var part in routineCopy.parts) {
+        totalLength += part.exercises.length * part.exercises.first.sets;
+
+        for (var ex in part.exercises) {
+          if (ex.exHistory.containsKey(tempDateStr)) {
+            ex.exHistory.remove(tempDateStr);
+          }
+        }
+      }
+
       _initialized = true;
     }
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _title,
-          style: TextStyle(color: Colors.white54),
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        key: _scaffoldKey,
+        appBar: AppBar(
+          title: Text(
+            _title,
+            style: TextStyle(color: Colors.white54),
+          ),
+          bottom: PreferredSize(
+              child: LinearProgressIndicator(
+                value: postion / totalLength,
+              ),
+              preferredSize: null),
+          backgroundColor: _appBarColors,
         ),
-        backgroundColor: _appBarColors,
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.arrow_upward),
+        body: _mainLayout(),
+        floatingActionButton: _fabEnabled
+            ? FloatingActionButton(
+            child: Text('+1'),
             onPressed: () {
-              //if(_scrollController.offset != 0)
-              if (upEnabled) {
-                _scrollController.animateTo(
-                    _scrollController.offset - queryData.size.height,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOut);
-                upEnabled = false;
-                setState(() {
-                  if (_curExIndex != 0) _curExIndex--;
-                });
-                startUpTimeout(350);
-                _fabEnabled = true;
-              } else {}
-            },
-          )
-        ],
-      ),
-      body: _mainLayout(),
-      floatingActionButton: _fabEnabled?FloatingActionButton(
-          child: Text('+1'),
-          onPressed: () {
               showDialog(
                 context: context,
-                builder: (context) => new AlertDialog(
-                      title: new Text('Congrats! You finished it!'),
-                      content: new Text('Add one to the completion counter?'),
+                builder: (context) =>
+                    AlertDialog(
+                      title: Text('Congrats! You finished it!'),
+                      content: Text('Add one to the completion counter?'),
                       actions: <Widget>[
-                        new FlatButton(
+                        FlatButton(
                           onPressed: () => Navigator.of(context).pop(false),
-                          child: new Text("Nah"),
+                          child: Text("Nah"),
                         ),
-                        new FlatButton(
-                          onPressed: () {
+                        FlatButton(
+                          onPressed: () async {
                             Navigator.of(context).pop(true);
-                            routine.completionCount++;
-                            DBProvider.db.updateRoutine(routine);
+
+                            routineCopy.completionCount++;
+                            RoutinesContext
+                                .of(context)
+                                .routines
+                                .removeWhere((r) => r.id == routineCopy.id);
+                            RoutinesContext
+                                .of(context)
+                                .routines
+                                .add(Routine.copyFromRoutine(routineCopy));
+                            RoutinesContext
+                                .of(context)
+                                .curRoutine =
+                                RoutinesContext
+                                    .of(context)
+                                    .routines
+                                    .last;
+
+                            DBProvider.db.updateRoutine(
+                                RoutinesContext
+                                    .of(context)
+                                    .curRoutine);
+
+//                                ///update the database if haven't yet
+//                                if (dailyRank > -1) {//== 0
+//                                  var docs = await Firestore.instance
+//                                      .collection('dailyData')
+//                                      .getDocuments();
+//                                  var ref = docs.documents.first.reference;
+//                                  Firestore.instance
+//                                      .runTransaction((transaction) async {
+//                                    DocumentSnapshot freshSnap =
+//                                        await transaction.get(ref);
+//                                    await transaction.update(
+//                                        freshSnap.reference, {
+//                                      "totalCount": freshSnap["totalCount"] + 1
+//                                    }).whenComplete(() async {
+//                                      dailyRank = await ref.get().then(
+//                                              (docSnapshot) =>
+//                                          docSnapshot["totalCount"]);
+//                                    });
+//
+//
+//
+//                                    ///TODO: why can't it fetch the latest updated value??
+//                                    print("dailyRan value is $dailyRank");
+//                                    dailyRankInfo =
+//                                        DateTime.now().toUtc().toString() +
+//                                            '/' +
+//                                            dailyRank.toString();
+//                                    setDailyRankInfo(dailyRankInfo);
+//                                  });
+//                                }
+
+                            widget.celebrateCallback();
+
                             Navigator.pop(context);
                           },
                           child: new Text(
@@ -141,7 +247,9 @@ class RoutineStepPageState extends State<RoutineStepPage> {
                       ],
                     ),
               );
-          }):Container(),
+            })
+            : Container(),
+      ),
     );
   }
 
@@ -171,9 +279,9 @@ class RoutineStepPageState extends State<RoutineStepPage> {
                         padding: EdgeInsets.only(top: 8),
                         child: _buildExerciseDetailRows(
                             i,
-                            routine.parts[i].exercises,
-                            routine.parts[i].setType,
-                            routine.parts[i].workoutType),
+                            routineCopy.parts[i].exercises,
+                            routineCopy.parts[i].setType,
+                            routineCopy.parts[i].workoutType),
                       ))
                 ],
               ),
@@ -210,15 +318,14 @@ class RoutineStepPageState extends State<RoutineStepPage> {
           curve: Curves.easeOut);
       setState(() {
         if (_curExIndex < routine.parts.length) {
+          //TODO: delete this part
           _curExIndex++;
-          if(_curExIndex == routine.parts.length){
+          if (_curExIndex == routine.parts.length) {
             _fabEnabled = true;
           }
-//          if (_curExIndex != routine.parts.length &&
-//              _setsLeft[_curExIndex] != 0) _fabEnabled = true;
         }
       });
-    }else{
+    } else {
       _scrollController.animateTo(
           _scrollController.offset + queryData.size.height,
           duration: const Duration(milliseconds: 300),
@@ -231,21 +338,55 @@ class RoutineStepPageState extends State<RoutineStepPage> {
     }
   }
 
+  void _updateExHistory(int curEx, int setLeft) {
+    String tempDateStr = dateTimeToStringConverter(DateTime(
+        DateTime
+            .now()
+            .year, DateTime
+        .now()
+        .month, DateTime
+        .now()
+        .day));
+    if (routineCopy.parts[_curExIndex].exercises[curEx].exHistory
+        .containsKey(tempDateStr)) {
+      routineCopy
+          .parts[_curExIndex].exercises[curEx].exHistory[tempDateStr] +=
+          '/' +
+              routineCopy.parts[_curExIndex].exercises[curEx].weight.toString();
+    } else {
+      routineCopy.parts[_curExIndex].exercises[curEx].exHistory[tempDateStr] =
+          routineCopy.parts[_curExIndex].exercises[curEx].weight.toString();
+    }
+  }
+
   Widget _buildExerciseDetailRows(
       int i, List<Exercise> exs, SetType setType, WorkoutType workoutType) {
     List<Widget> _widgets = new List<Widget>();
     if (true) {
       _widgets.add(Stepper(
+        controlsBuilder: (context, {onStepContinue, onStepCancel}) {
+          return ButtonBar(
+            alignment: MainAxisAlignment.center,
+            children: <Widget>[
+              RaisedButton(
+                child: Text('Next'),
+                onPressed: onStepContinue,
+              )
+            ],
+          );
+        },
         currentStep: _currentSteps[i],
         onStepContinue: () {
+          _updateExHistory(_currentSteps[i], _setsLeft[i]);
+          postion++;
           setState(() {
             if (_currentSteps[i] < exs.length - 1) {
-              _currentSteps[i] += 1;
+              _currentSteps[i]++;
             } else {
-              if(_setsLeft[i]==0){
+              if (_setsLeft[i] == 0) {
                 _scrollDown();
                 //_fabEnabled = true;
-              }else {
+              } else {
                 _currentSteps[i] = 0;
                 _setsLeft[i]--;
               }
@@ -254,343 +395,14 @@ class RoutineStepPageState extends State<RoutineStepPage> {
         },
         steps: exs
             .map((ex) => Step(
-                  title: Text(ex.name),
-                  content: _buildStepContent(i, ex, setType, workoutType),
-                ))
+          title: Text(ex.name),
+          content: _buildStepContent(i, ex, setType, workoutType),
+        ))
             .toList(),
       ));
-    } else {
-      for (int i = 0; i < exs.length; i++) {
-        _widgets.add(Expanded(
-            child: Padding(
-          padding: EdgeInsets.only(top: 12, bottom: 12),
-          child: ListTile(
-            title: Row(
-              //mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                Expanded(
-                  flex: 1,
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.info,
-                      color: Colors.white,
-                    ),
-                    onPressed: () {
-                      _launchURL(exs[i].name);
-                    },
-                  ),
-                ),
-                Expanded(
-                  flex: 9,
-                  child: Text(
-                    exs[i].name,
-                    maxLines: 2,
-                    overflow: TextOverflow.fade,
-                    style: TextStyle(color: Colors.white, fontSize: 24),
-                  ),
-                ),
-              ],
-            ),
-            subtitle: Column(
-              children: <Widget>[
-                Row(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Expanded(
-                        child: Center(
-                          child: RichText(
-                            text: TextSpan(children: <TextSpan>[
-                              TextSpan(text: 'Weight: ', style: LabelTextStyle),
-                            ]),
-                          ),
-                        ),
-                      ),
-                    ]),
-                Row(children: <Widget>[
-                  Expanded(
-                      child: RaisedButton(
-                          child: Text(
-                            '-',
-                            style: TextStyle(fontSize: 24),
-                          ),
-                          shape: CircleBorder(),
-                          onPressed: () {
-                            String tempWeight =
-                                _tryParse(exs[i].weight, (d) => --d);
-                            if (tempWeight != null) {
-                              setState(() {
-                                exs[i].weight = tempWeight;
-                              });
-                            }
-                            DBProvider.db.updateRoutine(routine);
-                          })),
-                  Expanded(
-                    child: Center(
-                      child: RichText(
-                        text: TextSpan(children: <TextSpan>[
-                          TextSpan(
-                              text: exs[i].weight,
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: _getWeightFontSize(setType),
-                                  fontWeight: FontWeight.bold)),
-                        ]),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                      child: RaisedButton(
-                          child: Text(
-                            '+',
-                            style: TextStyle(fontSize: 24),
-                          ),
-                          shape: CircleBorder(),
-                          onPressed: () {
-                            String tempWeight =
-                                _tryParse(exs[i].weight, (d) => ++d);
-                            if (tempWeight != null) {
-                              setState(() {
-                                exs[i].weight = tempWeight;
-                              });
-                            }
-                            DBProvider.db.updateRoutine(routine);
-                          })),
-                ]),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Center(
-                        child: RichText(
-                          text: TextSpan(children: <TextSpan>[
-                            TextSpan(text: 'Sets: ', style: LabelTextStyle),
-                          ]),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Center(
-                          child: RichText(
-                        text: TextSpan(children: <TextSpan>[
-                          TextSpan(
-                              text: workoutType == WorkoutType.Weight
-                                  ? 'Reps: '
-                                  : 'Seconds: ',
-                              style: LabelTextStyle),
-                        ]),
-                      )),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Center(
-                        child: RichText(
-                          text: TextSpan(children: <TextSpan>[
-                            TextSpan(
-                                text: exs[i].sets,
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: _getSetRepFontSize(setType),
-                                    fontWeight: FontWeight.bold))
-                          ]),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                        child: Center(
-                      child: RichText(
-                        text: TextSpan(children: <TextSpan>[
-                          TextSpan(
-                              text: exs[i].reps,
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: _getSetRepFontSize(setType),
-                                  fontWeight: FontWeight.bold))
-                        ]),
-                      ),
-                    )),
-                  ],
-                )
-              ],
-            ),
-          ),
-        )));
-      }
     }
 
     return Column(children: _widgets);
-    return ScrollConfiguration(
-      behavior: MyBehavior(),
-      child: ListView.separated(
-          physics: ScrollPhysics(),
-          separatorBuilder: (context, i) {
-            return Divider();
-          },
-          itemCount: exs.length,
-          itemBuilder: (context, i) {
-            return Padding(
-              padding: EdgeInsets.only(top: 12, bottom: 12),
-              child: ListTile(
-                title: Row(
-                  //mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: <Widget>[
-                    Expanded(
-                      flex: 1,
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.info,
-                          color: Colors.white,
-                        ),
-                        onPressed: () {
-                          _launchURL(exs[i].name);
-                        },
-                      ),
-                    ),
-                    Expanded(
-                      flex: 9,
-                      child: Text(
-                        exs[i].name,
-                        maxLines: 2,
-                        overflow: TextOverflow.fade,
-                        style: TextStyle(color: Colors.white, fontSize: 24),
-                      ),
-                    ),
-                  ],
-                ),
-                subtitle: Column(
-                  children: <Widget>[
-                    Row(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          Expanded(
-                            child: Center(
-                              child: RichText(
-                                text: TextSpan(children: <TextSpan>[
-                                  TextSpan(
-                                      text: 'Weight: ', style: LabelTextStyle),
-                                ]),
-                              ),
-                            ),
-                          ),
-                        ]),
-                    Row(children: <Widget>[
-                      Expanded(
-                          child: RaisedButton(
-                              child: Text(
-                                '-',
-                                style: TextStyle(fontSize: 24),
-                              ),
-                              shape: CircleBorder(),
-                              onPressed: () {
-                                String tempWeight =
-                                    _tryParse(exs[i].weight, (d) => --d);
-                                if (tempWeight != null) {
-                                  setState(() {
-                                    exs[i].weight = tempWeight;
-                                  });
-                                }
-                                DBProvider.db.updateRoutine(routine);
-                              })),
-                      Expanded(
-                        child: Center(
-                          child: RichText(
-                            text: TextSpan(children: <TextSpan>[
-                              TextSpan(
-                                  text: exs[i].weight,
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 72,
-                                      fontWeight: FontWeight.bold)),
-                            ]),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                          child: RaisedButton(
-                              child: Text(
-                                '+',
-                                style: TextStyle(fontSize: 24),
-                              ),
-                              shape: CircleBorder(),
-                              onPressed: () {
-                                String tempWeight =
-                                    _tryParse(exs[i].weight, (d) => ++d);
-                                if (tempWeight != null) {
-                                  setState(() {
-                                    exs[i].weight = tempWeight;
-                                  });
-                                }
-                                DBProvider.db.updateRoutine(routine);
-                              })),
-                    ]),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: Center(
-                            child: RichText(
-                              text: TextSpan(children: <TextSpan>[
-                                TextSpan(text: 'Sets: ', style: LabelTextStyle),
-                              ]),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Center(
-                              child: RichText(
-                            text: TextSpan(children: <TextSpan>[
-                              TextSpan(
-                                  text: workoutType == WorkoutType.Weight
-                                      ? 'Reps: '
-                                      : 'Seconds: ',
-                                  style: LabelTextStyle),
-                            ]),
-                          )),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: Center(
-                            child: RichText(
-                              text: TextSpan(children: <TextSpan>[
-                                TextSpan(
-                                    text: exs[i].sets,
-                                    style: SmallBoldTextStyle)
-                              ]),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                            child: Center(
-                          child: RichText(
-                            text: TextSpan(children: <TextSpan>[
-                              TextSpan(
-                                  text: exs[i].reps, style: SmallBoldTextStyle)
-                            ]),
-                          ),
-                        )),
-                      ],
-                    )
-                  ],
-                ),
-//              subtitle: RichText(
-//                text: TextSpan(
-//                    style: TextStyle(color: Colors.white),
-//                    children: <TextSpan>[
-//                      TextSpan(text: ),
-//                    ]
-//                ),
-//              )
-              ),
-            );
-          }),
-    );
   }
 
   Widget _buildStepContent(
@@ -606,7 +418,7 @@ class RoutineStepPageState extends State<RoutineStepPage> {
                 color: Colors.white,
               ),
               onPressed: () {
-                _launchURL(ex.name);
+                _launchURL(ex.name); //TODO: detect the internet availability
               },
             ),
           ),
@@ -632,28 +444,35 @@ class RoutineStepPageState extends State<RoutineStepPage> {
           Row(children: <Widget>[
             Expanded(
                 flex: 2,
-                child: RaisedButton(
-                    child: Text(
-                      '-',
-                      style: TextStyle(fontSize: 24),
-                    ),
-                    shape: CircleBorder(),
-                    onPressed: () {
-                      String tempWeight = _tryParse(ex.weight, (d) => --d);
-                      if (tempWeight != null) {
+                child: GestureDetector(
+                  onLongPress: () {
+                    shouldDecre = true;
+
+                    startDecTimeout(ex, 50);
+                  },
+                  onLongPressUp: () {
+                    shouldDecre = false;
+                  },
+                  child: RaisedButton(
+                      child: Text(
+                        '-',
+                        style: TextStyle(fontSize: 24),
+                      ),
+                      shape: CircleBorder(),
+                      onPressed: () {
                         setState(() {
-                          ex.weight = tempWeight;
+                          ex.weight = _decreWeight(ex.weight);
                         });
-                      }
-                      DBProvider.db.updateRoutine(routine);
-                    })),
+                        //DBProvider.db.updateRoutine(routine);
+                      }),
+                )),
             Expanded(
               flex: 6,
               child: Center(
                 child: RichText(
                   text: TextSpan(children: <TextSpan>[
                     TextSpan(
-                        text: ex.weight,
+                        text: StringHelper.weightToString(ex.weight),
                         style: TextStyle(
                             color: Colors.white,
                             fontSize: _getWeightFontSize(setType),
@@ -663,22 +482,29 @@ class RoutineStepPageState extends State<RoutineStepPage> {
               ),
             ),
             Expanded(
-              flex: 2,
-                child: RaisedButton(
-                    child: Text(
-                      '+',
-                      style: TextStyle(fontSize: 24),
-                    ),
-                    shape: CircleBorder(),
-                    onPressed: () {
-                      String tempWeight = _tryParse(ex.weight, (d) => ++d);
-                      if (tempWeight != null) {
+                flex: 2,
+                child: GestureDetector(
+                  onLongPress: () {
+                    shouldIncre = true;
+
+                    startIncTimeout(ex, 50);
+                  },
+                  onLongPressUp: () {
+                    shouldIncre = false;
+                  },
+                  child: RaisedButton(
+                      child: Text(
+                        '+',
+                        style: TextStyle(fontSize: 24),
+                      ),
+                      shape: CircleBorder(),
+                      onPressed: () {
                         setState(() {
-                          ex.weight = tempWeight;
+                          ex.weight = _increWeight(ex.weight);
                         });
-                      }
-                      DBProvider.db.updateRoutine(routine);
-                    })),
+                        //DBProvider.db.updateRoutine(routine);
+                      }),
+                )),
           ]),
           Row(
             children: <Widget>[
@@ -741,6 +567,30 @@ class RoutineStepPageState extends State<RoutineStepPage> {
     );
   }
 
+  Future<bool> _onWillPop() {
+    return showDialog(
+      context: context,
+      builder: (context) =>
+      new AlertDialog(
+        title: new Text('Too soon to quit.😑'),
+        content: new Text('Your progress will not be saved.'),
+        actions: <Widget>[
+          new FlatButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: new Text('Ok ok'),
+          ),
+          new FlatButton(
+            onPressed: () {
+              Navigator.of(context).pop(true);
+            },
+            child: new Text('I quit'),
+          ),
+        ],
+      ),
+    ) ??
+        false;
+  }
+
   double _getWeightFontSize(SetType st) {
     switch (st) {
       case SetType.Regular:
@@ -753,6 +603,8 @@ class RoutineStepPageState extends State<RoutineStepPage> {
         return 64;
       case SetType.Giant:
         return 72;
+      default:
+        throw Exception("Inside _getWeightFontSize()");
     }
   }
 
@@ -768,6 +620,8 @@ class RoutineStepPageState extends State<RoutineStepPage> {
         return 28;
       case SetType.Giant:
         return 36;
+      default:
+        throw Exception("Inside _getWeightFontSize()");
     }
   }
 
@@ -780,26 +634,26 @@ class RoutineStepPageState extends State<RoutineStepPage> {
     }
   }
 
-  String _tryParse(String str, Operation operation) {
-    var num = int.tryParse(str.trim());
-    if (num != null) {
-      print('heloooo');
-      return operation(num) <= 0
-          ? 0.toString()
-          : operation(num).toString(); //weight cannot be below 0
-    } else if (str.contains('-')) {
-      List<String> list = str.split('-');
-      for (var i in list) {
-        var tempNum = int.tryParse(i.trim());
-        if (tempNum != null) {
-          i = operation(tempNum).toString();
-        } else {
-          return null;
-        }
+  double _increWeight(double weight) {
+    if (weight < 1000) {
+      if (weight < 20) {
+        weight += 0.5;
+      } else {
+        weight += 1;
       }
-      return list[0] + '-' + list[1];
     }
-    return null;
+    return weight;
+  }
+
+  double _decreWeight(double weight) {
+    if (weight > 0) {
+      if (weight < 20) {
+        weight -= 0.5;
+      } else {
+        weight -= 1;
+      }
+    }
+    return weight;
   }
 }
 

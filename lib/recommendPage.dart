@@ -1,8 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'model.dart';
+
 import 'category.dart';
+import 'model.dart';
 
 class RecommendPage extends StatelessWidget {
   @override
@@ -12,7 +11,6 @@ class RecommendPage extends StatelessWidget {
       length: 7,
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.grey[800],
           bottom: TabBar(
             isScrollable: true,
             tabs: [

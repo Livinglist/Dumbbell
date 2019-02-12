@@ -1,19 +1,22 @@
 import 'dart:convert';
 import 'dart:ui';
-import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:flutter/rendering.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/rendering.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:workout_planner/customWidgets/customExpansionTile.dart'
+as custom;
+
+import 'database/database.dart';
+import 'database/firestore.dart';
+import 'main.dart';
 import 'model.dart';
 import 'partDetailPageWidgets.dart';
+import 'partHistoryPage.dart';
 import 'routineEditPage.dart';
 import 'routineStepPage.dart';
-import 'database/database.dart';
-//import 'package:esys_flutter_share/esys_flutter_share.dart';
 
 class RoutineDetailPage extends StatefulWidget {
   bool isRecRoutine;
@@ -27,10 +30,13 @@ class RoutineDetailPage extends StatefulWidget {
 }
 
 class RoutineDetailPageState extends State<RoutineDetailPage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final ScrollController _scrollController = ScrollController();
   Routine curRoutine;
-  GlobalKey globalKey = new GlobalKey();
-  ScrollController _scrollController = new ScrollController();
+  GlobalKey globalKey = GlobalKey();
   String _dataString;
+  String _routineStr;
+
   @override
   void initState() {
     super.initState();
@@ -38,142 +44,389 @@ class RoutineDetailPageState extends State<RoutineDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     final List<Routine> routines = RoutinesContext.of(context).routines;
     curRoutine = RoutinesContext.of(context).curRoutine;
-    _dataString = '-r' + jsonEncode(curRoutine.toMap());
+    //_dataString = '-r' + jsonEncode(curRoutine.toMap());
+    _dataString = '-r' + FirestoreHelper.generateId(curRoutine);
+    _routineStr = json.encode(curRoutine.toMap());
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Routine Overview'),
-        backgroundColor: Colors.grey[800],
-        actions: widget.isRecRoutine
-            ? <Widget>[]
-            : <Widget>[
-                IconButton(
-                  icon: Icon(Icons.share),
-                  onPressed: () {
-                    showDialog(
-                        context: context,
-                        builder: (context) => Dialog(
-                              child: Container(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: <Widget>[
-                                    Center(
-                                        child: RepaintBoundary(
-                                      key: globalKey,
-                                      child: QrImage(
-                                        data: _dataString,
-                                        size: 300,
-                                        version: 35,
-                                        onError: (ex) {
-                                          print("[QR] ERROR - $ex");
-                                          setState(() {});
-                                        },
-                                      ),
-                                    )),
-                                    Center(
-                                      child: ButtonBar(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: <Widget>[
-                                          RaisedButton(
-                                            child: Text('Save'),
-                                            onPressed: null,
+        key: _scaffoldKey,
+        backgroundColor: Colors.white,
+        body: NestedScrollView(
+            controller: _scrollController,
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return <Widget>[
+                SliverAppBar(
+                  expandedHeight: widget.isRecRoutine ? 180 : 280.0,
+                  floating: false,
+                  pinned: true,
+                  flexibleSpace: FlexibleSpaceBar(
+                      collapseMode: CollapseMode.pin,
+                      centerTitle: true,
+                      title: Text(
+                          mainTargetedBodyPartToStringConverter(
+                              curRoutine.mainTargetedBodyPart),
+                          maxLines: 2,
+                          overflow: TextOverflow.fade,
+                          softWrap: true,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16.0,
+                          )),
+                      background: Padding(
+                        padding: EdgeInsets.only(
+                            top: 72, bottom: 0, left: 48, right: 48),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.max,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.only(bottom: 8),
+                              child: Text(curRoutine.routineName,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.fade,
+                                  softWrap: true,
+                                  style: TextStyle(
+                                    fontFamily: 'Staa',
+                                    color: Colors.white,
+                                    fontSize:
+                                    _getFontSize(curRoutine.routineName),
+                                  )),
+                            ),
+                            widget.isRecRoutine
+                                ? Container()
+                                : Text(
+                              'You have done this workout',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 14, color: Colors.white),
+                            ),
+                            widget.isRecRoutine
+                                ? Container()
+                                : Text(
+                              curRoutine.completionCount.toString(),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 36, color: Colors.white),
+                            ),
+                            widget.isRecRoutine
+                                ? Container()
+                                : Text(
+                              'times',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 14, color: Colors.white),
+                            ),
+                            widget.isRecRoutine
+                                ? Container()
+                                : Text(
+                              'since',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 14, color: Colors.white),
+                            ),
+                            widget.isRecRoutine
+                                ? Container()
+                                : Text(
+                              '${curRoutine.createdDate
+                                  .toString()
+                                  .split(' ')
+                                  .first}',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 14, color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      )),
+                  actions: widget.isRecRoutine
+                      ? <Widget>[]
+                      : <Widget>[
+                    IconButton(
+                      icon: Icon(Icons.share),
+                      onPressed: () async {
+                        ///update the database
+                        Firestore.instance
+                            .collection("userShares")
+                            .document(_dataString.replaceFirst("-r", ""))
+                            .setData({
+                          "id": _dataString.replaceFirst("-r", ""),
+                          "routine": jsonEncode(curRoutine.toMap())
+                        });
+
+//                               await Firestore.instance.collection("userShares").add({
+//                                "id": _dataString.replaceFirst("-r", ""),
+//                                "routine":json.encode(Routine.copyFromRoutineWithoutHistory(curRoutine).toMap())
+//                              });
+
+//                              Firestore.instance.runTransaction((transaction) async {
+//                                DocumentSnapshot freshSnap = await transaction.get(Firestore.instance.collection("userShares").document("test2"));
+//
+//
+//                                await transaction.update(freshSnap.reference, {
+//                                  "id": _dataString.replaceFirst("-r", ""),
+//                                  "routine":json.encode(curRoutine.toMap())
+//                                });
+//
+//
+//                              });
+
+                        ///show qr code
+                        showDialog(
+                            context: context,
+                            builder: (context) =>
+                                Dialog(
+                                  child: Container(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: <Widget>[
+                                        Center(
+                                            child: RepaintBoundary(
+                                              key: globalKey,
+                                              child: QrImage(
+                                                data:
+                                                _dataString,
+                                                //TODO: generete the string for sharing routine
+                                                size: 300,
+                                                version: 35,
+                                                onError: (ex) {
+                                                  print("[QR] ERROR - $ex");
+                                                  setState(() {});
+                                                },
+                                              ),
+                                            )),
+                                        Center(
+                                          child: ButtonBar(
+                                            mainAxisSize:
+                                            MainAxisSize.min,
+                                            children: <Widget>[
+                                              RaisedButton(
+                                                child: Text('Save'),
+                                                onPressed: null,
+                                              ),
+                                              RaisedButton(
+                                                  child: Text('Send'),
+                                                  onPressed: () {})
+                                            ],
                                           ),
-                                          RaisedButton(
-                                              child: Text('Send'),
-                                              onPressed: () {})
-                                        ],
-                                      ),
-                                    )
-                                  ],
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ));
+                      },
+                    ),
+                    Builder(
+                      builder: (context) =>
+                          IconButton(
+                            icon: Icon(Icons.edit),
+                            onPressed: () {
+                              //Navigator.pop(context);
+                              Navigator.push(
+                                  context,
+                                  new MaterialPageRoute(
+                                      builder: (context) =>
+                                          RoutineEditPage(
+                                            addOrEdit: AddOrEdit.Edit,
+                                          )));
+                            },
+                          ),
+                    )
+                  ],
+                )
+              ];
+            },
+            body: SingleChildScrollView(
+              child: _columnBuilder(),
+            )),
+        floatingActionButton: widget.isRecRoutine
+            ? Builder(
+          builder: (context) =>
+              Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: FloatingActionButton.extended(
+                    backgroundColor: Colors.blueGrey[700],
+                    heroTag: null,
+                    onPressed: () {
+                      routines.add(curRoutine);
+                      DBProvider.db.newRoutine(curRoutine);
+                      Scaffold.of(context).showSnackBar(SnackBar(
+                          content: Row(
+                            children: <Widget>[
+                              Padding(
+                                padding: EdgeInsets.only(right: 4),
+                                child: Icon(Icons.done),
+                              ),
+                              Text('Added to my routines.'),
+                            ],
+                          )));
+                    },
+                    icon: Icon(Icons.add),
+                    label: Text('Add to my routines')),
+              ),
+        )
+            : Builder(
+          builder: (context) =>
+              FloatingActionButton.extended(
+                  icon: Icon(Icons.play_arrow),
+                  label: Text('Start this routine'),
+                  backgroundColor: curRoutine.parts.isEmpty
+                      ? Colors.grey[400]
+                      : Colors.blue,
+                  onPressed: () {
+                    setState(() {
+                      if (curRoutine.parts.isEmpty) {
+                        Scaffold.of(context).showSnackBar(SnackBar(
+                          backgroundColor: Colors.yellow,
+                          content: Row(
+                            children: <Widget>[
+                              Padding(
+                                padding: EdgeInsets.only(right: 4),
+                                child: Icon(
+                                  Icons.report,
+                                  color: Colors.black,
                                 ),
                               ),
-                            ));
-                  },
+                              Text(
+                                "No exercises found.",
+                                style: TextStyle(color: Colors.black),
+                              )
+                            ],
+                          ),
+                        ));
+                      } else {
+                        Navigator.push(context, MaterialPageRoute(
+                            builder: (BuildContext context) {
+                              return RoutineStepPage(
+                                  celebrateCallback: _showCelebrateDialog);
+                            }));
+                      }
+                    });
+                  }),
+        ));
+  }
+
+  void _showSyncFailSnackbar() {
+    _scaffoldKey.currentState.removeCurrentSnackBar();
+    _scaffoldKey.currentState.showSnackBar(SnackBar(
+      backgroundColor: Colors.yellow,
+      content: Row(
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(right: 4),
+            child: Icon(
+              Icons.report,
+              color: Colors.black,
+            ),
+          ),
+          Text(
+            "SYNC FAILED DUE TO NETWORK CONNECTION",
+            style: TextStyle(color: Colors.black),
+          ),
+        ],
+      ),
+    ));
+  }
+
+  Future<void> _showCelebrateDialog() async {
+    final String tempDateStr = dateTimeToStringConverter(DateTime(
+        DateTime
+            .now()
+            .year, DateTime
+        .now()
+        .month, DateTime
+        .now()
+        .day));
+
+    if (await Connectivity().checkConnectivity() == ConnectivityResult.none) {
+      _showSyncFailSnackbar();
+    } else {
+      ///update user data if signed in
+      if (currentUser != null) {
+        await FirestoreHelper().handleUpload(
+            RoutinesContext
+                .of(context)
+                .routines, failCallback: () {
+          _showSyncFailSnackbar();
+        });
+      }
+
+      ///get the dailyData
+      if (dailyRank == 0) {
+        var db = Firestore.instance;
+        var snapshot =
+        await db.collection("dailyData").document(tempDateStr).get();
+
+        if (snapshot.exists) {
+          snapshot.reference
+              .setData({"totalCount": snapshot["totalCount"] + 1});
+          dailyRank = snapshot["totalCount"] + 1;
+
+          dailyRankInfo =
+              DateTime.now().toUtc().toString() + '/' + dailyRank.toString();
+          setDailyRankInfo(dailyRankInfo);
+        } else {
+          var res = await db
+              .collection("dailyData")
+              .document(tempDateStr)
+              .setData({"totalCount": 1});
+          dailyRankInfo =
+              DateTime.now().toUtc().toString() + '/' + dailyRank.toString();
+          setDailyRankInfo(dailyRankInfo);
+        }
+      }
+    }
+
+    showGeneralDialog(
+      context: context,
+      pageBuilder: (BuildContext buildContext, Animation<double> animation,
+          Animation<double> secondaryAnimation) {
+        return Material(
+          child: Center(
+              child: Card(
+                color: Colors.orange,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Text("Well done!", textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white),),
+                    Text("+1", textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white),),
+                  ],
                 ),
-                Builder(
-                  builder: (context) => IconButton(
-                        icon: Icon(Icons.edit),
-                        onPressed: () {
-                          //Navigator.pop(context);
-                          Navigator.push(
-                              context,
-                              new MaterialPageRoute(
-                                  builder: (context) => RoutineEditPage(
-                                        addOrEdit: AddOrEdit.Edit,
-                                      )));
-                        },
-                      ),
-                )
-              ],
-      ),
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        child: _columnBuilder(),
-      ),
-      floatingActionButton: widget.isRecRoutine
-          ? Builder(
-              builder: (context) => Padding(
-                    padding: EdgeInsets.only(top: 8),
-                    child: FloatingActionButton.extended(
-                        backgroundColor: Colors.grey[800],
-                        heroTag: null,
-                        onPressed: () {
-                          routines.add(curRoutine);
-                          DBProvider.db.newRoutine(curRoutine);
-                          Scaffold.of(context).showSnackBar(SnackBar(
-                            content: Text('Added to my routines.'),
-                          ));
-                        },
-                        icon: Icon(Icons.add),
-                        label: Text('Add to my routines')),
-                  ),
-            )
-          : FloatingActionButton.extended(
-              icon: Icon(Icons.play_arrow),
-              label: Text('Start this routine'),
-              onPressed: () {
-                setState(() {
-                  //routine.completionCount++;
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (BuildContext context) {
-                    return RoutineStepPage();
-                  }));
-                });
-              }),
+              )
+          ),
+          color: Colors.black38,
+          shadowColor: Colors.black,
+        );
+      },
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations
+          .of(context)
+          .modalBarrierDismissLabel,
+      barrierColor: Colors.black38,
+      transitionDuration: const Duration(milliseconds: 200),
     );
   }
 
   Widget _columnBuilder() {
     List<Widget> _exerciseDetails = <Widget>[];
-    _exerciseDetails.add(RoutineDescriptionCard(routine: curRoutine));
-    _exerciseDetails.addAll(curRoutine.parts.map((part) => Builder(
-          builder: (context) => PartCard(
+    //_exerciseDetails.add(RoutineDescriptionCard(routine: curRoutine));
+    _exerciseDetails.addAll(curRoutine.parts.map((part) =>
+        Builder(
+          builder: (context) =>
+              PartCard(
                 onDelete: () {},
-                onPartTap: () {
-                  showGeneralDialog(
-                      context: context,
-                      pageBuilder: (BuildContext buildContext, Animation<double> animation,
-                          Animation<double> secondaryAnimation) => Padding(
-                        padding: EdgeInsets.symmetric(vertical: 72, horizontal: 8),
-                        child: Card(
-                          shape: RoundedRectangleBorder(
-                              borderRadius:
-                              BorderRadius.all(Radius.circular(8))),
-                          color: Colors.grey[600],
-                          child: Column(
-                            children: <Widget>[],
-                          ),
-                        ),
-                      ),
-                    barrierDismissible: true,
-                    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-                    barrierColor: Colors.black87,
-                    transitionDuration: const Duration(milliseconds: 200),
-                  );
-                },
+                onPartTap: widget.isRecRoutine
+                    ? () {}
+                    : () =>
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => PartHistoryPage(part))),
                 part: part,
               ),
         )));
@@ -183,6 +436,16 @@ class RoutineDetailPageState extends State<RoutineDetailPage> {
     ));
 
     return new Column(children: _exerciseDetails);
+  }
+
+  double _getFontSize(String str) {
+    if (str.length > 56) {
+      return 14;
+    } else if (str.length > 17) {
+      return 16;
+    } else {
+      return 24;
+    }
   }
 
 //  Future<void> _captureAndSharePng() async {
@@ -218,92 +481,81 @@ class RoutineDetailPageState extends State<RoutineDetailPage> {
 
 }
 
-//------------------------------Abandoned---------------------------------
+class Year {
+  final String year;
+  final List<String> dates = List<String>();
 
-class WorkoutCount extends StatelessWidget {
-  WorkoutCount({Key key}) : super(key: key);
+  Year(this.year)
+      : assert(year.length == 4 && year[0] == '2' && year[1] == '0');
+}
+
+class HistoryExpansionTile extends StatelessWidget {
+  final Map exHistory;
+  final Color foregroundColor;
+
+  HistoryExpansionTile(this.exHistory, this.foregroundColor)
+      : assert(exHistory != null),
+        assert(foregroundColor != null);
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
+    //List<String> years = List<String>();
+    var years = List<Year>();
+    for (var date in exHistory.keys) {
+      if (years.isEmpty) {
+        years.add(Year(date
+            .toString()
+            .split('-')
+            .first));
+        years.last.dates.add(date);
+      } else {
+        if (date.toString()[2] != years.last.year[2] ||
+            date.toString()[3] != years.last.year[3]) {
+          years.add(Year(date
+              .toString()
+              .split('-')
+              .first));
+        } else {
+          years.last.dates.add(date);
+        }
+      }
+    }
 
-    return Padding(
-      padding: EdgeInsets.all(10.0),
-      child: Material(
-        //elevation: 10,
-/*      shape: new RoundedRectangleBorder(
-          borderRadius: new BorderRadius.circular(50)
-      ),*/
-        //shape: new CircleBorder(side: new BorderSide(color: Colors.yellow)),
-        shape: new RoundedRectangleBorder(
-            side: new BorderSide(color: Colors.transparent),
-            borderRadius: new BorderRadius.circular(10)),
-        color: Colors.green,
-        elevation: 3,
-        child: Ink(
-          //width: 100,
-          /*decoration: new BoxDecoration(
-            color: Colors.green,
-            borderRadius: new BorderRadius.only(
-                topLeft: const Radius.circular(40.0),
-                topRight: const Radius.circular(40.0))
-        ),*/
-          color: Colors.transparent,
-          height: 150,
-          child: Padding(
-            padding: EdgeInsets.all(0),
-            child: InkWell(
-              borderRadius: new BorderRadius.circular(10),
-              highlightColor: Colors.green,
-              splashColor: Colors.green,
-              // We can use either the () => function() or the () { function(); }
-              // syntax.
-              child: Padding(
-                padding:
-                    EdgeInsets.only(left: 30, top: 12, right: 0, bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  //mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    Text('Plan name',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 32,
-                          shadows: <Shadow>[
-                            Shadow(
-                              offset: Offset(1.0, 1.0),
-                              blurRadius: 0.5,
-                              color: Colors.black38,
-                            ),
-                          ],
-                        )
-                        /*DefaultTextStyle.of(context)
-                          .style
-                          .apply(fontSizeFactor: 2, color: Colors.white),*/
-                        ),
-                    Padding(
-                        padding: EdgeInsets.only(
-                            left: 80, top: 0, right: 0, bottom: 0),
-                        child: Column(
-                          children: <Widget>[
-                            Text(
-                              '13',
-                              style:
-                                  TextStyle(fontSize: 72, color: Colors.white),
-                            ),
-                            Text(
-                              'completion counts',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ],
-                        ))
-                  ],
-                ),
-              ),
+    // TODO: implement build
+    return ListView.builder(
+        itemCount: years.length,
+        itemBuilder: (context, i) {
+          return custom.ExpansionTile(
+            foregroundColor: foregroundColor,
+            title: Text(years[i].year),
+            children: _listViewBuilder(years[i].dates, exHistory),
+          );
+        });
+  }
+
+  List<Widget> _listViewBuilder(List<String> dates, Map exHistory) {
+    List<Widget> listTiles = List<Widget>();
+    for (var date in dates) {
+      listTiles.add(ListTile(
+        leading: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.grey[350],
             ),
-          ),
-        ),
-      ),
-    );
+            child: Center(
+              child: Text(
+                (dates.indexOf(date) + 1).toString(),
+                style: TextStyle(fontSize: 16),
+              ),
+            )),
+        title: Text(date),
+        subtitle: Text(exHistory[date]),
+      ));
+      listTiles.add(Divider());
+    }
+    listTiles.removeLast();
+    return listTiles;
   }
 }

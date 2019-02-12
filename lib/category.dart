@@ -6,6 +6,7 @@
 // https://www.dartlang.org/guides/language/effective-dart/style#ordering
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
+
 import 'model.dart';
 import 'routineDetailPage.dart';
 // @required is defined in the meta.dart package
@@ -215,6 +216,7 @@ class RoutineOverview extends StatelessWidget {
       default:
         throw Exception('Inside of _mainTargetedBodyPartToColorConverter '+mainTB.toString());
     }
+    //return <Color>[Colors.grey[600], Colors.grey[700]];
   }
 
 

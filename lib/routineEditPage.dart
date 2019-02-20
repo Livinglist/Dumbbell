@@ -153,55 +153,19 @@ class RoutineEditPageState extends State<RoutineEditPage> {
             icon: Icon(Icons.add),
             label: Text('Add an exercise'),
             onPressed: () {
-              showModalBottomSheet(
-                  context: context,
-                  builder: (BuildContext bc) {
-                    return Container(
-                      child: Wrap(
-                        children: <Widget>[
-                          ListTile(
-                              leading: Icon(Icons.fitness_center),
-                              title: Text('Weight-lifting'),
-                              onTap: () {
-                                setState(() {
-                                  Navigator.pop(context);
-                                  curRoutineCopy.parts.add(Part(
-                                      workoutType: WorkoutType.Weight,
-                                      setType: null,
-                                      targetedBodyPart: null,
-                                      exercises: null));
-                                  _scrollController.animateTo(
-                                      _scrollController
-                                          .position.maxScrollExtent,
-                                      duration:
-                                      const Duration(milliseconds: 300),
-                                      curve: Curves.easeOut);
-                                  _startTimeout(300);
-                                });
-                              }),
-                          ListTile(
-                            leading: new Icon(Icons.timer),
-                            title: Text('Cardio'),
-                            onTap: () {
-                              setState(() {
-                                Navigator.pop(context);
-                                curRoutineCopy.parts.add(Part(
-                                    workoutType: WorkoutType.Cardio,
-                                    setType: null,
-                                    targetedBodyPart: null,
-                                    exercises: null));
-                                _scrollController.animateTo(
-                                    _scrollController.position.maxScrollExtent,
-                                    duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeOut);
-                                _startTimeout(300);
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    );
-                  });
+              setState(() {
+                curRoutineCopy.parts.add(Part(
+                    setType: null,
+                    targetedBodyPart: null,
+                    exercises: null));
+                _scrollController.animateTo(
+                    _scrollController
+                        .position.maxScrollExtent,
+                    duration:
+                    const Duration(milliseconds: 300),
+                    curve: Curves.easeOut);
+                _startTimeout(300);
+              });
             }),
       ),
     );

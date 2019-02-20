@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
@@ -28,41 +27,39 @@ class DBProvider {
     //String fromPath = 'database/test.db';
     //
     Directory appDocDir = await getApplicationDocumentsDirectory();
-    String path = join(appDocDir.path, "test.db");
+    String path = join(appDocDir.path, "data.db");
 
 
     if (await File(path).exists() && await getDatabaseStatus()) {
+      //return await openDatabase(path);
       return await openDatabase(
         path,
         version: 1,
+        onUpgrade: (db, _, __) async {
+          ByteData data = await rootBundle.load("database/data.db");
+          List<int> bytes =
+          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+
+          File(join(appDocDir.path, "updateData.db")).writeAsBytes(bytes);
+          await openDatabase(
+            join(appDocDir.path, "updateData.db"),
+            version: 1,
+            onOpen: (db2) async {
+              var res = await db2.query('RecommendedRoutines');
+
+              db.delete("RecommendedRoutines");
+
+              for (var map in res) {
+                db.insert("RecommendedRoutines", map);
+              }
+              //db.close();
+              db2.close();
+            },
+          );
+        },
         onOpen: (db) {},);
-//      ).then((database) async {
-//        if(await database.getVersion() == 1){
-//
-//          ///copy the test2 in assets folder to appDir folder for reading
-//          ByteData data = await rootBundle.load("database/test2.db");
-//          List<int> bytes =
-//          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-//          await File(join(appDocDir.path, "test2.db")).writeAsBytes(bytes);
-//
-//          ///open the test2 database
-//          Database srcDatabase = await openReadOnlyDatabase(join(appDocDir.path, "test2.db"));
-//          var srcData = await srcDatabase.query('RecommendedRoutines');
-//
-//          ///delete all rows in RecRoutin table from database already in the appDir folder
-//          database.delete("RecommendedRoutines");
-//
-//          ///add rows from test2 to test
-//          for(var row in srcData){
-//            database.insert("RecommendedRoutines", row);
-//          }
-//
-//          ///update version
-//          database.setVersion(2);
-//        }
-//      });
     }else{
-      ByteData data = await rootBundle.load("database/test.db");
+      ByteData data = await rootBundle.load("database/data.db");
       List<int> bytes =
       data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
 
@@ -87,16 +84,19 @@ class DBProvider {
     final db = await database;
     var table = await db.rawQuery('SELECT MAX(Id)+1 as Id FROM Routines');
     int id = table.first['Id'];
+    var map = routine.toMap();
     var raw = await db.rawInsert(
-        'INSERT Into Routines (Id, RoutineName, MainPart, Parts, LastCompletedDate, CreatedDate, Count) VALUES (?,?,?,?,?,?,?)',
+        'INSERT Into Routines (Id, RoutineName, MainPart, Parts, LastCompletedDate, CreatedDate, Count, RoutineHistory, Weekdays) VALUES (?,?,?,?,?,?,?,?,?)',
         [
           id,
-          routine.routineName,
-          mainTargetedBodyPartToIntConverter(routine.mainTargetedBodyPart),
-          jsonEncode(routine.parts.map((part)=>part.toMap()).toList()),
-          dateTimeToStringConverter(routine.lastCompletedDate),
-          dateTimeToStringConverter(routine.createdDate),
-          routine.completionCount
+          map['RoutineName'],
+          map['MainPart'],
+          map['Parts'],
+          map['LastCompletedDate'],
+          map['CreatedDate'],
+          map['Count'],
+          map['RoutineHistory'],
+          map['Weekdays'],
         ]);
     return raw;
   }
@@ -125,16 +125,19 @@ class DBProvider {
     for (var routine in routines) {
       var table = await db.rawQuery('SELECT MAX(Id)+1 as Id FROM Routines');
       int id = table.first['Id'];
+      var map = routine.toMap();
       var raw = await db.rawInsert(
-          'INSERT Into Routines (Id, RoutineName, MainPart, Parts, LastCompletedDate, CreatedDate, Count) VALUES (?,?,?,?,?,?,?)',
+          'INSERT Into Routines (Id, RoutineName, MainPart, Parts, LastCompletedDate, CreatedDate, Count, RoutineHistory, Weekdays) VALUES (?,?,?,?,?,?,?,?,?)',
           [
-            id,
-            routine.routineName,
-            mainTargetedBodyPartToIntConverter(routine.mainTargetedBodyPart),
-            jsonEncode(routine.parts.map((part) => part.toMap()).toList()),
-            dateTimeToStringConverter(routine.lastCompletedDate),
-            dateTimeToStringConverter(routine.createdDate),
-            routine.completionCount
+            map['Id'],
+            map['RoutineName'],
+            map['MainPart'],
+            map['Parts'],
+            map['LastCompletedDate'],
+            map['CreatedDate'],
+            map['Count'],
+            map['RoutineHistory'],
+            map['Weekdays'],
           ]);
     }
   }

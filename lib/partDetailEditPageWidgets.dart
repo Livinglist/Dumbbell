@@ -37,7 +37,6 @@ class PartEditCard extends StatelessWidget {
   AddOrEdit addOrEdit;
   VoidCallback onDelete;
   StringCallback onTextEdited;
-  bool isEmptyMove = true;
 
   //Part part;
 
@@ -169,7 +168,6 @@ class PartEditCard extends StatelessWidget {
   }
 
   ListView _buildExerciseListView(Part part) {
-    print('hi there length is ' + part.exercises.length.toString());
     if (part.exercises.length != 0) {
       return ListView.builder(
         physics: NeverScrollableScrollPhysics(),
@@ -195,7 +193,9 @@ class PartEditCard extends StatelessWidget {
               Expanded(
                 flex: 3,
                 child: Text(
-                  (part.workoutType== WorkoutType.Weight?'Reps: ':'Seconds: ') + part.exercises[i].reps,
+                  (part.exercises[i].workoutType == WorkoutType.Weight
+                      ? 'Reps: '
+                      : 'Seconds: ') + part.exercises[i].reps,
                   style: _defaultTextStyle,
                 ),
               )

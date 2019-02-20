@@ -55,7 +55,7 @@ flutter:
   - assets/back-96.png
   - assets/leg-96.png
   - assets/abs-96.png
-  - database/test.db
+  - database/data.db
   - assets/ic_launcher.png
 
   fonts:

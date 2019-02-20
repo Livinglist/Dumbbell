@@ -5,6 +5,7 @@ import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'customWidgets/customSnackBars.dart';
 import 'database/database.dart';
 import 'main.dart';
 import 'model.dart';
@@ -26,24 +27,7 @@ class SettingPageState extends State<SettingPage> {
     await Connectivity().checkConnectivity().then((connectivity) async {
       if (connectivity == ConnectivityResult.none) {
         scaffoldKey.currentState.removeCurrentSnackBar();
-        scaffoldKey.currentState.showSnackBar(SnackBar(
-          backgroundColor: Colors.yellow,
-          content: Row(
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.only(right: 4),
-                child: Icon(
-                  Icons.report,
-                  color: Colors.black,
-                ),
-              ),
-              Text(
-                "NO NETWORK CONNECTION",
-                style: TextStyle(color: Colors.black),
-              ),
-            ],
-          ),
-        ));
+        scaffoldKey.currentState.showSnackBar(NoNetworkSnackBar());
       } else {
         var db = Firestore.instance;
         var snapshot =
@@ -51,12 +35,12 @@ class SettingPageState extends State<SettingPage> {
 
         if (snapshot.exists) {
           var res = snapshot.reference.updateData({
-            "registerDate": firstRunDate,
-            //"routines":"test routines"
             "routines": json.encode(RoutinesContext.of(context)
                 .routines
                 .map((routine) => routine.toMap())
                 .toList())
+          }).whenComplete(() {
+            _showSuccessSnackBar("UPLOADED SUCCESSFULLY!");
           });
         } else {
           var res = await db
@@ -64,10 +48,13 @@ class SettingPageState extends State<SettingPage> {
               .document(widget.currentUser.id)
               .setData({
             "registerDate": firstRunDate,
+            "email": currentUser.email,
             "routines": json.encode(RoutinesContext.of(context)
                 .routines
                 .map((routine) => routine.toMap())
                 .toList())
+          }).whenComplete(() {
+            _showSuccessSnackBar("UPLOADED SUCCESSFULLY!");
           });
         }
       }
@@ -78,24 +65,7 @@ class SettingPageState extends State<SettingPage> {
     await Connectivity().checkConnectivity().then((connectivity) async {
       if (connectivity == ConnectivityResult.none) {
         scaffoldKey.currentState.removeCurrentSnackBar();
-        scaffoldKey.currentState.showSnackBar(SnackBar(
-          backgroundColor: Colors.yellow,
-          content: Row(
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.only(right: 4),
-                child: Icon(
-                  Icons.report,
-                  color: Colors.black,
-                ),
-              ),
-              Text(
-                "NO NETWORK CONNECTION",
-                style: TextStyle(color: Colors.black),
-              ),
-            ],
-          ),
-        ));
+        scaffoldKey.currentState.showSnackBar(NoNetworkSnackBar());
       } else {
         var db = Firestore.instance;
         var snapshot =
@@ -109,6 +79,8 @@ class SettingPageState extends State<SettingPage> {
                   .toList();
           DBProvider.db.deleteAllRoutines();
           DBProvider.db.addAllRoutines(RoutinesContext.of(context).routines);
+
+          _showSuccessSnackBar("RESTORED SUCCESSFULLY!");
         } else {
           scaffoldKey.currentState.showSnackBar(SnackBar(
               content: SnackBar(
@@ -141,6 +113,26 @@ class SettingPageState extends State<SettingPage> {
     });
   }
 
+  void _showSuccessSnackBar(String msg) {
+    scaffoldKey.currentState.showSnackBar(SnackBar(
+      content: Row(
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(right: 4),
+            child: Icon(
+              Icons.check,
+              color: Colors.white,
+            ),
+          ),
+          Text(
+            msg,
+            style: TextStyle(color: Colors.white),
+          ),
+        ],
+      ),
+    ));
+  }
+
   @override
   void initState() {
     selectedRadioValue = weeklyAmount;
@@ -156,54 +148,54 @@ class SettingPageState extends State<SettingPage> {
       ),
       body: Column(
         children: <Widget>[
-          ListTile(
-            leading: Icon(Icons.alarm),
-            title: Text('Workout Frequency', textScaleFactor: 1.5),
-            subtitle: Text('Per week'),
-            dense: true,
-          ),
-          // Section Content
-          RadioListTile(
-            value: 3,
-            groupValue: selectedRadioValue,
-            onChanged: _handleChange,
-            title: Text('Third times'),
-            subtitle: Text('Gotta try harder'),
-            dense: true,
-          ),
-          RadioListTile(
-            value: 4,
-            groupValue: selectedRadioValue,
-            onChanged: _handleChange,
-            title: Text('Four times'),
-            subtitle: Text('Average'),
-            dense: true,
-          ),
-          RadioListTile(
-            value: 5,
-            groupValue: selectedRadioValue,
-            onChanged: _handleChange,
-            title: Text('Five times'),
-            subtitle: Text('Nice'),
-            dense: true,
-          ),
-          RadioListTile(
-            value: 6,
-            groupValue: selectedRadioValue,
-            onChanged: _handleChange,
-            title: Text('Six times'),
-            subtitle: Text('💪'),
-            dense: true,
-          ),
-          RadioListTile(
-            value: 7,
-            groupValue: selectedRadioValue,
-            onChanged: _handleChange,
-            title: Text('Seven times'),
-            subtitle: Text('🏋🏋️‍♀️'),
-            dense: true,
-          ),
-          Divider(),
+//          ListTile(
+//            leading: Icon(Icons.alarm),
+//            title: Text('Workout Frequency', textScaleFactor: 1.5),
+//            subtitle: Text('Per week'),
+//            dense: true,
+//          ),
+//          // Section Content
+//          RadioListTile(
+//            value: 3,
+//            groupValue: selectedRadioValue,
+//            onChanged: _handleChange,
+//            title: Text('Third times'),
+//            subtitle: Text('Gotta try harder'),
+//            dense: true,
+//          ),
+//          RadioListTile(
+//            value: 4,
+//            groupValue: selectedRadioValue,
+//            onChanged: _handleChange,
+//            title: Text('Four times'),
+//            subtitle: Text('Average'),
+//            dense: true,
+//          ),
+//          RadioListTile(
+//            value: 5,
+//            groupValue: selectedRadioValue,
+//            onChanged: _handleChange,
+//            title: Text('Five times'),
+//            subtitle: Text('Nice'),
+//            dense: true,
+//          ),
+//          RadioListTile(
+//            value: 6,
+//            groupValue: selectedRadioValue,
+//            onChanged: _handleChange,
+//            title: Text('Six times'),
+//            subtitle: Text('💪'),
+//            dense: true,
+//          ),
+//          RadioListTile(
+//            value: 7,
+//            groupValue: selectedRadioValue,
+//            onChanged: _handleChange,
+//            title: Text('Seven times'),
+//            subtitle: Text('🏋🏋️‍♀️'),
+//            dense: true,
+//          ),
+//          Divider(),
           ListTile(
             leading: Icon(Icons.cloud_upload),
             title: Text("Back up my data"),

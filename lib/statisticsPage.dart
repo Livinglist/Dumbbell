@@ -8,15 +8,16 @@ import 'chart.dart';
 import 'main.dart';
 import 'model.dart';
 
-//import 'package:googleapis/sheets/v4.dart';
-//import 'package:googleapis_auth/auth_io.dart';
-
-
 const String API_KEY = "AIzaSyAmlHXgh8yL823yam0Cwo060R01L7YDFeU";
 const TextStyle DefaultTextStyle = TextStyle(color: Colors.white);
 
 class StatisticsPageState extends State<StatisticsPage> {
-  DateTime _currentDate = DateTime.now();
+  double _ratio;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +33,7 @@ class StatisticsPageState extends State<StatisticsPage> {
     var routines = RoutinesContext.of(context).routines;
     var totalCount =
     StatisticsPageHelper.getTotalWorkoutCount(routines).toString();
+    _ratio = _getRatio();
     return GridView.count(
       crossAxisCount: 2,
       children: <Widget>[
@@ -124,18 +126,18 @@ class StatisticsPageState extends State<StatisticsPage> {
                   radius: 120.0,
                   lineWidth: 13.0,
                   animation: true,
-                  percent: 0.7,
-                  center: new Text(
-                    "70.0%",
-                    style:
-                    new TextStyle(fontWeight: FontWeight.bold,
+                  percent: _ratio,
+                  center: Text(
+                    "${(_ratio * 100).toStringAsFixed(0)}%",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
                         fontSize: 20.0,
                         color: Colors.white),
                   ),
-                  header: new Text(
+                  header: Text(
                     "Goal of this week",
-                    style:
-                    new TextStyle(fontWeight: FontWeight.bold,
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
                         fontSize: 17.0,
                         color: Colors.white),
                   ),
@@ -164,6 +166,40 @@ class StatisticsPageState extends State<StatisticsPage> {
 //        ),
   }
 
+  double _getRatio() {
+    final routines = RoutinesContext
+        .of(context)
+        .routines;
+    int totalShare = 0;
+    int share = 0;
+
+    //get the date of Monday of this week
+    int weekday = DateTime
+        .now()
+        .weekday;
+    DateTime mondayDate;
+    mondayDate = DateTime.now().subtract(Duration(days: weekday - 1));
+    mondayDate = DateTime(mondayDate.year, mondayDate.month, mondayDate.day);
+
+    for (var routine in routines) {
+      totalShare += routine.weekdays.length;
+    }
+
+    for (var routine
+    in routines.where((routine) => routine.weekdays.isNotEmpty)) {
+      for (var weekday in routine.weekdays) {
+        for (var dateStr in routine.routineHistory) {
+          var date = DateTime.parse(dateStr);
+          if (date.weekday == weekday && (date.isAfter(mondayDate) ||
+              date.compareTo(mondayDate) == 0)) {
+            share++;
+          }
+        }
+      }
+    }
+    return share / totalShare;
+  }
+
   Future<String> _getFirstRunDate() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -176,20 +212,6 @@ class StatisticsPageState extends State<StatisticsPage> {
     else
       return 72;
   }
-
-//  void testApi(){
-//    GetSpreadsheetByDataFilterRequest byDataFilterRequest = new GetSpreadsheetByDataFilterRequest();
-//    DataFilter dataFilter = new DataFilter();
-//    byDataFilterRequest.dataFilters = <DataFilter>[dataFilter];
-//    //ClientId clientId = new ClientId(identifier, secret);
-//    //ClientId.serviceAccount(identifier);
-//    //SpreadsheetsResourceApi spreadsheetsResourceApi = new SpreadsheetsResourceApi();
-//    SheetsApi sheetsApi = new SheetsApi(client);
-//    String spreadsheetId = "1iL0JgVD79G3bGg71D3ikXuYQDKqjf9OkwNojx6k-cp0";
-//    sheetsApi.spreadsheets.get(spreadsheetId, ranges: <String>['A:A1']).then((spreadSheet){
-//
-//    });
-//  }
 }
 
 class StatisticsPage extends StatefulWidget {

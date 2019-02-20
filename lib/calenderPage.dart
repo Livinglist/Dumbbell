@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'category.dart';
+import 'model.dart';
+
 class CalenderPage extends StatefulWidget {
-  final List<String> dates;
+  //final List<String> dates;
+  final Map<String, Routine> dates;
 
   CalenderPage(this.dates);
 
@@ -14,35 +18,17 @@ class CalenderPageState extends State<CalenderPage> {
   final ScrollController _scrollController = ScrollController();
   VoidCallback _showBottomSheetCallback;
 
-  void _showBottomSheet() {
-    _scaffoldKey.currentState.showBottomSheet<Null>((BuildContext context) {
-      return Container(
-          decoration: BoxDecoration(
-              color: Colors.grey[800],
-              borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(8), topRight: Radius.circular(8))),
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      'Persistent header for bottom bar!',
-                      textAlign: TextAlign.left,
-                      style: TextStyle(color: Colors.white),
-                    )),
-                Text(
-                  'Then here there will likely be some other content '
-                      'which will be displayed within the bottom bar',
-                  textAlign: TextAlign.left,
-                  style: TextStyle(color: Colors.white),
-                ),
-              ],
-            ),
-          ));
-    });
+  void _showBottomSheet(Routine routine) {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext context) {
+          return Container(
+              color: Colors.white,
+              child: Padding(
+                padding: EdgeInsets.all(0),
+                child: RoutineOverview(routine: routine),
+              ));
+        });
   }
 
   @override
@@ -83,12 +69,23 @@ class CalenderPageState extends State<CalenderPage> {
     for (int i = 1; i <= 31; i++) {
       widgets.add(Center(child: Text(i.toString())));
       for (int j = 1; j <= 12; j++) {
+        DateTime date = DateTime(DateTime
+            .now()
+            .year, j, i);
+        String dateStr = date
+            .toString()
+            .split(' ')
+            .first;
         widgets.add(Container(
-          child: GestureDetector(
-            onTap: _showBottomSheet,
-          ),
+          child: GestureDetector(onTap: () {
+            if (_isWorkoutDay(j, i)) {
+              _showBottomSheet(widget.dates[dateStr]);
+            }
+          }),
           decoration: BoxDecoration(
-              color: _isWorkoutDay(j, i) ? Colors.red : Colors.transparent,
+              color: _isWorkoutDay(j, i) ? mainTargetedBodyPartToColorConverter(
+                  widget.dates[dateStr].mainTargetedBodyPart) : Colors
+                  .transparent,
               shape: BoxShape.rectangle,
               border: Border.all(color: Colors.grey[500], width: 0.3)),
         ));
@@ -100,7 +97,7 @@ class CalenderPageState extends State<CalenderPage> {
   bool _isWorkoutDay(int month, int day) {
     DateTime date = DateTime(DateTime.now().year, month, day);
     String dateStr = date.toString().split(' ').first;
-    return widget.dates.contains(dateStr);
+    return widget.dates.keys.contains(dateStr);
   }
 
   String _intToMonth(int i) {

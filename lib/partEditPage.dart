@@ -45,11 +45,9 @@ double discretevalue = 2.0;
 double hospitaldiscretevalue = 25.0;
 
 class CriteriaState extends State<Criterias> {
-  final _nameTextEditingController = new TextEditingController();
   final _addtionalNotesTextEditingController = new TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  Icon _setPartsIcon;
-  String _setPartLabelText;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   Routine curRoutine;
   List<TextEditingController> _textControllers =
       new List<TextEditingController>();
@@ -62,25 +60,19 @@ class CriteriaState extends State<Criterias> {
   List<Widget>
       _widgets; //the widgets thats gonna be displayed in the expansionPanel of exercise detail
   List<bool> _enabledList = <bool>[true, false, false, false];
-  WorkoutType _workoutType;
 
   @override
   void initState() {
     //copy the content of exercises of the Part
-    _setPartsIcon = widget.part.workoutType == WorkoutType.Weight
-        ? Icon(Icons.fitness_center)
-        : Icon(Icons.timer);
-    _workoutType = widget.part.workoutType;
-    _setPartLabelText =
-        widget.part.workoutType == WorkoutType.Weight ? 'Reps' : 'Seconds';
+    print("A");
     _additionalNotesIsExpanded = false;
     _addtionalNotesTextEditingController.text = widget.part.additionalNotes;
     if (widget.part.exercises.length == 0) {
       //this means this is a newly created part!!!
       //widget.part.exercises.add(new Exercise(name: null, weight: null, sets: null, reps: null));
       for (int i = 0; i < 4; i++) {
-        var exCopy =
-        new Exercise(name: null,
+        var exCopy = new Exercise(
+            name: null,
             weight: null,
             sets: null,
             reps: null,
@@ -93,25 +85,26 @@ class CriteriaState extends State<Criterias> {
       for (int i = 0; i < 4; i++) {
         if (i < widget.part.exercises.length) {
           var ex = widget.part.exercises[i];
-          var exCopy = new Exercise(
+          var exCopy = Exercise(
               name: ex.name,
               weight: ex.weight,
               sets: ex.sets,
               reps: ex.reps,
+              workoutType: ex.workoutType,
               exHistory: ex.exHistory);
           _tempExs.add(exCopy);
         } else {
-          _tempExs.add(
-              new Exercise(name: null,
-                  weight: null,
-                  sets: null,
-                  reps: null,
-                  exHistory: {}));
+          _tempExs.add(Exercise(
+              name: null,
+              weight: null,
+              sets: null,
+              reps: null,
+              exHistory: {}));
         }
       }
       _isNewlyCreated = false;
     }
-
+    print("B");
     if (true) {
       switch (widget.part.targetedBodyPart) {
         case TargetedBodyPart.Abs:
@@ -160,11 +153,11 @@ class CriteriaState extends State<Criterias> {
           _radioValueSetType = 4;
           break;
       }
-
+      print("C");
       for (int i = 0; i < 16; i++) {
-        _textControllers.add(new TextEditingController());
+        _textControllers.add(TextEditingController());
       }
-
+      print("D");
       for (int i = 0, j = 0; i < 16; i++, j += 4) {
         if (i < widget.part.exercises.length) {
           _textControllers[j].text = widget.part.exercises[i].name;
@@ -179,26 +172,26 @@ class CriteriaState extends State<Criterias> {
     _widgets = _getChildrenSetParts(
         _isNewlyCreated ? SetType.Regular : widget.part.setType);
     items = <NewItem>[
-      new NewItem(
+      NewItem(
           isExpanded: true,
           header: 'Targeted Body Part',
           callback: _materialTargetedBodyPart,
-          iconpic: new Icon(Icons.accessibility_new)),
-      new NewItem(
+          iconpic: Icon(Icons.accessibility_new)),
+      NewItem(
         isExpanded: false,
         header: 'Type of Set',
         callback: _materialSetType,
         iconpic: Icon(Icons.blur_linear),
       ),
-      new NewItem(
+      NewItem(
           isExpanded: true,
           header: 'Details',
           callback: _materialSetParts,
-          iconpic: _setPartsIcon),
+          iconpic: Icon(Icons.fitness_center)),
     ];
-    print('servived the init process');
 
     super.initState();
+    print('servived the init process');
   }
 
   Future<bool> _onWillPop() {
@@ -344,160 +337,167 @@ class CriteriaState extends State<Criterias> {
 
     if (true) {
       //setType will not be passed in when initializing this page
-      widgets.add(Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-            Expanded(
-            child: Text('Weight training', textAlign: TextAlign.center,)),
-            Expanded(
-              child: Switch(
-                value: _workoutType == WorkoutType.Cardio,
-                onChanged: (res) {
-                  setState(() {
-                    _workoutType = res ? WorkoutType.Cardio : WorkoutType.Weight;
-                    _setPartLabelText =
-                    _workoutType == WorkoutType.Weight ? 'Reps' : 'Seconds';
-                    _widgets = _getChildrenSetParts(setType);//TODO: fuck this shit
-                    print(_setPartLabelText);
-                  });
-                },
-                inactiveThumbColor: Colors.red,
-                inactiveTrackColor: Colors.redAccent,
-              ),
-            ),
-            Expanded(
-              child: Text('Cardio training',textAlign: TextAlign.center,),
-            )
-          ],
-        ),
-      ));
-
       for (int i = 0, j = 0; i < count; i++, j += 4) {
-        widgets.add(_enabledList[i]
-            ? Text('Exercise ' + (i + 1).toString())
-            : Container());
-        widgets.add(_enabledList[i]
-            ? Builder(builder: (context) =>
-            TextFormField(
-              controller: _textControllers[j],
-              onFieldSubmitted: (str) {
-                setState(() {
-                  //widget.part.exercises[i].name = str;
-                });
-              },
-              decoration: InputDecoration(labelText: 'Name'),
-              validator: (str) {
-                if (str.isEmpty) {
-                  Scaffold.of(context).showSnackBar(SnackBar(
-                    backgroundColor: Colors.red,
-                    content: Row(
-                      children: <Widget>[
-                        Padding(padding: EdgeInsets.only(right: 4),
-                          child: Icon(Icons.report),),
-                        Text(
-                            "Name cannot be blank.")
-                      ],
-                    ),
-                  ));
-                  return 'Please enter the name of exercise';
-                }
-                else
-                  _tempExs[i].name = _textControllers[j].text;
-              },
-            ),)
-            : Container());
-        widgets.add(_enabledList[i]
-            ? Row(
-                children: <Widget>[
-                  Flexible(
-                    child: Builder(
-                        builder: (context) => TextFormField(
-                              controller: _textControllers[j + 1],
-                              onFieldSubmitted: (str) {},
-                              keyboardType: TextInputType.numberWithOptions(
-                                  signed: false, decimal: false),
-                              decoration: InputDecoration(labelText: 'Weight'),
-                              validator: (str) {
-                                if (str.isEmpty)
-                                  _tempExs[i].weight = 0;
-                                else if (str.contains(RegExp(r"(,|-)"))) {
-                                  Scaffold.of(context).showSnackBar(SnackBar(
-                                    backgroundColor: Colors.red,
-                                    content: Row(
-                                      children: <Widget>[
-                                        Padding(
-                                          padding: EdgeInsets.only(right: 4),
-                                          child: Icon(Icons.report),),
-                                        Text(
-                                            "Weight can only contain numbers.")
-                                      ],
+        if (_enabledList[i]) {
+          widgets.add(Text('Exercise ' + (i + 1).toString()));
+          widgets.add(Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                Expanded(
+                    child: Text(
+                      'Rep',
+                      textAlign: TextAlign.center,
+                    )),
+                Expanded(
+                  child: Switch(
+                    value: _tempExs[i].workoutType == WorkoutType.Cardio,
+                    onChanged: (res) {
+                      setState(() {
+                        _tempExs[i].workoutType =
+                        res ? WorkoutType.Cardio : WorkoutType.Weight;
+//                        _setPartLabelText = _workoutType == WorkoutType.Weight
+//                            ? 'Reps'
+//                            : 'Seconds';
+                        _widgets = _getChildrenSetParts(
+                            setType); //TODO: fuck this shit
+                      });
+                    },
+                    inactiveThumbColor: Colors.red,
+                    inactiveTrackColor: Colors.redAccent,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    'Sec',
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              ],
+            ),
+          ));
+          widgets.add(Builder(
+            builder: (context) =>
+                TextFormField(
+                  controller: _textControllers[j],
+                  onFieldSubmitted: (str) {
+                    setState(() {
+                      //widget.part.exercises[i].name = str;
+                    });
+                  },
+                  decoration: InputDecoration(labelText: 'Name'),
+                  validator: (str) {
+                    if (str.isEmpty) {
+                      Scaffold.of(context).showSnackBar(SnackBar(
+                        backgroundColor: Colors.red,
+                        content: Row(
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.only(right: 4),
+                              child: Icon(Icons.report),
+                            ),
+                            Text("Name cannot be blank.")
+                          ],
+                        ),
+                      ));
+                      return 'Please enter the name of exercise';
+                    } else
+                      _tempExs[i].name = _textControllers[j].text;
+                  },
+                ),
+          ));
+          widgets.add(Row(
+            children: <Widget>[
+              Flexible(
+                child: Builder(
+                    builder: (context) =>
+                        TextFormField(
+                          controller: _textControllers[j + 1],
+                          onFieldSubmitted: (str) {},
+                          keyboardType: TextInputType.numberWithOptions(
+                              signed: false, decimal: false),
+                          decoration: InputDecoration(labelText: 'Weight'),
+                          validator: (str) {
+                            if (str.isEmpty)
+                              _tempExs[i].weight = 0;
+                            else if (str.contains(RegExp(r"(,|-)"))) {
+                              Scaffold.of(context).showSnackBar(SnackBar(
+                                backgroundColor: Colors.red,
+                                content: Row(
+                                  children: <Widget>[
+                                    Padding(
+                                      padding: EdgeInsets.only(right: 4),
+                                      child: Icon(Icons.report),
                                     ),
-                                  ));
-                                  return "Numbers only";
+                                    Text("Weight can only contain numbers.")
+                                  ],
+                                ),
+                              ));
+                              return "Numbers only";
+                            } else {
+                              try {
+                                double tempWeight =
+                                double.parse(_textControllers[j + 1].text);
+                                //the weight below 20 doesn't need floating point, it's just unnecessary
+                                if (tempWeight < 20) {
+                                  _tempExs[i].weight = tempWeight;
                                 } else {
-                                  double tempWeight =
-                                  double.parse(
-                                      _textControllers[j + 1].text);
-
-                                  //the weight below 20 doesn't need floating point, it's just unnecessary
-                                  if (tempWeight < 20) {
-                                    _tempExs[i].weight = tempWeight;
-                                  } else {
-                                    _tempExs[i].weight =
-                                        tempWeight.floorToDouble();
-                                  }
+                                  _tempExs[i].weight =
+                                      tempWeight.floorToDouble();
                                 }
-                              },
-                            )),
-                  ),
-                  Flexible(
-                    child: TextFormField(
-                      controller: _textControllers[j + 2],
-                      onFieldSubmitted: (str) {},
-                      keyboardType: TextInputType.numberWithOptions(
-                          signed: false, decimal: false),
-                      decoration: InputDecoration(labelText: 'Sets'),
-                      validator: (str) {
-                        if (str.isEmpty)
-                          _tempExs[i].sets =
-                          1; //number of sets must be none zero
-                        else if (str.contains(RegExp(r"(,|\.|-)"))) {
-                          Scaffold.of(context).showSnackBar(SnackBar(
-                            content: Text(
-                                "Sets can only contain numbers."),
-                          ));
-                          return "Numbers only";
-                        } else
-                          _tempExs[i].sets =
-                              int.parse(_textControllers[j + 2].text);
-                      },
-                    ),
-                  ),
-                  Flexible(
-                    child: TextFormField(
-                      controller: _textControllers[j + 3],
-                      onFieldSubmitted: (str) {},
-                      keyboardType: TextInputType.numberWithOptions(
-                          signed: false, decimal: false),
-                      decoration: InputDecoration(labelText: _setPartLabelText),
-                      validator: (str) {
-                        if (str.isEmpty)
-                          _tempExs[i].reps = '';
-                        else
-                          _tempExs[i].reps = _textControllers[j + 3].text;
-                      },
-                    ),
-                  )
-                ],
+                              } catch (Exception) {}
+                            }
+                          },
+                        )),
+              ),
+              Flexible(
+                child: TextFormField(
+                  controller: _textControllers[2],
+                  //before: _textControllers[j + 2],
+                  onFieldSubmitted: (str) {},
+                  keyboardType: TextInputType.numberWithOptions(
+                      signed: false, decimal: false),
+                  decoration: InputDecoration(labelText: 'Sets'),
+                  validator: (str) {
+                    if (str.isEmpty)
+                      _tempExs[i].sets = 1; //number of sets must be none zero
+                    else if (str.contains(RegExp(r"(,|\.|-)"))) {
+                      Scaffold.of(context).showSnackBar(SnackBar(
+                        content: Text("Sets can only contain numbers."),
+                      ));
+                      return "Numbers only";
+                    } else
+                      _tempExs[i].sets =
+                          int.parse(_textControllers[2]
+                              .text); //before: _textControllers[j + 2],
+                  },
+                ),
+              ),
+              Flexible(
+                child: TextFormField(
+                  controller: _textControllers[j + 3],
+                  onFieldSubmitted: (str) {},
+                  keyboardType: TextInputType.numberWithOptions(
+                      signed: false, decimal: false),
+                  decoration: InputDecoration(
+                      labelText: _tempExs[i].workoutType == WorkoutType.Weight
+                          ? 'Reps'
+                          : 'Seconds'),
+                  validator: (str) {
+                    if (str.isEmpty)
+                      _tempExs[i].reps = '';
+                    else
+                      _tempExs[i].reps = _textControllers[j + 3].text;
+                  },
+                ),
               )
-            : Container());
-        widgets.add(_enabledList[i]
-            ? Container(
-                //serve as divider
-                height: 24,
-              )
-            : Container());
+            ],
+          ));
+          widgets.add(Container(
+            //serve as divider
+            height: 24,
+          ));
+        }
       }
       return widgets;
     }
@@ -506,9 +506,9 @@ class CriteriaState extends State<Criterias> {
   ListView listView;
   ScrollController _scrollController;
 
+  @override
   Widget build(BuildContext context) {
     curRoutine = RoutinesContext.of(context).curRoutine;
-    print("Inside build:::"+_setPartLabelText);
     var _expansionPanelChildren = items.map((NewItem item) {
       return new ExpansionPanel(
         headerBuilder: (BuildContext context, bool isExpanded) {
@@ -545,7 +545,7 @@ class CriteriaState extends State<Criterias> {
                   children: _expansionPanelChildren),
             )),
         Padding(
-            //Additional notes
+          //Additional notes
             padding: new EdgeInsets.all(12),
             child: ExpansionPanelList(
               expansionCallback: (int index, bool isExpanded) {
@@ -558,27 +558,27 @@ class CriteriaState extends State<Criterias> {
                     headerBuilder: (BuildContext context, bool isExpanded) {
                       return isExpanded
                           ? new ListTile(
-                              leading: Icon(Icons.assignment),
-                              subtitle: Text(
-                                  'Remind yourself what to pay attention to while doing these exercises'),
-                              title: Text(
-                                'Additional Notes',
-                                style: new TextStyle(
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            )
+                        leading: Icon(Icons.assignment),
+                        subtitle: Text(
+                            'Remind yourself what to pay attention to while doing these exercises'),
+                        title: Text(
+                          'Additional Notes',
+                          style: new TextStyle(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      )
                           : new ListTile(
-                              leading: Icon(Icons.assignment),
-                              title: Text(
-                                'Additional Notes',
-                                style: new TextStyle(
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            );
+                        leading: Icon(Icons.assignment),
+                        title: Text(
+                          'Additional Notes',
+                          style: new TextStyle(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      );
                     },
                     isExpanded: _additionalNotesIsExpanded,
                     body: Material(
@@ -605,9 +605,10 @@ class CriteriaState extends State<Criterias> {
       ],
     );
 
-    Scaffold scaffold = new Scaffold(
-      appBar: new AppBar(
-        title: new Text("Criteria Selection"),
+    Scaffold scaffold = Scaffold(
+      key: _scaffoldKey,
+      appBar: AppBar(
+        title: Text("Criteria Selection"),
         actions: <Widget>[
           Builder(
             builder: (context) {
@@ -615,7 +616,6 @@ class CriteriaState extends State<Criterias> {
                 icon: Icon(Icons.done),
                 onPressed: () {
                   if (_formKey.currentState.validate()) {
-                    widget.part.workoutType = _workoutType;
                     widget.part.targetedBodyPart = PartEditPageHelper
                         .radioValueToTargetedBodyPartConverter(_radioValue1);
                     widget.part.setType =
@@ -623,13 +623,16 @@ class CriteriaState extends State<Criterias> {
                             _radioValueSetType);
                     widget.part.exercises = new List<Exercise>();
                     for (int i = 0;
-                        i < _enabledList.where((res) => res).length;
-                        i++) {
-                      widget.part.exercises.add(new Exercise(
+                    i < _enabledList
+                        .where((res) => res)
+                        .length;
+                    i++) {
+                      widget.part.exercises.add(Exercise(
                           name: _tempExs[i].name,
                           weight: _tempExs[i].weight,
                           sets: _tempExs[i].sets,
                           reps: _tempExs[i].reps,
+                          workoutType: _tempExs[i].workoutType,
                           exHistory: _tempExs[i].exHistory));
                     }
                     widget.part.additionalNotes =
@@ -659,7 +662,8 @@ class CriteriaState extends State<Criterias> {
   void _handleRadioSetTypeValueChanged(int value) {
     setState(() {
       _radioValueSetType = value;
-      _widgets = _getChildrenSetParts(PartEditPageHelper.radioValueToSetTypeConverter(value));
+      _widgets = _getChildrenSetParts(
+          PartEditPageHelper.radioValueToSetTypeConverter(value));
     });
   }
 }

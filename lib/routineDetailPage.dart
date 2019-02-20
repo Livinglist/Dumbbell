@@ -6,8 +6,6 @@ import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:workout_planner/customWidgets/customExpansionTile.dart'
-as custom;
 
 import 'database/database.dart';
 import 'database/firestore.dart';
@@ -32,6 +30,7 @@ class RoutineDetailPage extends StatefulWidget {
 class RoutineDetailPageState extends State<RoutineDetailPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ScrollController _scrollController = ScrollController();
+
   Routine curRoutine;
   GlobalKey globalKey = GlobalKey();
   String _dataString;
@@ -185,8 +184,7 @@ class RoutineDetailPageState extends State<RoutineDetailPage> {
                                             child: RepaintBoundary(
                                               key: globalKey,
                                               child: QrImage(
-                                                data:
-                                                _dataString,
+                                                data: _dataString,
                                                 //TODO: generete the string for sharing routine
                                                 size: 300,
                                                 version: 35,
@@ -217,6 +215,19 @@ class RoutineDetailPageState extends State<RoutineDetailPage> {
                                 ));
                       },
                     ),
+                          IconButton(
+                            icon: Icon(Icons.calendar_view_day),
+                            onPressed: () {
+                              showModalBottomSheet(
+                                  context: context,
+                                  builder: (buildContext) {
+                                    return ModalBottomSheet(
+                                      curRoutine.weekdays,
+                                      checkedCallback: _updateWorkWeekdays,
+                                    );
+                                  });
+                            },
+                          ),
                     Builder(
                       builder: (context) =>
                           IconButton(
@@ -307,6 +318,12 @@ class RoutineDetailPageState extends State<RoutineDetailPage> {
         ));
   }
 
+  void _updateWorkWeekdays(List<int> checkedWeekdays) {
+    curRoutine.weekdays.clear();
+    curRoutine.weekdays.addAll(checkedWeekdays);
+    DBProvider.db.updateRoutine(curRoutine);
+  }
+
   void _showSyncFailSnackbar() {
     _scaffoldKey.currentState.removeCurrentSnackBar();
     _scaffoldKey.currentState.showSnackBar(SnackBar(
@@ -382,26 +399,39 @@ class RoutineDetailPageState extends State<RoutineDetailPage> {
       context: context,
       pageBuilder: (BuildContext buildContext, Animation<double> animation,
           Animation<double> secondaryAnimation) {
-        return Material(
-          child: Center(
-              child: Card(
-                color: Colors.orange,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Text("Well done!", textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white),),
-                    Text("+1", textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white),),
-                  ],
-                ),
-              )
-          ),
-          color: Colors.black38,
-          shadowColor: Colors.black,
-        );
+        return Center(
+            child: Container(
+                height: 200,
+                width: 200,
+                decoration: BoxDecoration(shape: BoxShape.circle,
+                    color: Colors.orange,
+                    boxShadow: [BoxShadow(
+                      color: Colors.black,
+                      blurRadius: 20.0,
+                    )
+                    ]),
+                child: Padding(padding: EdgeInsets.all(8),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          Text(
+                            "Well done!",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          Text(
+                            "+1",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ))
+            ));
       },
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations
@@ -481,81 +511,97 @@ class RoutineDetailPageState extends State<RoutineDetailPage> {
 
 }
 
-class Year {
-  final String year;
-  final List<String> dates = List<String>();
+typedef void WeekdaysCheckedCallback(List<int> selectedWeekdays);
 
-  Year(this.year)
-      : assert(year.length == 4 && year[0] == '2' && year[1] == '0');
+class ModalBottomSheet extends StatefulWidget {
+  final List<int> checkedWeekDays;
+  WeekdaysCheckedCallback checkedCallback;
+
+  ModalBottomSheet(this.checkedWeekDays, {this.checkedCallback});
+
+  _ModalBottomSheetState createState() => _ModalBottomSheetState();
 }
 
-class HistoryExpansionTile extends StatelessWidget {
-  final Map exHistory;
-  final Color foregroundColor;
+class _ModalBottomSheetState extends State<ModalBottomSheet>
+    with SingleTickerProviderStateMixin {
+  final List<String> weekDays = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday'
+  ];
+  final List<IconData> weekDayIcons = [
+    Icons.looks_one,
+    Icons.looks_two,
+    Icons.looks_3,
+    Icons.looks_4,
+    Icons.looks_5,
+    Icons.looks_6,
+    Icons.looks
+  ];
+  final List<bool> _isCheckedList = List<bool>(7);
+  var heightOfModalBottomSheet = 100.0;
 
-  HistoryExpansionTile(this.exHistory, this.foregroundColor)
-      : assert(exHistory != null),
-        assert(foregroundColor != null);
+  @override
+  void initState() {
+    for (int i = 1; i <= 7; i++) {
+      if (widget.checkedWeekDays.contains(i))
+        _isCheckedList[i - 1] = true;
+      else
+        _isCheckedList[i - 1] = false;
+    }
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    //List<String> years = List<String>();
-    var years = List<Year>();
-    for (var date in exHistory.keys) {
-      if (years.isEmpty) {
-        years.add(Year(date
-            .toString()
-            .split('-')
-            .first));
-        years.last.dates.add(date);
-      } else {
-        if (date.toString()[2] != years.last.year[2] ||
-            date.toString()[3] != years.last.year[3]) {
-          years.add(Year(date
-              .toString()
-              .split('-')
-              .first));
-        } else {
-          years.last.dates.add(date);
-        }
-      }
-    }
-
-    // TODO: implement build
-    return ListView.builder(
-        itemCount: years.length,
-        itemBuilder: (context, i) {
-          return custom.ExpansionTile(
-            foregroundColor: foregroundColor,
-            title: Text(years[i].year),
-            children: _listViewBuilder(years[i].dates, exHistory),
-          );
-        });
+    return Container(
+        color: Colors.white,
+        child: Padding(
+            padding: EdgeInsets.only(top: 12),
+            child: ListView.separated(
+                itemCount: 8,
+                separatorBuilder: (buildContext, index) {
+                  if (index == 0) return Container();
+                  return Divider();
+                },
+                itemBuilder: (buildContext, index) {
+                  if (index == 0) {
+                    return Padding(
+                      padding: EdgeInsets.only(left: 16),
+                      child: const Text('Choose weekday(s) for this routine'),
+                    );
+                  }
+                  index = index - 1;
+                  return CheckboxListTile(
+                    title: Text(weekDays[index]),
+                    value: _isCheckedList[index],
+                    onChanged: (val) {
+                      setState(() {
+                        _isCheckedList[index] = val;
+                        _returnCheckedWeekdays();
+                      });
+                    },
+                    secondary: Icon(weekDayIcons[index]),
+                  );
+                })));
   }
 
-  List<Widget> _listViewBuilder(List<String> dates, Map exHistory) {
-    List<Widget> listTiles = List<Widget>();
-    for (var date in dates) {
-      listTiles.add(ListTile(
-        leading: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.grey[350],
-            ),
-            child: Center(
-              child: Text(
-                (dates.indexOf(date) + 1).toString(),
-                style: TextStyle(fontSize: 16),
-              ),
-            )),
-        title: Text(date),
-        subtitle: Text(exHistory[date]),
-      ));
-      listTiles.add(Divider());
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  void _returnCheckedWeekdays() {
+    List<int> selectedWeekdays = List<int>();
+    for (int i = 0; i < _isCheckedList.length; i++) {
+      if (_isCheckedList[i]) {
+        selectedWeekdays.add(i + 1);
+      }
     }
-    listTiles.removeLast();
-    return listTiles;
+    widget.checkedCallback(selectedWeekdays);
   }
 }

@@ -157,11 +157,12 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return RoutinesContext.around(MaterialApp(
         theme: ThemeData(
-            fontFamily: 'Roboto',
-            primaryColor: Colors.blueGrey,
-            buttonColor: Colors.blueGrey[300],
-            toggleableActiveColor: Colors.blueGrey[400],
-            indicatorColor: Colors.blueGrey[200]),
+          fontFamily: 'Roboto',
+          primaryColor: Colors.blueGrey,
+          buttonColor: Colors.blueGrey[300],
+          toggleableActiveColor: Colors.blueGrey[400],
+          indicatorColor: Colors.blueGrey[200],
+        ),
         debugShowCheckedModeBanner: false,
         title: 'Workout Planner',
         home: MainPage()));
@@ -226,257 +227,303 @@ class MainPageState extends State<MainPage> {
     final RoutinesContext roc = RoutinesContext.of(context);
     final List<Routine> routines = RoutinesContext.of(context).routines;
 
-    return Scaffold(
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            Container(
-              height: 300,
-              child: DrawerHeader(
-                child: Column(
-                  children: <Widget>[
-                    currentUser == null
-                        ? Container()
-                        : ClipRRect(
-                      borderRadius: BorderRadius.circular(30),
-                      child: Image.network(
-                        currentUser.photoUrl,
-                        width: 60,
-                        height: 60,
-                      ),
-                    ),
-                    currentUser == null
-                        ? Container()
-                        : Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: Text(
-                        currentUser.displayName,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: Text(
-                        currentUser == null
-                            ? "Sign in to sync your data"
-                            : currentUser.email,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+    return DefaultTabController(
+        length: 2,
+        child: Scaffold(
+            drawer: Drawer(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: <Widget>[
+                  Container(
+                    height: 300,
+                    child: DrawerHeader(
+                      child: Column(
                         children: <Widget>[
                           currentUser == null
-                              ? RaisedButton(
-                            child: const Text('SIGN IN'),
-                            onPressed: _handleSignIn,
-                          )
-                              : RaisedButton(
-                            child: const Text('SIGN OUT'),
-                            onPressed: _handleSignOut,
+                              ? Container()
+                              : ClipRRect(
+                            borderRadius: BorderRadius.circular(30),
+                            child: Image.network(
+                              currentUser.photoUrl,
+                              width: 60,
+                              height: 60,
+                            ),
+                          ),
+                          currentUser == null
+                              ? Container()
+                              : Padding(
+                            padding: EdgeInsets.only(top: 8),
+                            child: Text(
+                              currentUser.displayName,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(top: 8),
+                            child: Text(
+                              currentUser == null
+                                  ? "Sign in to sync your data"
+                                  : currentUser.email,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(top: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                currentUser == null
+                                    ? RaisedButton(
+                                  child: const Text('SIGN IN'),
+                                  onPressed: _handleSignIn,
+                                )
+                                    : RaisedButton(
+                                  child: const Text('SIGN OUT'),
+                                  onPressed: _handleSignOut,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Flexible(
+                            child: Container(
+                              child: Padding(
+                                padding: EdgeInsets.only(top: 8),
+                                child: Center(
+                                  child: FutureBuilder(
+                                      future: FirestoreHelper().getDailyData(),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.hasData) {
+                                          if (snapshot.data as int == -1) {
+                                            return Text(
+                                              'NO DATA',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            );
+                                          } else {
+                                            return dailyRank == 0
+                                                ? Text(
+                                              "${snapshot
+                                                  .data} people have worked out out today",
+                                              softWrap: true,
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 14),
+                                            )
+                                                : Text(
+                                              "${snapshot
+                                                  .data} people have worked out today\nYou are in the ${dailyRank
+                                                  .toString() +
+                                                  _getNumberSuffix(
+                                                      dailyRank)} place",
+                                              softWrap: true,
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 14),
+                                            );
+                                          }
+                                        } else {
+                                          return Text(
+                                            'NO DATA',
+                                            textAlign: TextAlign.center,
+                                            style:
+                                            TextStyle(color: Colors.white),
+                                          );
+                                        }
+                                      }),
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                    )
-                  ],
-                ),
-                decoration:
-                BoxDecoration(color: Theme
-                    .of(context)
-                    .primaryColor),
-              ),
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.calendar_today,
-                color: Colors.black,
-              ),
-              title: Text('This Year'),
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            CalenderPage(_getWorkoutDates(
-                                RoutinesContext
-                                    .of(context)
-                                    .routines))));
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.assessment,
-                color: Colors.black,
-              ),
-              title: Text('Statistics'),
-              onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => StatisticsPage()));
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.favorite,
-                color: Colors.red,
-              ),
-              title: Text("Dev's recommendations"),
-              onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => RecommendPage()));
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.settings,
-                color: Colors.black,
-              ),
-              title: Text("Settings"),
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            SettingPage(
-                              currentUser: currentUser,
-                              signInCallback: _handleSignIn,
-                            )));
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.gradient,
-                color: Colors.black,
-              ),
-              title: Text('About'),
-              onTap: () {
-                Navigator.pop(context);
-                showAboutDialog(
-                    context: context,
-                    applicationName: 'Workout Planner',
-                    applicationVersion: '0.1 beta',
-                    applicationIcon: Image.asset(
-                      'assets/ic_launcher.png',
-                      scale: 2,
-                    ), //TODO:
-                    children: <Widget>[
-                      Text(
-                          'A simple app to plan out your workout routines, made by Jiaqi Feng, as a gift to those who sweat for a better self')
-                    ]);
-              },
-            ),
-          ],
-        ),
-      ),
-      appBar: AppBar(
-        title: Text('My Routines'),
-        bottom: PreferredSize(
-          child: FutureBuilder(
-              future: FirestoreHelper().getDailyData(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  if (snapshot.data as int == -1) {
-                    print("weird");
-                    return Text(
-                      'no data',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white),
-                    );
-                  } else {
-                    return Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.all(8),
-                        child: Center(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              dailyRank == 0
-                                  ? Text(
-                                "${snapshot
-                                    .data} people but you have worked out out today",
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 14),
-                              )
-                                  : Text(
-                                "${snapshot
-                                    .data} people have worked out today\nYou are in the ${dailyRank
-                                    .toString() +
-                                    _getNumberSuffix(dailyRank)} place",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 14),
-                              ),
-                            ],
+                      decoration:
+                      BoxDecoration(color: Theme
+                          .of(context)
+                          .primaryColor),
+                    ),
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      Icons.calendar_today,
+                      color: Colors.black,
+                    ),
+                    title: Text('This Year'),
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  CalenderPage(
+                                      _getWorkoutDates(
+                                          RoutinesContext
+                                              .of(context)
+                                              .routines))));
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      Icons.assessment,
+                      color: Colors.black,
+                    ),
+                    title: Text('Statistics'),
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => StatisticsPage()));
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      Icons.favorite,
+                      color: Colors.red,
+                    ),
+                    title: Text("Dev's recommendations"),
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => RecommendPage()));
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      Icons.settings,
+                      color: Colors.black,
+                    ),
+                    title: Text("Settings"),
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  SettingPage(
+                                    currentUser: currentUser,
+                                    signInCallback: _handleSignIn,
+                                  )));
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      Icons.gradient,
+                      color: Colors.black,
+                    ),
+                    title: Text('About'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      showAboutDialog(
+                          context: context,
+                          applicationName: 'Workout Planner',
+                          applicationVersion: '0.1 beta',
+                          applicationIcon: Image.asset(
+                            'assets/ic_launcher.png',
+                            scale: 2,
                           ),
-                        ),
-                      ),
-                    );
-                  }
-                } else {
-                  return Text(
-                    'no data',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white),
-                  );
-                }
-              }),
-          preferredSize: Size.fromHeight(40),
-        ),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.android),
-            onPressed: () {
+                          children: <Widget>[
+                            Text(
+                                'A simple app to plan out your workout routines, made by Jiaqi Feng, as a gift to those who sweat for a better self')
+                          ]);
+                    },
+                  ),
+                ],
+              ),
+            ),
+            appBar: AppBar(
+              title: Text('My Routines'),
+              actions: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.android),
+                  onPressed: () {
 //              RewardedVideoAd.instance.show();
 //              myInterstitial.show(anchorOffset: 0, anchorType: AnchorType.top);
-            },
-          ),
-          Builder(
-            builder: (context) => IconButton(
-              icon: Transform.rotate(
-                origin: Offset(0, 0),
-                angle: pi / 2,
-                child: Icon(Icons.flip),
-              ),
-              onPressed: () {
-                roc.curRoutine = Routine(
-                    mainTargetedBodyPart: null,
-                    routineName: null,
-                    parts: null,
-                    createdDate: null);
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => ScanPage()));
-              },
+                  },
+                ),
+                Builder(
+                  builder: (context) =>
+                      IconButton(
+                        icon: Transform.rotate(
+                          origin: Offset(0, 0),
+                          angle: pi / 2,
+                          child: Icon(Icons.flip),
+                        ),
+                        onPressed: () {
+                          roc.curRoutine = Routine(
+                              mainTargetedBodyPart: null,
+                              routineName: null,
+                              parts: null,
+                              createdDate: null);
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ScanPage()));
+                        },
+                      ),
+                ),
+                Builder(
+                  builder: (context) =>
+                      IconButton(
+                        icon: Icon(Icons.add),
+                        onPressed: () {
+                          roc.curRoutine = Routine(
+                              mainTargetedBodyPart: null,
+                              routineName: null,
+                              parts: new List<Part>(),
+                              createdDate: null);
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      RoutineEditPage(
+                                        addOrEdit: AddOrEdit.Add,
+                                      )));
+                        },
+                      ),
+                ),
+              ],
+              bottom: TabBar(tabs: [
+                Tab(
+                  text: 'MY ROUTINES',
+                ),
+                Tab(
+                  text: 'TODAY',
+                )
+              ]),
             ),
-          ),
-          Builder(
-            builder: (context) => IconButton(
-              icon: Icon(Icons.add),
-              onPressed: () {
-                roc.curRoutine = Routine(
-                    mainTargetedBodyPart: null,
-                    routineName: null,
-                    parts: new List<Part>(),
-                    createdDate: null);
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            RoutineEditPage(
-                              addOrEdit: AddOrEdit.Add,
-                            )));
-              },
-            ),
-          ),
-        ],
-      ),
-      backgroundColor: Colors.white,
-      body: _buildCategories(),
-    );
+            backgroundColor: Colors.white,
+            body: TabBarView(children: [
+              _buildCategories(),
+              FutureBuilder(
+                future: RoutinesContext.of(context).getAllRoutines(),
+                builder: (_, snapshot) {
+                  if (snapshot.hasData) {
+                    return Container(
+                        child: ListView(
+                          children: (snapshot.data as List<Routine>)
+                              .where((routine) =>
+                              routine.weekdays
+                                  .contains(DateTime
+                                  .now()
+                                  .weekday))
+                              .map((routine) =>
+                              RoutineOverview(
+                                routine: routine,
+                              ))
+                              .toList(),
+                        ));
+                  } else {
+                    return Container(
+                      alignment: Alignment.center,
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                },
+              )
+            ])));
   }
 
   Widget _buildCategories() {
@@ -485,7 +532,8 @@ class MainPageState extends State<MainPage> {
 
     return FutureBuilder<List<Routine>>(
       future: RoutinesContext.of(context).getAllRoutines(),
-      builder: (BuildContext context, AsyncSnapshot<List<Routine>> snapshot) {
+      builder:
+          (BuildContext context, AsyncSnapshot<List<Routine>> snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             !snapshot.hasData) {
           return Center(
@@ -499,8 +547,12 @@ class MainPageState extends State<MainPage> {
         }
         if (snapshot.hasData) {
           setDatabaseStatus(true);
-          RoutinesContext.of(context).routines = snapshot.data;
-          routines = RoutinesContext.of(context).routines;
+          RoutinesContext
+              .of(context)
+              .routines = snapshot.data;
+          routines = RoutinesContext
+              .of(context)
+              .routines;
           return ListView.builder(
             itemCount: routines.length,
             itemBuilder: (context, i) {
@@ -540,14 +592,30 @@ class MainPageState extends State<MainPage> {
       return 'st';
   }
 
-  List<String> _getWorkoutDates(List<Routine> routines) {
-    List<String> dates = List<String>();
+//  List<String> _getWorkoutDates(List<Routine> routines) {
+//    List<String> dates = List<String>();
+//
+//    for (var routine in routines) {
+//      if (routine.parts.isNotEmpty &&
+//          routine.parts.first.exercises.first.exHistory.isNotEmpty) {
+//        for (var date in routine.parts.first.exercises.first.exHistory.keys) {
+//          dates.add(date);
+//        }
+//      }
+//    }
+//    return dates;
+//  }
+
+  Map<String, Routine> _getWorkoutDates(List<Routine> routines) {
+    Map<String, Routine> dates = {};
 
     for (var routine in routines) {
-      if (routine.parts.isNotEmpty &&
-          routine.parts.first.exercises.first.exHistory.isNotEmpty) {
-        for (var date in routine.parts.first.exercises.first.exHistory.keys) {
-          dates.add(date);
+      print(
+          "${routine.routineName} has a length of history: ${routine
+              .routineHistory.length}");
+      if (routine.routineHistory.isNotEmpty) {
+        for (var date in routine.routineHistory) {
+          dates[date] = routine;
         }
       }
     }

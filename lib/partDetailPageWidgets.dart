@@ -150,7 +150,9 @@ class PartCardState extends State<PartCard> {
             Expanded(
               flex: 3,
               child: Text(
-                (part.workoutType== WorkoutType.Weight?'Reps: ':'Seconds: ') + part.exercises[i].reps,
+                (part.exercises[i].workoutType == WorkoutType.Weight
+                    ? 'Reps: '
+                    : 'Seconds: ') + part.exercises[i].reps,
                 style: _defaultTextStyle,
               ),
             )

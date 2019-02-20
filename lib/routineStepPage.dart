@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'customWidgets/customSnackBars.dart';
 import 'database/database.dart';
 import 'model.dart';
 
@@ -15,8 +17,7 @@ class RoutineStepPage extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    // TODO: implement createState
-    return new _RoutineStepPageState();
+    return _RoutineStepPageState();
   }
 }
 
@@ -24,9 +25,16 @@ const LabelTextStyle = TextStyle(color: Colors.white70);
 const SmallBoldTextStyle =
     TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold);
 
-class _RoutineStepPageState extends State<RoutineStepPage> {
+class _RoutineStepPageState extends State<RoutineStepPage>
+    with TickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final ScrollController _scrollController = new ScrollController();
+  final _duration = Duration(milliseconds: 50);
+  var _stepperKey = GlobalKey();
+  var _bottomSheetContainerKey = GlobalKey();
+  AnimationController _opacityController;
+  Animation<double> _opacity;
+
   double maxOffset;
   Routine routine;
   Routine routineCopy;
@@ -45,9 +53,9 @@ class _RoutineStepPageState extends State<RoutineStepPage> {
   //List<Part> _partsCopy;
   int totalLength = 0;
   int postion = 0;
-  bool shouldIncre = false;
-  bool shouldDecre = false;
-  bool shouldBreak = false;
+
+  Timer _increTimer;
+  Timer _decreTimer;
 
   var timeout = const Duration(seconds: 1);
   var ms = const Duration(milliseconds: 1);
@@ -67,39 +75,41 @@ class _RoutineStepPageState extends State<RoutineStepPage> {
     });
   }
 
-  startIncTimeout(Exercise ex, int milliseconds) {
-    var duration =
-    milliseconds == null ? Duration(seconds: 1) : ms * milliseconds;
-    return new Timer(duration, () {
-      if (shouldIncre) {
-        setState(() {
-          ex.weight = _increWeight(ex.weight);
-        });
-        startIncTimeout(ex, milliseconds);
-      } else {
-        //DBProvider.db.updateRoutine(routine);
-      }
+  keepDecre(Exercise ex) {
+    _decreTimer = Timer.periodic(_duration, (Timer t) {
+      setState(() {
+        ex.weight = _decreWeight(ex.weight);
+      });
     });
   }
 
-  startDecTimeout(Exercise ex, int milliseconds) {
-    var duration =
-    milliseconds == null ? Duration(seconds: 1) : ms * milliseconds;
-    return new Timer(duration, () {
-      if (shouldDecre) {
-        setState(() {
-          ex.weight = _decreWeight(ex.weight);
-        });
-        startDecTimeout(ex, milliseconds);
-      } else {
-        //DBProvider.db.updateRoutine(routine);
-      }
+  keepIncre(Exercise ex) {
+    _increTimer = Timer.periodic(_duration, (Timer t) {
+      setState(() {
+        ex.weight = _increWeight(ex.weight);
+      });
     });
   }
 
   @override
   void initState() {
     super.initState();
+
+    _opacityController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 800));
+    _opacity =
+    CurvedAnimation(parent: _opacityController, curve: Curves.easeInOut)
+      ..addStatusListener((status) {
+//      if (status == AnimationStatus.completed) {
+//        _opacityController.reverse();
+//      } else if (status == AnimationStatus.dismissed) {
+//        _opacityController.forward();
+//      }
+        if (status == AnimationStatus.dismissed) {
+          _opacityController.forward();
+        }
+      });
+    _opacityController.forward();
   }
 
   @override
@@ -143,152 +153,141 @@ class _RoutineStepPageState extends State<RoutineStepPage> {
           }
         }
       }
-
+      _opacityController.reverse();
       _initialized = true;
     }
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: Scaffold(
-        key: _scaffoldKey,
-        appBar: AppBar(
-          title: Text(
-            _title,
-            style: TextStyle(color: Colors.white54),
-          ),
-          bottom: PreferredSize(
-              child: LinearProgressIndicator(
-                value: postion / totalLength,
-              ),
-              preferredSize: null),
-          backgroundColor: _appBarColors,
-        ),
-        body: _mainLayout(),
-        floatingActionButton: _fabEnabled
-            ? FloatingActionButton(
-            child: Text('+1'),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) =>
-                    AlertDialog(
-                      title: Text('Congrats! You finished it!'),
-                      content: Text('Add one to the completion counter?'),
-                      actions: <Widget>[
-                        FlatButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: Text("Nah"),
-                        ),
-                        FlatButton(
-                          onPressed: () async {
-                            Navigator.of(context).pop(true);
 
-                            routineCopy.completionCount++;
-                            RoutinesContext
-                                .of(context)
-                                .routines
-                                .removeWhere((r) => r.id == routineCopy.id);
-                            RoutinesContext
-                                .of(context)
-                                .routines
-                                .add(Routine.copyFromRoutine(routineCopy));
-                            RoutinesContext
-                                .of(context)
-                                .curRoutine =
+    return WillPopScope(
+        onWillPop: _onWillPop,
+        child: FadeTransition(
+          opacity: _opacity,
+          child: Scaffold(
+            key: _scaffoldKey,
+            appBar: AppBar(
+              title: Text(
+                _title,
+                style: TextStyle(color: Colors.white54),
+              ),
+              bottom: PreferredSize(
+                  child: LinearProgressIndicator(
+                    value: postion / totalLength,
+                  ),
+                  preferredSize: null),
+              backgroundColor: _appBarColors,
+              actions: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.assignment),
+                  onPressed: () {
+                    showModalBottomSheet(
+                        context: context, builder: (buildContext) {
+                      return Container(
+                        width: double.infinity,
+                        color: Colors.white,
+                        child: Padding(
+                          padding: EdgeInsets.all(8),
+                          child: Text(routineCopy
+                              .parts[_curExIndex].additionalNotes.isEmpty
+                              ? "No additional notes"
+                              : routineCopy.parts[_curExIndex].additionalNotes,
+                            textAlign: TextAlign.center,),
+                        ),
+                      );
+                    });
+//                    _scaffoldKey.currentState.showBottomSheet((buildContext) {
+//                      return Container(
+//                        key: _bottomSheetContainerKey,
+//                        height: 200,
+//                        width: double.infinity,
+//                        color: Colors.white,
+//                        child: Padding(
+//                          padding: EdgeInsets.all(8),
+//                          child: Text(routineCopy
+//                                  .parts[_curExIndex].additionalNotes.isEmpty
+//                              ? "No additional notes"
+//                              : routineCopy.parts[_curExIndex].additionalNotes),
+//                        ),
+//                      );
+//                    });
+                  },
+                )
+              ],
+            ),
+            body: _mainLayout(),
+            floatingActionButton: _fabEnabled
+                ? FloatingActionButton(
+                child: Text('+1'),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) =>
+                        AlertDialog(
+                          title: Text('Congrats! You finished it!'),
+                          content:
+                          Text('Add one to the completion counter?'),
+                          actions: <Widget>[
+                            FlatButton(
+                              onPressed: () =>
+                                  Navigator.of(context).pop(false),
+                              child: Text("Nah"),
+                            ),
+                            FlatButton(
+                              onPressed: () async {
+                                Navigator.of(context).pop(true);
+
+                                routineCopy.completionCount++;
+                                if (!routineCopy.routineHistory
+                                    .contains(getTodayDate())) {
+                                  routineCopy.routineHistory
+                                      .add(getTodayDate());
+                                }
+
                                 RoutinesContext
                                     .of(context)
                                     .routines
-                                    .last;
-
-                            DBProvider.db.updateRoutine(
+                                    .removeWhere(
+                                        (r) => r.id == routineCopy.id);
                                 RoutinesContext
                                     .of(context)
-                                    .curRoutine);
+                                    .routines
+                                    .add(
+                                    Routine.copyFromRoutine(routineCopy));
+                                RoutinesContext
+                                    .of(context)
+                                    .curRoutine =
+                                    RoutinesContext
+                                        .of(context)
+                                        .routines
+                                        .last;
 
-//                                ///update the database if haven't yet
-//                                if (dailyRank > -1) {//== 0
-//                                  var docs = await Firestore.instance
-//                                      .collection('dailyData')
-//                                      .getDocuments();
-//                                  var ref = docs.documents.first.reference;
-//                                  Firestore.instance
-//                                      .runTransaction((transaction) async {
-//                                    DocumentSnapshot freshSnap =
-//                                        await transaction.get(ref);
-//                                    await transaction.update(
-//                                        freshSnap.reference, {
-//                                      "totalCount": freshSnap["totalCount"] + 1
-//                                    }).whenComplete(() async {
-//                                      dailyRank = await ref.get().then(
-//                                              (docSnapshot) =>
-//                                          docSnapshot["totalCount"]);
-//                                    });
-//
-//
-//
-//                                    ///TODO: why can't it fetch the latest updated value??
-//                                    print("dailyRan value is $dailyRank");
-//                                    dailyRankInfo =
-//                                        DateTime.now().toUtc().toString() +
-//                                            '/' +
-//                                            dailyRank.toString();
-//                                    setDailyRankInfo(dailyRankInfo);
-//                                  });
-//                                }
+                                DBProvider.db.updateRoutine(
+                                    RoutinesContext
+                                        .of(context)
+                                        .curRoutine);
 
-                            widget.celebrateCallback();
+                                widget.celebrateCallback();
 
-                            Navigator.pop(context);
-                          },
-                          child: new Text(
-                            'Sure',
-                            style: TextStyle(fontSize: 36),
-                          ),
+                                Navigator.pop(context);
+                              },
+                              child: Text(
+                                'Sure',
+                                style: TextStyle(fontSize: 36),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-              );
-            })
-            : Container(),
-      ),
-    );
+                  );
+                })
+                : Container(),
+          ),
+        ));
   }
 
   Widget _mainLayout() {
-    return _buildRows();
-  }
-
-  Widget _buildRows() {
-    List<Widget> widgets = new List<Widget>();
-    for (int i = 0; i < routine.parts.length; i++) {
-      widgets.add(Container(
-        alignment: Alignment.topCenter,
-        height: queryData.size.height,
-        width: queryData.size.width,
-        color: setTypeToColorConverter(routine.parts[i].setType),
-        child: Container(
-            alignment: Alignment.topCenter,
-            color: Colors.transparent,
-            child: Padding(
-              padding: EdgeInsets.only(top: 0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  Container(
-                      height: queryData.size.height * 0.8,
-                      child: Padding(
-                        padding: EdgeInsets.only(top: 8),
-                        child: _buildExerciseDetailRows(
-                            i,
-                            routineCopy.parts[i].exercises,
-                            routineCopy.parts[i].setType,
-                            routineCopy.parts[i].workoutType),
-                      ))
-                ],
-              ),
-            )),
-      ));
-    }
-    widgets.add(Container(
+    if (_curExIndex < routine.parts.length)
+      return _buildRow();
+    else
+      _fabEnabled = true;
+    return Container(
       alignment: Alignment.center,
       height: queryData.size.height,
       width: queryData.size.width,
@@ -301,41 +300,38 @@ class _RoutineStepPageState extends State<RoutineStepPage> {
           style: TextStyle(color: Colors.white),
         ),
       ),
-    ));
-
-    return ListView(
-      controller: _scrollController,
-      physics: NeverScrollableScrollPhysics(),
-      children: widgets,
     );
   }
 
-  void _scrollDown() {
-    if (_scrollController.offset + queryData.size.height <= maxOffset) {
-      _scrollController.animateTo(
-          _scrollController.offset + queryData.size.height,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut);
-      setState(() {
-        if (_curExIndex < routine.parts.length) {
-          //TODO: delete this part
-          _curExIndex++;
-          if (_curExIndex == routine.parts.length) {
-            _fabEnabled = true;
-          }
-        }
-      });
-    } else {
-      _scrollController.animateTo(
-          _scrollController.offset + queryData.size.height,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut);
-      setState(() {
-        _fabEnabled = true;
-      });
-      routine.lastCompletedDate = DateTime.now();
-      DBProvider.db.updateRoutine(routine);
-    }
+  ///new
+  Widget _buildRow() {
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 800),
+      alignment: Alignment.topCenter,
+      height: queryData.size.height,
+      width: queryData.size.width,
+      color: setTypeToColorConverter(routine.parts[_curExIndex].setType),
+      child: Container(
+          alignment: Alignment.topCenter,
+          color: Colors.transparent,
+          child: Padding(
+            padding: EdgeInsets.only(top: 0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Container(
+                    height: queryData.size.height * 0.8,
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: _buildExerciseDetailRow(
+                          _curExIndex,
+                          routineCopy.parts[_curExIndex].exercises,
+                          routineCopy.parts[_curExIndex].setType),
+                    ))
+              ],
+            ),
+          )),
+    );
   }
 
   void _updateExHistory(int curEx, int setLeft) {
@@ -349,8 +345,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> {
         .day));
     if (routineCopy.parts[_curExIndex].exercises[curEx].exHistory
         .containsKey(tempDateStr)) {
-      routineCopy
-          .parts[_curExIndex].exercises[curEx].exHistory[tempDateStr] +=
+      routineCopy.parts[_curExIndex].exercises[curEx].exHistory[tempDateStr] +=
           '/' +
               routineCopy.parts[_curExIndex].exercises[curEx].weight.toString();
     } else {
@@ -359,54 +354,63 @@ class _RoutineStepPageState extends State<RoutineStepPage> {
     }
   }
 
-  Widget _buildExerciseDetailRows(
-      int i, List<Exercise> exs, SetType setType, WorkoutType workoutType) {
-    List<Widget> _widgets = new List<Widget>();
-    if (true) {
-      _widgets.add(Stepper(
-        controlsBuilder: (context, {onStepContinue, onStepCancel}) {
-          return ButtonBar(
-            alignment: MainAxisAlignment.center,
-            children: <Widget>[
-              RaisedButton(
-                child: Text('Next'),
-                onPressed: onStepContinue,
-              )
-            ],
-          );
-        },
-        currentStep: _currentSteps[i],
-        onStepContinue: () {
-          _updateExHistory(_currentSteps[i], _setsLeft[i]);
-          postion++;
+  Widget _buildExerciseDetailRow(int i, List<Exercise> exs, SetType setType) {
+    return Stepper(
+      key: _stepperKey,
+      controlsBuilder: (context, {onStepContinue, onStepCancel}) {
+        return ButtonBar(
+          alignment: MainAxisAlignment.center,
+          children: <Widget>[
+            RaisedButton(
+              child: Text('Next'),
+              onPressed: onStepContinue,
+            )
+          ],
+        );
+      },
+      currentStep: _currentSteps[i],
+      onStepContinue: () {
+        _updateExHistory(_currentSteps[i], _setsLeft[i]);
+        postion++;
+        //TODO: organize
+        if (_currentSteps[i] == exs.length - 1 && _setsLeft[i] == 0) {
+          _opacityController.reverse();
+          Timer(Duration(milliseconds: 800), () {
+            setState(() {
+              _curExIndex++;
+              _stepperKey = GlobalKey();
+            });
+          });
+        } else {
           setState(() {
             if (_currentSteps[i] < exs.length - 1) {
               _currentSteps[i]++;
             } else {
               if (_setsLeft[i] == 0) {
-                _scrollDown();
-                //_fabEnabled = true;
+                _opacityController.reverse();
+                Timer(Duration(milliseconds: 800), () {
+                  _curExIndex++;
+                  _stepperKey = GlobalKey();
+                });
               } else {
                 _currentSteps[i] = 0;
                 _setsLeft[i]--;
               }
             }
           });
-        },
-        steps: exs
-            .map((ex) => Step(
-          title: Text(ex.name),
-          content: _buildStepContent(i, ex, setType, workoutType),
-        ))
-            .toList(),
-      ));
-    }
-
-    return Column(children: _widgets);
+        }
+      },
+      steps: exs
+          .map((ex) =>
+          Step(
+            title: Text(ex.name),
+            content: _buildStepContent(i, ex, setType),
+          ))
+          .toList(),
+    );
   }
 
-  Widget _buildStepContent(
-      int i, Exercise ex, SetType setType, WorkoutType workoutType) {
+  Widget _buildStepContent(int i, Exercise ex, SetType setType) {
     return ListTile(
       title: Row(
         children: <Widget>[
@@ -446,12 +450,10 @@ class _RoutineStepPageState extends State<RoutineStepPage> {
                 flex: 2,
                 child: GestureDetector(
                   onLongPress: () {
-                    shouldDecre = true;
-
-                    startDecTimeout(ex, 50);
+                    keepDecre(ex);
                   },
                   onLongPressUp: () {
-                    shouldDecre = false;
+                    _decreTimer.cancel();
                   },
                   child: RaisedButton(
                       child: Text(
@@ -485,12 +487,10 @@ class _RoutineStepPageState extends State<RoutineStepPage> {
                 flex: 2,
                 child: GestureDetector(
                   onLongPress: () {
-                    shouldIncre = true;
-
-                    startIncTimeout(ex, 50);
+                    keepIncre(ex);
                   },
                   onLongPressUp: () {
-                    shouldIncre = false;
+                    _increTimer.cancel();
                   },
                   child: RaisedButton(
                       child: Text(
@@ -522,7 +522,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> {
                     child: RichText(
                   text: TextSpan(children: <TextSpan>[
                     TextSpan(
-                        text: workoutType == WorkoutType.Weight
+                        text: ex.workoutType == WorkoutType.Weight
                             ? 'Reps: '
                             : 'Seconds: ',
                         style: LabelTextStyle),
@@ -626,11 +626,16 @@ class _RoutineStepPageState extends State<RoutineStepPage> {
   }
 
   _launchURL(String ex) async {
-    String url = 'https://www.bodybuilding.com/exercises/search?query=' + ex;
-    if (await canLaunch(url)) {
-      await launch(url, forceWebView: true);
+    var connectivity = Connectivity();
+    if (connectivity.checkConnectivity == ConnectionState.none) {
+      _scaffoldKey.currentState.showSnackBar(NoNetworkSnackBar());
     } else {
-      throw 'Could not launch $url';
+      String url = 'https://www.bodybuilding.com/exercises/search?query=' + ex;
+      if (await canLaunch(url)) {
+        await launch(url, forceWebView: true);
+      } else {
+        throw 'Could not launch $url';
+      }
     }
   }
 
@@ -654,13 +659,5 @@ class _RoutineStepPageState extends State<RoutineStepPage> {
       }
     }
     return weight;
-  }
-}
-
-class MyBehavior extends ScrollBehavior {
-  @override
-  Widget buildViewportChrome(
-      BuildContext context, Widget child, AxisDirection axisDirection) {
-    return child;
   }
 }

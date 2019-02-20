@@ -26,8 +26,7 @@ class Exercise {
   double weight;
   int sets;
   String reps;
-
-  //Map<DateTime, List<double>> exHistory;
+  WorkoutType workoutType;
   Map exHistory;
 
   Exercise(
@@ -35,41 +34,37 @@ class Exercise {
       @required this.weight,
       @required this.sets,
         @required this.reps,
+        this.workoutType,
         this.exHistory}) {
     if (name == null) name = '';
     if (weight == null) weight = 0;
     if (sets == null) sets = 0;
     if (reps == null) reps = '';
+    if (workoutType == null) {
+      workoutType = WorkoutType.Weight;
+    }
     if (exHistory == null) {
       exHistory = {};
     }
   }
 
-  Exercise.fromJson(Map<String, dynamic> myJson) {
+  Exercise.fromMap(Map<String, dynamic> map) {
     exHistory = Map();
-    name = myJson["name"];
-    weight = double.parse(myJson["weight"] == '' ? '0' : myJson["weight"]);
-    sets = int.parse(myJson["sets"].toString());
-    reps = myJson["reps"];
-    exHistory.addAll(myJson["history"] == null
-        ? {}
-        : jsonDecode(myJson['history']));
+    name = map["name"];
+    weight = double.parse(map["weight"] == '' ? '0' : map["weight"]);
+    sets = int.parse(map["sets"].toString());
+    reps = map["reps"];
+    workoutType = intToWorkoutTypeConverter(map['workoutType'] ?? 1);
+    exHistory.addAll(map["history"] == null ? {} : jsonDecode(map['history']));
   }
 
-//      : name = json["name"],
-//        weight = json["weight"],
-//        sets = int.parse(json["sets"]),
-//        reps = json["reps"],
-//        exHistory = json["history"] == null
-//            ? {DateTime.now():[12]}
-//            : jsonDecode(json["history"]);
-
-  Map<String, dynamic> toJson() =>
+  Map<String, dynamic> toMap() =>
       {
         'name': name,
         'weight': weight.toStringAsFixed(1),
         'sets': sets,
         'reps': reps,
+        'workoutType': workoutTypeToIntConverter(workoutType),
         'history': jsonEncode(exHistory)
       };
 
@@ -78,6 +73,7 @@ class Exercise {
     weight = ex.weight;
     sets = ex.sets;
     reps = ex.reps;
+    workoutType = ex.workoutType;
     //exHistory = ex.exHistory; this seems to be shallow copy?
     exHistory = {};
     for (var key in ex.exHistory.keys) {
@@ -90,6 +86,7 @@ class Exercise {
     weight = ex.weight;
     sets = ex.sets;
     reps = ex.reps;
+    workoutType = ex.workoutType;
     //exHistory = ex.exHistory; this seems to be shallow copy?
     exHistory = {};
   }
@@ -97,7 +94,6 @@ class Exercise {
 
 class Part {
   bool defaultName;
-  WorkoutType workoutType;
   SetType setType;
   TargetedBodyPart targetedBodyPart;
   String partName;
@@ -108,7 +104,6 @@ class Part {
       {@required this.setType,
       @required this.targetedBodyPart,
       @required this.exercises,
-        this.workoutType,
       this.partName}) {
     if (partName != null && partName.trim().isEmpty) {
       switch (setType) {
@@ -137,9 +132,6 @@ class Part {
     if (additionalNotes == null) {
       additionalNotes = '';
     }
-    if (workoutType == null) {
-      workoutType = WorkoutType.Weight;
-    }
   }
 
   static Map<bool, String> checkIfAnyNull(Part part) {
@@ -167,32 +159,28 @@ class Part {
     return {true: ''};
   }
 
-  Part.fromMap(Map<String, dynamic> json) {
-    defaultName = json["isDefaultName"];
-    //workoutType = intToWorkoutTypeConverter(json.containsKey('workoutType')?json['workoutType']:WorkoutType.Weight);//TODO: to be deleted
-    workoutType = intToWorkoutTypeConverter(json['workoutType']);
-    setType = intToSetTypeConverter(json['setType']);
-    targetedBodyPart = intToTargetedBodyPartConverter(json['bodyPart']);
-    additionalNotes = json['notes'];
+  Part.fromMap(Map<String, dynamic> map) {
+    defaultName = map["isDefaultName"];
+    setType = intToSetTypeConverter(map['setType']);
+    targetedBodyPart = intToTargetedBodyPartConverter(map['bodyPart']);
+    additionalNotes = map['notes'];
     exercises =
-        (json['exercises'] as List).map((e) => Exercise.fromJson(e)).toList();
+        (map['exercises'] as List).map((e) => Exercise.fromMap(e)).toList();
     print("ok???");
   }
 
   Map<String, dynamic> toMap() {
     return {
       'isDefaultName': defaultName,
-      'workoutType': workoutTypeToIntConverter(workoutType),
       'setType': setTypeToIntConverter(setType),
       'bodyPart': targetedBodyPartToIntConverter(targetedBodyPart),
       'notes': additionalNotes,
-      'exercises': exercises.map((e) => e.toJson()).toList()
+      'exercises': exercises.map((e) => e.toMap()).toList()
     };
   }
 
   Part.copyFromPart(Part part) {
     defaultName = part.defaultName;
-    workoutType = part.workoutType;
     setType = part.setType;
     targetedBodyPart = part.targetedBodyPart;
     additionalNotes = part.additionalNotes;
@@ -202,7 +190,6 @@ class Part {
 
   Part.copyFromPartWithoutHistory(Part part) {
     defaultName = part.defaultName;
-    workoutType = part.workoutType;
     setType = part.setType;
     targetedBodyPart = part.targetedBodyPart;
     additionalNotes = part.additionalNotes;
@@ -213,6 +200,8 @@ class Part {
 
 class Routine {
   MainTargetedBodyPart mainTargetedBodyPart;
+  List<String> routineHistory;
+  List<int> weekdays;
   String routineName;
   List<Part> parts;
   DateTime lastCompletedDate;
@@ -225,6 +214,8 @@ class Routine {
       @required this.routineName,
       @required this.parts,
       @required this.createdDate,
+        this.weekdays,
+        this.routineHistory,
       this.completionCount,
       this.lastCompletedDate}) {
     if (lastCompletedDate == null) {}
@@ -239,6 +230,12 @@ class Routine {
     }
     if (lastCompletedDate == null) {
       lastCompletedDate = DateTime.now();
+    }
+    if (routineHistory == null) {
+      routineHistory = List<String>();
+    }
+    if (weekdays == null) {
+      weekdays = List<int>();
     }
   }
 
@@ -274,12 +271,19 @@ class Routine {
         ? stringToDateTimeConverter(map['CreatedDate'])
         : DateTime.now();
     completionCount = map['Count'];
+    routineHistory = (map["RoutineHistory"] == null ? <String>[] : (jsonDecode(
+        map['RoutineHistory']) as List).cast<String>());
+    weekdays =
+    (map["Weekdays"] == null ? <int>[] : (jsonDecode(map["Weekdays"]) as List)
+        .cast<int>());
   }
 
   Map<String, dynamic> toMap() {
     return {
       'Id': id,
       'RoutineName': routineName,
+      'RoutineHistory': jsonEncode(routineHistory ?? []),
+      'Weekdays': jsonEncode(weekdays ?? []),
       'MainPart': mainTargetedBodyPartToIntConverter(mainTargetedBodyPart),
       'Parts': jsonEncode(parts.map((part) => part.toMap()).toList()),
       'LastCompletedDate': dateTimeToStringConverter(lastCompletedDate),
@@ -291,6 +295,8 @@ class Routine {
   Routine.copyFromRoutine(Routine routine) {
     id = routine.id;
     routineName = routine.routineName;
+    routineHistory = routine.routineHistory.map((str) => str).toList();
+    weekdays = routine.weekdays.map((i) => i).toList();
     mainTargetedBodyPart = routine.mainTargetedBodyPart;
     parts = routine.parts.map((part) => Part.copyFromPart(part)).toList();
     lastCompletedDate = routine.lastCompletedDate;
@@ -301,6 +307,8 @@ class Routine {
   Routine.copyFromRoutineWithoutHistory(Routine routine) {
     id = routine.id;
     routineName = routine.routineName;
+    routineHistory = List<String>();
+    weekdays = List<int>();
     mainTargetedBodyPart = routine.mainTargetedBodyPart;
     parts = routine.parts.map((part) => Part.copyFromPart(part)).toList();
     lastCompletedDate = routine.lastCompletedDate;
@@ -310,7 +318,6 @@ class Routine {
 }
 
 WorkoutType intToWorkoutTypeConverter(int i) {
-  print('reached!!');
   switch (i) {
     case 0:
       return WorkoutType.Cardio;
@@ -351,6 +358,29 @@ DateTime stringToDateTimeConverter(String str) {
 //  DateTime date = new DateTime(int.tryParse(strs[2]) ?? 2019,
 //      int.tryParse(strs[0]) ?? 1, int.tryParse(strs[1]) ?? 1);
   return DateTime.parse(str);
+}
+
+Color mainTargetedBodyPartToColorConverter(MainTargetedBodyPart mainTB) {
+  switch (mainTB) {
+    case MainTargetedBodyPart.Abs:
+      return Color(0xff8E24AA);
+    case MainTargetedBodyPart.Arm:
+      return Color(0xff64B5F6);
+    case MainTargetedBodyPart.Back:
+      return Color(0xff29B6F6);
+    case MainTargetedBodyPart.Chest:
+      return Color(0xff0097A7);
+    case MainTargetedBodyPart.Leg:
+      return Color(0xff00BFA5);
+    case MainTargetedBodyPart.Shoulder:
+      return Color(0xff00C853);
+    case MainTargetedBodyPart.FullBody:
+      return Color(0xffD84315);
+    default:
+      throw Exception('Inside of mainTargetedBodyPartToColorConverter ' +
+          mainTB.toString());
+  }
+  //return <Color>[Colors.grey[600], Colors.grey[700]];
 }
 
 int mainTargetedBodyPartToIntConverter(MainTargetedBodyPart targetedBodyPart) {
@@ -620,6 +650,17 @@ Widget targetedBodyPartToImageConverter(TargetedBodyPart targetedBodyPart) {
         scale: scale,
       );
   }
+}
+
+String getTodayDate() {
+  return dateTimeToStringConverter(
+      DateTime(DateTime
+          .now()
+          .year, DateTime
+          .now()
+          .month, DateTime
+          .now()
+          .day));
 }
 
 class RoutinesContext extends InheritedWidget {

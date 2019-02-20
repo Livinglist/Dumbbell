@@ -27,7 +27,6 @@ class FirestoreHelper {
 
         if (snapshot.exists) {
           var res = snapshot.reference.updateData({
-            "registerDate": firstRunDate,
             //"routines":"test routines"
             "routines":
                 json.encode(routines.map((routine) => routine.toMap()).toList())
@@ -36,6 +35,7 @@ class FirestoreHelper {
           var res =
               await db.collection("users").document(currentUser.id).setData({
             "registerDate": firstRunDate,
+                "email": currentUser.email,
             "routines":
                 json.encode(routines.map((routine) => routine.toMap()).toList())
           });

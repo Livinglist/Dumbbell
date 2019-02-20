@@ -58,24 +58,12 @@ class RoutineOverview extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.all(8),
       child: Material(
-        //elevation: 10,
-/*      shape: new RoundedRectangleBorder(
-          borderRadius: new BorderRadius.circular(50)
-      ),*/
-        //shape: new CircleBorder(side: new BorderSide(color: Colors.yellow)),
         shape: new RoundedRectangleBorder(
             side: new BorderSide(color: Colors.transparent),
             borderRadius: new BorderRadius.circular(12)),
         color: _mainTargetedBodyPartToColorConverter(routine.mainTargetedBodyPart)[1], //---The color of the background of RoutineOverview Card---
         elevation: 3,
         child: Ink(
-          //width: 100,
-          /*decoration: new BoxDecoration(
-            color: Colors.green,
-            borderRadius: new BorderRadius.only(
-                topLeft: const Radius.circular(40.0),
-                topRight: const Radius.circular(40.0))
-        ),*/
           color: Colors.transparent,
           height: _rowHeight,
           child: Padding(
@@ -124,13 +112,6 @@ class RoutineOverview extends StatelessWidget {
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: _getFontSize(routine.routineName),
-//                              shadows: <Shadow>[
-//                                Shadow(
-//                                  offset: Offset(1.0, 1.0),
-//                                  blurRadius: 0,
-//                                  color: Colors.black38,
-//                                ),
-//                              ],
                                 )
                               /*DefaultTextStyle.of(context)
                           .style

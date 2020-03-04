@@ -23,6 +23,22 @@
           }
         },
         {
+          "client_id": "151876813222-o45htqdslb4umq9qcrhqbidgtjahns45.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "jiaqifeng.workoutplanner",
+            "certificate_hash": "741f40208a4f47a001a8d388d6246b9625ca18a9"
+          }
+        },
+        {
+          "client_id": "151876813222-783vttc4f604vu7mt8ppbk6fp2enu565.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "jiaqifeng.workoutplanner",
+            "certificate_hash": "2305868bd55947676429d165a2bd153755ce7ad8"
+          }
+        },
+        {
           "client_id": "151876813222-ffmv3crqe5dba7neu8ghbft56j72f8ss.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -48,7 +64,8 @@
         "ads_service": {
           "status": 2
         }
-      }
+      },
+      "admob_app_id": "ca-app-pub-8087700115068223~2979486940"
     }
   ],
   "configuration_version": "1"

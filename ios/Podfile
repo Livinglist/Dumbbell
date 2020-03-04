@@ -33,6 +33,7 @@ def parse_KV_file(file, separator='=')
 end
 
 target 'Runner' do
+  use_frameworks!
   # Prepare symlinks folder. We use symlinks to avoid having Podfile.lock
   # referring to absolute paths on developers' machines.
   system('rm -rf .symlinks')
@@ -67,3 +68,5 @@ post_install do |installer|
     end
   end
 end
+
+pod 'Firebase/Core'

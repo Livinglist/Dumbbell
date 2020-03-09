@@ -6,14 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'components//custom_snack_bars.dart';
-import 'package:workout_planner/main.dart';
 import 'package:workout_planner/bloc/routines_bloc.dart';
+import 'package:workout_planner/resource/firebase_provider.dart';
 
 class SettingPage extends StatefulWidget {
-  final GoogleSignInAccount currentUser;
   final VoidCallback signInCallback;
 
-  SettingPage({this.currentUser, this.signInCallback});
+  SettingPage({this.signInCallback});
 
   SettingPageState createState() => SettingPageState();
 }
@@ -29,7 +28,7 @@ class SettingPageState extends State<SettingPage> {
         scaffoldKey.currentState.showSnackBar(noNetworkSnackBar);
       } else {
         var db = Firestore.instance;
-        var snapshot = await db.collection("users").document(widget.currentUser.id).get();
+        var snapshot = await db.collection("users").document(firebaseProvider.currentUser.id).get();
 
         if (snapshot.exists) {
           routinesBloc.allRoutines.listen((routines) {
@@ -39,9 +38,9 @@ class SettingPageState extends State<SettingPage> {
           });
         } else {
           routinesBloc.allRoutines.first.then((routines) async {
-            await db.collection("users").document(widget.currentUser.id).setData({
-              "registerDate": firstRunDate,
-              "email": currentUser.email,
+            await db.collection("users").document(firebaseProvider.currentUser.id).setData({
+              "registerDate": firebaseProvider.firstRunDate,
+              "email": firebaseProvider.currentUser.email,
               "routines": json.encode(routines.map((routine) => routine.toMap()).toList())
             }).whenComplete(() {
               _showSuccessSnackBar("UPLOADED SUCCESSFULLY!");
@@ -58,15 +57,8 @@ class SettingPageState extends State<SettingPage> {
         scaffoldKey.currentState.removeCurrentSnackBar();
         scaffoldKey.currentState.showSnackBar(noNetworkSnackBar);
       } else {
-        var db = Firestore.instance;
-        var snapshot = await db.collection("users").document(widget.currentUser.id).get();
-
-        if (snapshot.exists) {
-          firstRunDate = snapshot.data["registerDate"];
-          var routines = (json.decode(snapshot.data["routines"]) as List).map((map) => Routine.fromMap(map)).toList();
-//          DBProvider.db.deleteAllRoutines();
-//          DBProvider.db.addAllRoutines(RoutinesContext.of(context).routines);
-          routinesBloc.restoreRoutines(routines);
+        if (await firebaseProvider.checkUserExists()) {
+          routinesBloc.restoreRoutines();
           _showSuccessSnackBar("RESTORED SUCCESSFULLY!");
         } else {
           scaffoldKey.currentState.showSnackBar(SnackBar(
@@ -115,7 +107,7 @@ class SettingPageState extends State<SettingPage> {
 
   @override
   void initState() {
-    selectedRadioValue = weeklyAmount;
+    selectedRadioValue = firebaseProvider.weeklyAmount;
     super.initState();
   }
 
@@ -124,7 +116,6 @@ class SettingPageState extends State<SettingPage> {
     return Scaffold(
       key: scaffoldKey,
       appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.white),
         title: Text("Settings"),
       ),
       body: Column(
@@ -182,7 +173,7 @@ class SettingPageState extends State<SettingPage> {
             title: Text("Back up my data"),
             onTap: () {
               scaffoldKey.currentState.removeCurrentSnackBar();
-              widget.currentUser == null
+              firebaseProvider.currentUser == null
                   ? scaffoldKey.currentState.showSnackBar(SnackBar(
                       backgroundColor: Colors.yellow,
                       content: Row(
@@ -216,7 +207,7 @@ class SettingPageState extends State<SettingPage> {
             title: Text("Restore my data"),
             onTap: () {
               scaffoldKey.currentState.removeCurrentSnackBar();
-              widget.currentUser == null
+              firebaseProvider.currentUser == null
                   ? scaffoldKey.currentState.showSnackBar(SnackBar(
                       backgroundColor: Colors.yellow,
                       content: Row(

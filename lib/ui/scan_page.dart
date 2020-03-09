@@ -6,7 +6,7 @@ import 'package:qrcode_reader/qrcode_reader.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
 
-import 'package:workout_planner/ui/routine_overview_card.dart';
+import 'package:workout_planner/ui/components/routine_overview_card.dart';
 import 'package:workout_planner/resource/db_provider.dart';
 import 'components//custom_snack_bars.dart';
 import 'package:workout_planner/models/routine.dart';

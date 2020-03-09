@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:workout_planner/ui/model.dart';
+import 'package:workout_planner/utils/routine_helpers.dart';
 
 import 'package:workout_planner/models/routine.dart';
 
@@ -163,7 +163,7 @@ class PartEditPageState extends State<PartEditPage> {
                   ),
                   FlatButton(
                     onPressed: () {
-                      if (widget.addOrEdit == AddOrEdit.Add) widget.curRoutine.parts.removeLast();
+                      if (widget.addOrEdit == AddOrEdit.add) widget.curRoutine.parts.removeLast();
                       Navigator.of(context).pop(true);
                     },
                     child: Text('Yes'),
@@ -497,7 +497,6 @@ class PartEditPageState extends State<PartEditPage> {
     Scaffold scaffold = Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.white),
         title: Text("Criteria Selection"),
         actions: <Widget>[
           Builder(

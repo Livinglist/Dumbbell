@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:workout_planner/ui/routine_overview_card.dart';
+import 'package:workout_planner/ui/components/routine_overview_card.dart';
 import 'package:workout_planner/bloc/routines_bloc.dart';
 
 class RecommendPage extends StatelessWidget {

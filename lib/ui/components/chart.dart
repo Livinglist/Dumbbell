@@ -61,7 +61,7 @@ class StackedAreaLineChart extends StatelessWidget {
     }
     seriesData.add(charts.Series<LinearWeightCompleted, int>(
       id: 'Test',
-      colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
+      colorFn: (_, __) => charts.MaterialPalette.deepOrange.shadeDefault,
       domainFn: (LinearWeightCompleted weightCompleted, _) =>
           weightCompleted.month,
       measureFn: (LinearWeightCompleted weightCompleted, _) =>

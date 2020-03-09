@@ -2,6 +2,9 @@ import 'package:rxdart/rxdart.dart';
 
 import 'package:workout_planner/models/routine.dart';
 import 'package:workout_planner/resource/db_provider.dart';
+import 'package:workout_planner/resource/firebase_provider.dart';
+
+
 export 'package:workout_planner/models/routine.dart';
 
 enum UpdateType {parts, }
@@ -65,11 +68,13 @@ class RoutinesBloc {
     DBProvider.db.updateRoutine(routine);
   }
 
-  void restoreRoutines(List<Routine> routines){
-    DBProvider.db.deleteAllRoutines();
-    DBProvider.db.addAllRoutines(routines);
-    _allRoutines = routines;
-    if(!_allRoutinesFetcher.isClosed) _allRoutinesFetcher.sink.add(_allRoutines);
+  void restoreRoutines(){
+    firebaseProvider.restoreRoutines().then((routines){
+      DBProvider.db.deleteAllRoutines();
+      DBProvider.db.addAllRoutines(routines);
+      _allRoutines = routines;
+      if(!_allRoutinesFetcher.isClosed) _allRoutinesFetcher.sink.add(_allRoutines);
+    });
   }
 
   void setCurrentRoutine(Routine routine){

@@ -21,10 +21,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity/connectivity.dart';
 
 import 'package:workout_planner/ui/calender_page.dart';
-import 'package:workout_planner/ui/routine_overview_card.dart';
+import 'package:workout_planner/ui/components/routine_overview_card.dart';
 import 'resource/db_provider.dart';
 import 'resource/firebase_provider.dart';
-import 'package:workout_planner/ui/model.dart';
+import 'package:workout_planner/utils/routine_helpers.dart';
 import 'package:workout_planner/ui/recommend_page.dart';
 import 'package:workout_planner/ui/routine_edit_page.dart';
 import 'package:workout_planner/ui/scan_page.dart';
@@ -32,50 +32,31 @@ import 'package:workout_planner/ui/setting_page.dart';
 import 'package:workout_planner/ui/statistics_page.dart';
 import 'bloc/routines_bloc.dart';
 import 'package:workout_planner/ui/components/custom_snack_bars.dart';
+import 'resource/firebase_provider.dart';
 
 import 'ui/main_page.dart';
 
-typedef void StringCallback(String val);
-const String FirstRunDateKey = "firstRunDate";
-const String AppVersionKey = "appVersion";
-const String DailyRankKey = "dailyRank";
-const String DatabaseStatusKey = "databaseStatus";
-const String WeeklyAmountKey = "weeklyAmount";
-
-///format: {"2019-01-01":50} (use UTC time)
-String firstRunDate;
-bool isFirstRun;
-String dailyRankInfo;
-int dailyRank;
-int weeklyAmount;
-
-GoogleSignIn _googleSignIn = GoogleSignIn(
-  scopes: <String>[
-    'email',
-  ],
-);
-
-GoogleSignInAccount currentUser;
-
-//const MobileAdTargetingInfo targetingInfo = MobileAdTargetingInfo(
-//  keywords: <String>['flutterio', 'beautiful apps'],
-//  contentUrl: 'https://flutter.io',
-//  childDirected: false,
-//  testDevices: <String>[
-//    "E218F2857258595DFA47993309CED406"
-//  ], // Android emulators are considered test devices
+//typedef void StringCallback(String val);
+//const String FirstRunDateKey = "firstRunDate";
+//const String AppVersionKey = "appVersion";
+//const String DailyRankKey = "dailyRank";
+//const String DatabaseStatusKey = "databaseStatus";
+//const String WeeklyAmountKey = "weeklyAmount";
+//
+/////format: {"2019-01-01":50} (use UTC time)
+//String firstRunDate;
+//bool isFirstRun;
+//String dailyRankInfo;
+//int dailyRank;
+//int weeklyAmount;
+//
+//GoogleSignIn _googleSignIn = GoogleSignIn(
+//  scopes: <String>[
+//    'email',
+//  ],
 //);
 //
-//InterstitialAd myInterstitial = InterstitialAd(
-//  // Replace the testAdUnitId with an ad unit id from the AdMob dash.
-//  // https://developers.google.com/admob/android/test-ads
-//  // https://developers.google.com/admob/ios/test-ads
-//  adUnitId: InterstitialAd.testAdUnitId,
-//  targetingInfo: targetingInfo,
-//  listener: (MobileAdEvent event) {
-//    print("InterstitialAd event is $event");
-//  },
-//);
+//GoogleSignInAccount currentUser;
 
 class RoutineContext {
   Widget child;
@@ -95,7 +76,7 @@ Future<int> getDailyRank() async {
 void setWeeklyAmount(int amt) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setInt(WeeklyAmountKey, amt);
-  weeklyAmount = amt;
+  firebaseProvider.weeklyAmount = amt;
 }
 
 void setDailyRankInfo(String dailyRankInfo) async {
@@ -124,12 +105,12 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         theme: ThemeData(
-          fontFamily: 'Roboto',
-          primaryColor: Colors.blueGrey,
-          buttonColor: Colors.blueGrey[300],
-          toggleableActiveColor: Colors.blueGrey[400],
-          indicatorColor: Colors.blueGrey[200],
-        ),
+            fontFamily: 'Staa',
+            primaryColor: Colors.orange,
+            buttonColor: Colors.orange[300],
+            toggleableActiveColor: Colors.orangeAccent,
+            indicatorColor: Colors.orangeAccent,
+            bottomSheetTheme: BottomSheetThemeData(backgroundColor: Colors.transparent)),
         debugShowCheckedModeBanner: false,
         title: 'Workout Planner',
         home: MainPage());
@@ -149,19 +130,12 @@ class MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
 
-
     routinesBloc.fetchAllRoutines();
     routinesBloc.fetchAllRecRoutines();
 
-    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) {
-      setState(() {
-        currentUser = account;
-      });
-      if (currentUser != null) {
-        //_handleGetContact();
-      }
-    });
-    _googleSignIn.signInSilently();
+    firebaseProvider.signInSilently();
+
+    _pepareData();
   }
 
   @override
@@ -541,9 +515,9 @@ class MainPageState extends State<MainPage> {
 
   Future<void> _handleSignIn() async {
     try {
-      await _googleSignIn.signIn().whenComplete(() async {
+      await firebaseProvider.signIn().whenComplete(() async {
         var db = Firestore.instance;
-        var snapshot = await db.collection("users").document(currentUser.id).get();
+        var snapshot = await db.collection("users").document(firebaseProvider.currentUser.id).get();
 
         if (snapshot.exists) {
           //TODO: restore user's data after a successful login
@@ -602,11 +576,6 @@ class MainPageState extends State<MainPage> {
     }
   }
 
-  Future<void> _handleSignOut() async {
-    _googleSignIn.disconnect();
-    setState(() {});
-  }
-
   Future<void> _handleRestore() async {
     await Connectivity().checkConnectivity().then((connectivity) async {
       if (connectivity == ConnectivityResult.none) {
@@ -614,13 +583,13 @@ class MainPageState extends State<MainPage> {
         scaffoldKey.currentState.showSnackBar(noNetworkSnackBar);
       } else {
         var db = Firestore.instance;
-        var snapshot = await db.collection("users").document(currentUser.id).get();
+        var snapshot = await db.collection("users").document(firebaseProvider.currentUser.id).get();
 
-        firstRunDate = snapshot.data["registerDate"];
+        firebaseProvider.firstRunDate = snapshot.data["registerDate"];
         var routines = (json.decode(snapshot.data["routines"]) as List).map((map) => Routine.fromMap(map)).toList();
 //          DBProvider.db.deleteAllRoutines();
 //          DBProvider.db.addAllRoutines(RoutinesContext.of(context).routines);
-        routinesBloc.restoreRoutines(routines);
+        routinesBloc.restoreRoutines();
         _showSuccessSnackBar("RESTORED SUCCESSFULLY!");
       }
     });
@@ -646,12 +615,15 @@ class MainPageState extends State<MainPage> {
     ));
   }
 
-  void _pepareData(SharedPreferences prefs) async {
+  void _pepareData() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
 
     ///if true, this is the first time the app is run after installation
     if (prefs.getString(FirstRunDateKey) == null) {
-      prefs.setString(FirstRunDateKey, dateTimeToStringConverter(DateTime.now()));
+      var dateStr = dateTimeToStringConverter(DateTime.now());
+
+      prefs.setString(FirstRunDateKey, dateStr);
 
       prefs.setBool(DatabaseStatusKey, false);
 
@@ -661,13 +633,13 @@ class MainPageState extends State<MainPage> {
     ///if true, this is the first time the app is run after installation/update
     if (prefs.getString(AppVersionKey) == null || prefs.getString(AppVersionKey) != packageInfo.version) {
       prefs.setString(AppVersionKey, packageInfo.version);
-      isFirstRun = true;
+      firebaseProvider.isFirstRun = true;
     } else {
-      isFirstRun = false;
+      firebaseProvider.isFirstRun = false;
     }
-    firstRunDate = prefs.getString(FirstRunDateKey);
-    dailyRankInfo = prefs.getString(DailyRankKey);
-    dailyRank = await getDailyRank();
-    weeklyAmount = prefs.getInt(WeeklyAmountKey);
+    firebaseProvider.firstRunDate = prefs.getString(FirstRunDateKey);
+    firebaseProvider.dailyRankInfo = prefs.getString(DailyRankKey);
+    firebaseProvider.dailyRank = await getDailyRank();
+    firebaseProvider.weeklyAmount = prefs.getInt(WeeklyAmountKey);
   }
 }

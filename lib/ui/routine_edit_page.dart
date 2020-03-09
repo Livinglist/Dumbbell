@@ -5,15 +5,16 @@ import 'package:connectivity/connectivity.dart';
 
 import 'package:workout_planner/main.dart';
 import 'package:workout_planner/resource/firebase_provider.dart';
-import 'package:workout_planner/ui/model.dart';
+import 'package:workout_planner/utils/routine_helpers.dart';
 import 'package:workout_planner/ui/components/part_detail_edit_page_widgets.dart';
 import 'package:workout_planner/ui/part_edit_page.dart';
 import 'package:workout_planner/bloc/routines_bloc.dart';
 
 class RoutineEditPage extends StatefulWidget {
   final AddOrEdit addOrEdit;
+  final MainTargetedBodyPart mainTargetedBodyPart;
 
-  RoutineEditPage({@required this.addOrEdit});
+  RoutineEditPage({@required this.addOrEdit, this.mainTargetedBodyPart}): assert((addOrEdit == AddOrEdit.add && mainTargetedBodyPart != null)||addOrEdit == AddOrEdit.edit);
 
   @override
   RoutineEditPageState createState() => new RoutineEditPageState();
@@ -26,13 +27,12 @@ class RoutineEditPageState extends State<RoutineEditPage> {
   bool _initialized = false;
   //Routine curRoutineCopy;
   ScrollController _scrollController = new ScrollController();
-  MainTargetedBodyPart selectedTB;
 
   MainTargetedBodyPart mTB;
 
   Routine routineCopy;
   Routine routine;
-  
+
 
   @override
   void initState() {
@@ -41,31 +41,18 @@ class RoutineEditPageState extends State<RoutineEditPage> {
 
   _handleUpload() async {
     if (await Connectivity().checkConnectivity() == ConnectivityResult.none) {
-      //no internet connection
+
     } else {
       ///update user data if signed in
-      print("inside the shit!");
-      if (currentUser != null) {
+      if (firebaseProvider.currentUser != null) {
         routinesBloc.allRoutines.first.then((routines) async {
-          await FirestoreHelper().handleUpload(routines, failCallback: () {});
+          await firebaseProvider.handleUpload(routines, failCallback: () {});
         });}
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    //final RoutinesContext roc = RoutinesContext.of(context);
-    //final List<Routine> routines = RoutinesContext.of(context).routines;
-//    if (!_initialized) {
-//      //curRoutineCopy = Routine.copyFromRoutine(RoutinesContext.of(context).curRoutine);
-////      if (widget.addOrEdit == AddOrEdit.Edit) {
-////        selectedTB = routine.mainTargetedBodyPart;
-////        textEditingController.text = routine.routineName;
-////      } else if (widget.addOrEdit == AddOrEdit.Add) {
-////      }
-//      _initialized = true;
-//    }
-
     return WillPopScope(
         onWillPop: _onWillPop,
         child: StreamBuilder(
@@ -77,16 +64,15 @@ class RoutineEditPageState extends State<RoutineEditPage> {
                 routineCopy = Routine.copyFromRoutine(routine);
                 _initialized = true;
               }
-              if (widget.addOrEdit == AddOrEdit.Edit) {
-                selectedTB = routineCopy.mainTargetedBodyPart;
+              if (widget.addOrEdit == AddOrEdit.edit) {
                 textEditingController.text = routineCopy.routineName;
-              } else if (widget.addOrEdit == AddOrEdit.Add) {}
+              } else if (widget.addOrEdit == AddOrEdit.add) {}
               return Scaffold(
                 appBar: AppBar(
-                  iconTheme: IconThemeData(color: Colors.white),
-                  title: Text('Design Your Rouitne'),
+                  iconTheme: IconThemeData(color: Colors.black),
+                  title: Text('Design Your ${mainTargetedBodyPartToStringConverter(widget.mainTargetedBodyPart)} Routine', style: TextStyle(fontFamily: 'Staa'),),
                   actions: <Widget>[
-                    widget.addOrEdit == AddOrEdit.Edit
+                    widget.addOrEdit == AddOrEdit.edit
                         ? IconButton(
                             icon: Icon(Icons.delete_forever),
                             onPressed: () {
@@ -100,7 +86,7 @@ class RoutineEditPageState extends State<RoutineEditPage> {
                                         FlatButton(
                                           onPressed: () {
                                             //routines.remove(curRoutineCopy);
-                                            if (widget.addOrEdit == AddOrEdit.Edit) {
+                                            if (widget.addOrEdit == AddOrEdit.edit) {
                                               //DBProvider.db.deleteRoutine(curRoutineCopy);
                                               routinesBloc.deleteRoutine(routine: routineCopy);
                                               _handleUpload();
@@ -122,42 +108,15 @@ class RoutineEditPageState extends State<RoutineEditPage> {
                             icon: Icon(Icons.done),
                             onPressed: () {
                               setState(() {
-                                if (selectedTB == null) {
-                                  //Newly created routine
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                          title: Text('Oops'),
-                                          content: Text('Please choose a main targeted body part for this routine'),
-                                          actions: <Widget>[
-                                            FlatButton(
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                              },
-                                              child: Text('Okay'),
-                                            ),
-                                          ],
-                                        ),
-                                  );
+                                formKey.currentState.validate();
+                                if (widget.addOrEdit == AddOrEdit.add) {
+                                  routineCopy.mainTargetedBodyPart = widget.mainTargetedBodyPart;
+                                  routinesBloc.addRoutine(routineCopy);
                                 } else {
-                                  formKey.currentState.validate();
-                                  if (widget.addOrEdit == AddOrEdit.Add) {
-//                            roc.curRoutine = curRoutineCopy;
-//                            curRoutineCopy.createdDate = DateTime.now();
-//                            routines.add(curRoutineCopy);
-//                            DBProvider.db.newRoutine(curRoutineCopy);
-                                    routinesBloc.addRoutine(routineCopy);
-                                    Navigator.pop(context);
-                                  } else {
-//                            roc.curRoutine = curRoutineCopy;
-//                            int indexOfRoutine = roc.routines.indexWhere((r) => r.id == curRoutineCopy.id);
-//                            roc.routines[indexOfRoutine] = Routine.copyFromRoutine(curRoutineCopy);
-//                            DBProvider.db.updateRoutine(curRoutineCopy);
-                                    routinesBloc.updateRoutine(routineCopy);
-                                    Navigator.pop(context);
-                                  }
-                                  _handleUpload();
+                                  routinesBloc.updateRoutine(routineCopy);
                                 }
+                                Navigator.pop(context);
+                                _handleUpload();
                               });
                             },
                           ),
@@ -165,25 +124,6 @@ class RoutineEditPageState extends State<RoutineEditPage> {
                   ],
                 ),
                 backgroundColor: Colors.white,
-//        body: ReorderableListView(
-//            children: curRoutineCopy.parts.isNotEmpty?curRoutineCopy.parts.map((part) => PartEditCard(
-//              key: GlobalKey(),
-//              onDelete: () {
-//                setState(() {
-//                  curRoutineCopy.parts.remove(part);
-//                });
-//              },
-//              part: part,
-//            )
-//            ).toList():[],
-//            onReorder: (oldIndex, newIndex) {
-//              setState(() {
-//                if (oldIndex < newIndex) newIndex -= 1;
-//                var ele = curRoutineCopy.parts[oldIndex];
-//                curRoutineCopy.parts.removeAt(oldIndex);
-//                curRoutineCopy.parts.insert(newIndex, ele);
-//              });
-//            }),
                 body: SingleChildScrollView(
                   controller: _scrollController,
                   child: _buildChildren(),
@@ -264,73 +204,13 @@ class RoutineEditPageState extends State<RoutineEditPage> {
                       } else {
                         routineCopy.routineName = str;
                       }
+
+                      return '';
                     }),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Text(
-                      'Main targeted body part:',
-                      //style: TextStyle(color: Colors.white),
-                    ),
-                    PopupMenuButton<MainTargetedBodyPart>(
-                      onSelected: (MainTargetedBodyPart res) {
-                        selectedTB = res;
-                        routineCopy.mainTargetedBodyPart = res;
-                        setState(() {});
-                      },
-                      icon: Icon(Icons.list),
-                      //onSelected: (WhyFarther result) { setState(() { _selection = result; }); },
-                      itemBuilder: (BuildContext context) => <PopupMenuEntry<MainTargetedBodyPart>>[
-                            CheckedPopupMenuItem<MainTargetedBodyPart>(
-                              value: MainTargetedBodyPart.Abs,
-                              child: Text('Abs'),
-                              checked: _shouldBeChecked(MainTargetedBodyPart.Abs, selectedTB),
-                            ),
-                            CheckedPopupMenuItem<MainTargetedBodyPart>(
-                              value: MainTargetedBodyPart.Arm,
-                              child: Text('Arms'),
-                              checked: _shouldBeChecked(MainTargetedBodyPart.Arm, selectedTB),
-                            ),
-                            CheckedPopupMenuItem<MainTargetedBodyPart>(
-                              value: MainTargetedBodyPart.Back,
-                              child: Text('Back'),
-                              checked: _shouldBeChecked(MainTargetedBodyPart.Back, selectedTB),
-                            ),
-                            CheckedPopupMenuItem<MainTargetedBodyPart>(
-                              value: MainTargetedBodyPart.Chest,
-                              child: Text('Chest'),
-                              checked: _shouldBeChecked(MainTargetedBodyPart.Chest, selectedTB),
-                            ),
-                            CheckedPopupMenuItem<MainTargetedBodyPart>(
-                              value: MainTargetedBodyPart.Leg,
-                              child: Text('Legs'),
-                              checked: _shouldBeChecked(MainTargetedBodyPart.Leg, selectedTB),
-                            ),
-                            CheckedPopupMenuItem<MainTargetedBodyPart>(
-                              value: MainTargetedBodyPart.Shoulder,
-                              child: Text('Shoulder'),
-                              checked: _shouldBeChecked(MainTargetedBodyPart.Shoulder, selectedTB),
-                            ),
-                            CheckedPopupMenuItem<MainTargetedBodyPart>(
-                              value: MainTargetedBodyPart.FullBody,
-                              child: Text('Full Body'),
-                              checked: _shouldBeChecked(MainTargetedBodyPart.FullBody, selectedTB),
-                            )
-                          ],
-                    ),
-                  ],
-                ),
               ],
             ),
           )),
     );
-  }
-
-  bool _shouldBeChecked(MainTargetedBodyPart mainTB, MainTargetedBodyPart selectedTB) {
-    if (selectedTB != null && mainTB == selectedTB) {
-      return true;
-    }
-    return false;
   }
 
   Future<bool> _onWillPop() {
@@ -366,7 +246,7 @@ class RoutineEditPageState extends State<RoutineEditPage> {
           context,
           MaterialPageRoute(
               builder: (context) => PartEditPage(
-                    addOrEdit: AddOrEdit.Add,
+                    addOrEdit: AddOrEdit.add,
                     part: routineCopy.parts.last,
                     curRoutine: routineCopy,
                   )));

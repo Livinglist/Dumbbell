@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:workout_planner/models/routine.dart';
 
-enum AddOrEdit { Add, Edit }
+enum AddOrEdit { add, edit }
 
 Color mainTargetedBodyPartToColorConverter(MainTargetedBodyPart mainTB) {
   switch (mainTB) {

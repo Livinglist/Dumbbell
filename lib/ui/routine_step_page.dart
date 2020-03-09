@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:workout_planner/ui/components//custom_snack_bars.dart';
-import 'package:workout_planner/ui/model.dart';
+import 'package:workout_planner/utils/routine_helpers.dart';
 import 'package:workout_planner/bloc/routines_bloc.dart';
 
 typedef int Operation(int);
@@ -145,7 +145,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
           child: Scaffold(
             key: _scaffoldKey,
             appBar: AppBar(
-              iconTheme: IconThemeData(color: Colors.white),
+              //iconTheme: IconThemeData(color: Colors.white),
               title: Text(
                 title,
                 style: TextStyle(color: Colors.white54),
@@ -643,15 +643,31 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
     }
   }
 
+//  Future launchURL(String ex) async {
+//    var connectivity = await Connectivity().checkConnectivity();
+//
+//    if (connectivity == ConnectivityResult.none) {
+//      _scaffoldKey.currentState.showSnackBar(noNetworkSnackBar);
+//    } else {
+//      String url = 'https://www.bodybuilding.com/exercises/search?query=' + ex;
+//      if (await canLaunch(url)) {
+//        print("can launch");
+//        return launch(url, forceWebView: true);
+//      } else {
+//        throw 'Could not launch $url';
+//      }
+//    }
+//  }
+
   Future launchURL(String ex) async {
     var connectivity = await Connectivity().checkConnectivity();
 
     if (connectivity == ConnectivityResult.none) {
       _scaffoldKey.currentState.showSnackBar(noNetworkSnackBar);
     } else {
-      String url = 'https://www.bodybuilding.com/exercises/search?query=' + ex;
+      final url = Uri.encodeFull('https://www.bodybuilding.com/exercises/search?query=' + ex);
       if (await canLaunch(url)) {
-        await launch(url, forceWebView: true);
+        await launch(url, forceSafariVC: true, forceWebView: true);
       } else {
         throw 'Could not launch $url';
       }

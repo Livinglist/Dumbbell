@@ -1,79 +1,95 @@
 import 'package:flutter/material.dart';
 
 import 'package:workout_planner/bloc/routines_bloc.dart';
-import 'package:workout_planner/ui/model.dart';
-import 'package:workout_planner/ui/routine_detail_page.dart';
-import 'package:workout_planner/ui/routine_edit_page.dart';
+import 'package:workout_planner/ui/calender_page.dart';
+import 'setting_page.dart';
+import 'statistics_page.dart';
+import 'package:workout_planner/utils/routine_helpers.dart';
+import 'routine_detail_page.dart';
+import 'routine_edit_page.dart';
+import 'components/routine_overview_card.dart';
+import 'recommend_page.dart';
+import 'side_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
   HomePageState createState() => HomePageState();
 }
 
-class HomePageState extends State<HomePage> {
+class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   PageController pageController;
+  AnimationController animationController;
   Animatable<Color> background;
+  bool showFab = false;
+  final pageNumberToMainPartMap = {
+    2: MainTargetedBodyPart.Arm,
+    3: MainTargetedBodyPart.Chest,
+    4: MainTargetedBodyPart.Back,
+    5: MainTargetedBodyPart.Leg,
+    6: MainTargetedBodyPart.FullBody,
+    7: MainTargetedBodyPart.Abs
+  };
 
   @override
   void initState() {
     _initialize();
+    animationController = AnimationController(duration: Duration(seconds: 10), vsync: this)..repeat(reverse: true);
     super.initState();
   }
 
   void _initialize() {
-    pageController = PageController();
     background = TweenSequence<Color>([
       TweenSequenceItem(
         weight: 1.0,
         tween: ColorTween(
+          begin: Colors.orange[700],
+          end: Colors.orange[600],
+        ),
+      ),
+      TweenSequenceItem(
+        weight: 1.0,
+        tween: ColorTween(
           begin: Colors.orange[600],
-          end: Colors.deepPurple[400],
+          end: Colors.orange[500],
         ),
       ),
       TweenSequenceItem(
         weight: 1.0,
         tween: ColorTween(
-          begin: Colors.deepPurple[400],
-          end: Colors.yellow[300],
+          begin: Colors.orange[500],
+          end: Colors.deepOrange,
         ),
       ),
       TweenSequenceItem(
         weight: 1.0,
         tween: ColorTween(
-          begin: Colors.yellow[300],
-          end: Colors.cyan,
+          begin: Colors.deepOrange,
+          end: Colors.orange[400],
         ),
       ),
       TweenSequenceItem(
         weight: 1.0,
         tween: ColorTween(
-          begin: Colors.cyan,
-          end: Colors.amber,
+          begin: Colors.orange[400],
+          end: Colors.orange[300],
         ),
       ),
-      TweenSequenceItem(
-        weight: 1.0,
-        tween: ColorTween(
-          begin: Colors.amber,
-          end: Colors.blueGrey,
-        ),
-      ),
-//      TweenSequenceItem(
-//        weight: 1.0,
-//        tween: ColorTween(
-//          begin: Colors.blueGrey,
-//          end: Colors.limeAccent,
-//        ),
-//      ),
     ]);
-  }
 
-//  @override
-//  void reassemble() {
-//    pageController.dispose();
-//    _initialize();
-//    super.reassemble();
-//  }
+    pageController = PageController(initialPage: 1)
+      ..addListener(() {
+        var page = pageController.page.toInt();
+        if (page == 1 || page == 0) {
+          setState(() {
+            showFab = false;
+          });
+        } else {
+          setState(() {
+            showFab = true;
+          });
+        }
+      });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,11 +99,54 @@ class HomePageState extends State<HomePage> {
         if (snapshot.hasData) {
           var routines = snapshot.data;
 
+          return AnimatedBuilder(
+            animation: animationController,
+            builder: (context, child) {
+              return Scaffold(
+                  backgroundColor: Colors.transparent,
+                  body: Container(
+                    height: MediaQuery.of(context).size.height,
+                    width: MediaQuery.of(context).size.width,
+                    decoration: new BoxDecoration(
+                        gradient: new LinearGradient(
+                            colors: [background.evaluate(AlwaysStoppedAnimation(animationController.value)), Colors.orange],
+                            stops: [0.0, 1.0],
+                            begin: FractionalOffset.topCenter,
+                            end: FractionalOffset.bottomCenter,
+                            tileMode: TileMode.repeated)),
+                    child: child,
+                  ),
+                  floatingActionButton: AnimatedOpacity(
+                    duration: Duration(milliseconds: 300),
+                    opacity: showFab?1:0,
+                    child: FloatingActionButton(
+                      child: Icon(Icons.add),
+                      backgroundColor: Colors.white,
+                      foregroundColor: background.evaluate(AlwaysStoppedAnimation(animationController.value)),
+                      onPressed: () {
+                        var tempRoutine = Routine(mainTargetedBodyPart: null, routineName: null, parts: new List<Part>(), createdDate: null);
+                        routinesBloc.setCurrentRoutine(tempRoutine);
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => RoutineEditPage(
+                                  addOrEdit: AddOrEdit.add,
+                                  mainTargetedBodyPart: pageNumberToMainPartMap[pageController.page.toInt()],
+                                )));
+                      },
+                    ),
+                  )
+              );
+            },
+            child: PageView(
+                controller: pageController, children: [SidePage(routines: routines), buildTodayPage(routines), ...buildPageviewChildren(routines)]),
+          );
+
           return Scaffold(
             floatingActionButton: AnimatedBuilder(
               animation: pageController,
               builder: (_, child) {
-                final color = pageController.hasClients ? pageController.page / 6 : .0;
+                final color = pageController.hasClients ? pageController.page / 7 : .0;
 
                 return FloatingActionButton(
                   child: Icon(Icons.add),
@@ -100,7 +159,8 @@ class HomePageState extends State<HomePage> {
                         context,
                         MaterialPageRoute(
                             builder: (context) => RoutineEditPage(
-                                  addOrEdit: AddOrEdit.Add,
+                                  addOrEdit: AddOrEdit.add,
+                                  mainTargetedBodyPart: pageNumberToMainPartMap[pageController.page.toInt()],
                                 )));
                   },
                 );
@@ -110,7 +170,7 @@ class HomePageState extends State<HomePage> {
             body: AnimatedBuilder(
               animation: pageController,
               builder: (context, child) {
-                final color = pageController.hasClients ? pageController.page / 6 : .0;
+                final color = pageController.hasClients ? pageController.page / 7 : .0;
 
                 return DecoratedBox(
                   decoration: BoxDecoration(
@@ -119,7 +179,7 @@ class HomePageState extends State<HomePage> {
                   child: child,
                 );
               },
-              child: PageView(controller: pageController, children: buildPageviewChildren(routines)),
+              child: PageView(controller: pageController, children: [SidePage(routines: routines), ...buildPageviewChildren(routines)]),
             ),
           );
         } else {
@@ -129,6 +189,20 @@ class HomePageState extends State<HomePage> {
     );
   }
 
+  Widget buildTodayPage(List<Routine> routines) {
+    var todaysRoutines = List<Routine>();
+
+    int weekday = DateTime.now().weekday;
+
+    for (var routine in routines) {
+      if (routine.weekdays.contains(weekday)) {
+        todaysRoutines.add(routine);
+      }
+    }
+
+    return buildPage(todaysRoutines, "Today");
+  }
+
   List<Widget> buildPageviewChildren(List<Routine> routines) {
     Map<MainTargetedBodyPart, List<Routine>> rs = {};
     rs[MainTargetedBodyPart.Arm] = routines.where((r) => r.mainTargetedBodyPart == MainTargetedBodyPart.Arm).toList();
@@ -136,7 +210,6 @@ class HomePageState extends State<HomePage> {
     rs[MainTargetedBodyPart.Back] = routines.where((r) => r.mainTargetedBodyPart == MainTargetedBodyPart.Back).toList();
     rs[MainTargetedBodyPart.Leg] = routines.where((r) => r.mainTargetedBodyPart == MainTargetedBodyPart.Leg).toList();
     rs[MainTargetedBodyPart.FullBody] = routines.where((r) => r.mainTargetedBodyPart == MainTargetedBodyPart.FullBody).toList();
-    //rs[MainTargetedBodyPart.Shoulder] = routines.where((r) => r.mainTargetedBodyPart == MainTargetedBodyPart.Shoulder).toList();
     rs[MainTargetedBodyPart.Abs] = routines.where((r) => r.mainTargetedBodyPart == MainTargetedBodyPart.Abs).toList();
 
     return rs.keys.map((key) => buildPage(rs[key], mainTargetedBodyPartToStringConverter(key))).toList();
@@ -161,14 +234,14 @@ class HomePageState extends State<HomePage> {
         ),
         Flexible(
           child: Column(
-            children: routines.map((r) => routineToRoutineCard(r)).toList(),
+            children: routines.map((r) => RoutineOverview(routine: r)).toList(),
           ),
         )
       ],
     );
   }
 
-  Widget routineToRoutineCard(Routine routine) {
+  Widget buildRoutineOverviewCard(Routine routine) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       child: Material(

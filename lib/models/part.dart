@@ -91,7 +91,6 @@ class Part {
     additionalNotes = map['notes'];
     exercises =
         (map['exercises'] as List).map((e) => Exercise.fromMap(e)).toList();
-    print("ok???");
   }
 
   Map<String, dynamic> toMap() {

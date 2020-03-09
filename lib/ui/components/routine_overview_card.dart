@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 
-import 'package:workout_planner/ui/model.dart';
+import 'package:workout_planner/utils/routine_helpers.dart';
 import 'package:workout_planner/ui/routine_detail_page.dart';
 import 'package:workout_planner/bloc/routines_bloc.dart';
 // @required is defined in the meta.dart package
@@ -40,15 +40,9 @@ class RoutineOverview extends StatelessWidget {
         super(key: key);
 
   /// Builds a custom widget that shows [RoutineOverview] information.
-  ///
   /// This information includes the icon, name, and color for the [RoutineOverview].
   @override
-  // This `context` parameter describes the location of this widget in the
-  // widget tree. It can be used for obtaining Theme data from the nearest
-  // Theme ancestor in the tree. Below, we obtain the display1 text theme.
-  // See https://docs.flutter.io/flutter/material/Theme-class.html
   Widget build(BuildContext context) {
-    //print('Inside of RoutineOverView, the length of routines.length: '+RoutinesContext.of(context).routines.length.toString());
     return _mainLayout(context);
   }
 
@@ -56,8 +50,8 @@ class RoutineOverview extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.all(8),
       child: Material(
-        shape: RoundedRectangleBorder(side: BorderSide(color: Colors.transparent), borderRadius: BorderRadius.circular(12)),
-        color: _mainTargetedBodyPartToColorConverter(routine.mainTargetedBodyPart)[1], //---The color of the background of RoutineOverview Card---
+        shape: RoundedRectangleBorder(side: BorderSide(color: Colors.transparent), borderRadius: BorderRadius.circular(24)),
+        color: Colors.orangeAccent,
         elevation: 3,
         child: Ink(
           color: Colors.transparent,
@@ -65,9 +59,9 @@ class RoutineOverview extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.all(0),
             child: InkWell(
-              borderRadius: BorderRadius.circular(10),
-              highlightColor: Colors.lightBlueAccent,
-              splashColor: Colors.lightBlueAccent,
+              borderRadius: BorderRadius.circular(24),
+              highlightColor: Colors.orange,
+              splashColor: Colors.orange,
               // We can use either the () => function() or the () { function(); }
               // syntax.
               onTap: () {
@@ -85,37 +79,25 @@ class RoutineOverview extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 //mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
-                  Material(
-                      elevation: 30,
-                      color: Colors.white,
-//                      color: _mainTargetedBodyPartToColorConverter(
-//                          routine.mainTargetedBodyPart)[0], //----The color of the title bar of RoutineOverview Card----
-                      shape: RoundedRectangleBorder(
-                          side: BorderSide(color: Colors.transparent),
-                          borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10))),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Padding(
-                            padding: EdgeInsets.only(left: 20, top: 16, right: 0, bottom: 0),
-                            child: Text(
-                              mainTargetedBodyPartToStringConverter(routine.mainTargetedBodyPart),
-                              style: TextStyle(color: Colors.white70),
-                            ),
-                          ),
-                          Padding(
-                              padding: EdgeInsets.only(left: 20, top: 8, right: 0, bottom: 16),
-                              child: Text(routine.routineName,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: _getFontSize(routine.routineName),
-                                  )
-                                  /*DefaultTextStyle.of(context)
-                          .style
-                          .apply(fontSizeFactor: 2, color: Colors.white),*/
-                                  )),
-                        ],
-                      )),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: EdgeInsets.only(left: 20, top: 16),
+                      child: Text(
+                        mainTargetedBodyPartToStringConverter(routine.mainTargetedBodyPart),
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                      padding: EdgeInsets.only(left: 20, top: 8, bottom: 16),
+                      child: Text(routine.routineName,
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontFamily: 'Staa',
+                            fontSize: _getFontSize(routine.routineName),
+                          )
+                          )),
                   Expanded(
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -171,29 +153,6 @@ class RoutineOverview extends StatelessWidget {
     }
   }
 
-  List<Color> _mainTargetedBodyPartToColorConverter(MainTargetedBodyPart mainTB) {
-    return [Colors.blue, Colors.blueAccent];
-//    switch (mainTB) {
-//      case MainTargetedBodyPart.Abs:
-//        return <Color>[Color(0xff8E24AA), Color(0xffE040FB)];
-//      case MainTargetedBodyPart.Arm:
-//        return <Color>[Color(0xff2196F3), Color(0xff64B5F6)];
-//      case MainTargetedBodyPart.Back:
-//        return <Color>[Color(0xff0288D1), Color(0xff29B6F6)];
-//      case MainTargetedBodyPart.Chest:
-//        return <Color>[Color(0xff006064), Color(0xff0097A7)];
-//      case MainTargetedBodyPart.Leg:
-//        return <Color>[Color(0xff00695C), Color(0xff00BFA5)];
-//      case MainTargetedBodyPart.Shoulder:
-//        return <Color>[Color(0xff2E7D32), Color(0xff00C853)];
-//      case MainTargetedBodyPart.FullBody:
-//        return <Color>[Color(0xffBF360C), Color(0xffD84315)];
-//      default:
-//        throw Exception('Inside of _mainTargetedBodyPartToColorConverter ' + mainTB.toString());
-//    }
-    //return <Color>[Colors.grey[600], Colors.grey[700]];
-  }
-
   String _getIconPath(MainTargetedBodyPart mainTB) {
     switch (mainTB) {
       case MainTargetedBodyPart.Abs:
@@ -218,11 +177,8 @@ class RoutineOverview extends StatelessWidget {
   List<String> _getFirstThreeExerciseName(List<Part> parts) {
     List<String> exNames = new List<String>();
 
-    print('Length of parts: ' + parts.length.toString());
-
     for (int i = 0; i < parts.length; i++) {
       if (parts[i].exercises == null) print("if you see this, the exs is null");
-      print('Length of exercises: ' + parts[i].exercises.length.toString());
       for (int j = 0; j < parts[i].exercises.length; j++) {
         exNames.add(parts[i].exercises[j].name);
         if (exNames.length == 3) {
@@ -236,46 +192,38 @@ class RoutineOverview extends StatelessWidget {
 }
 
 class ExerciseNameListViewState extends State<ExerciseNameListView> {
-  //final List<String> _moves = <String>['push up', 'list up for jesus', 'pull over','Wide grip bench pressssss','jghjgjhgjghjghjgj'];
-
   @override
   Widget build(BuildContext context) {
     return _buildMoves();
   }
 
   Widget _buildMoves() {
-    List<Widget> children = List<Widget>();
-    for (var exName in widget.exNames) {
-      children..add(_buildRow(exName, Colors.white))..add(Divider());
+    List<Widget> children = [];
+
+    if (widget.exNames.isNotEmpty) {
+      for (var exName in widget.exNames) {
+        children..add(_buildRow(exName))..add(Divider());
+      }
+
+      children.removeLast();
     }
-    children.removeLast();
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: children,
     );
-//    return ListView.separated(
-//      physics: const NeverScrollableScrollPhysics(),
-//      separatorBuilder: (context, i) {
-//        return Divider(
-//          color: Colors.white70,
-//        );
-//      },
-//      itemCount: widget.exNames.length,
-//      itemBuilder: (context, i) {
-//        return _buildRow(widget.exNames[i], i % 2 == 0 ? Colors.white : Colors.white);
-//      },
-//    );
   }
 
-  Widget _buildRow(String move, Color fontColor) {
+  Widget _buildRow(String move) {
     return RichText(
         textAlign: TextAlign.left,
         maxLines: 2,
         overflow: TextOverflow.clip,
         text: TextSpan(
             style: TextStyle(
-              color: fontColor,
+              fontFamily: 'Staa',
+              color: Colors.black,
               fontSize: 18,
               shadows: Platform.isAndroid
                   ? <Shadow>[

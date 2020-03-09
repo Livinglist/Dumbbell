@@ -1,67 +1,75 @@
 import 'package:flutter/material.dart';
 
 import 'package:workout_planner/models/routine.dart';
-import 'package:workout_planner/ui/routine_overview_card.dart';
-import 'package:workout_planner/ui/model.dart';
+import 'package:workout_planner/ui/components/routine_overview_card.dart';
+import 'package:workout_planner/utils/routine_helpers.dart';
 
 class CalenderPage extends StatefulWidget {
-  //final List<String> dates;
-  final Map<String, Routine> dates;
+  final List<Routine> routines;
 
-  CalenderPage(this.dates);
+  CalenderPage({@required this.routines});
 
   @override
   State<StatefulWidget> createState() => CalenderPageState();
 }
 
 class CalenderPageState extends State<CalenderPage> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final ScrollController _scrollController = ScrollController();
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  final ScrollController scrollController = ScrollController();
+  Map<String, Routine> dateToRoutineMap;
 
-  void _showBottomSheet(Routine routine) {
+  @override
+  void initState() {
+    super.initState();
+
+    dateToRoutineMap = getWorkoutDates(widget.routines);
+  }
+
+  void showBottomSheet(Routine routine) {
     showModalBottomSheet(
         context: context,
         builder: (BuildContext context) {
-          return Container(
-              color: Colors.white,
-              child: Padding(
-                padding: EdgeInsets.all(0),
-                child: RoutineOverview(routine: routine),
-              ));
+          return Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: Container(
+                color: Colors.transparent,
+                width: MediaQuery.of(context).size.width,
+                child: RoutineOverview(routine: routine)
+            ),
+          );
         });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
+      key: scaffoldKey,
       appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.white),
         title: Text('This Year'),
       ),
       body: GridView.count(
-        controller: _scrollController,
+        controller: scrollController,
         crossAxisCount: 13,
-        children: _buildMonthRow(),
+        children: buildMonthRow(),
       ),
     );
   }
 
-  List<Widget> _buildMonthRow() {
+  List<Widget> buildMonthRow() {
     List<Widget> widgets = List<Widget>();
 
     widgets.add(Text(' '));
 
     for (int i = 1; i <= 12; i++) {
-      widgets.add(Center(child: Text(_intToMonth(i))));
+      widgets.add(Center(child: Text(intToMonth(i))));
     }
 
-    widgets.addAll(_buildDayRows());
+    widgets.addAll(buildDayRows());
 
     return widgets;
   }
 
-  List<Widget> _buildDayRows() {
+  List<Widget> buildDayRows() {
     List<Widget> widgets = List<Widget>();
 
     for (int i = 1; i <= 31; i++) {
@@ -76,13 +84,12 @@ class CalenderPageState extends State<CalenderPage> {
             .first;
         widgets.add(Container(
           child: GestureDetector(onTap: () {
-            if (_isWorkoutDay(j, i)) {
-              _showBottomSheet(widget.dates[dateStr]);
+            if (isWorkoutDay(j, i)) {
+              showBottomSheet(dateToRoutineMap[dateStr]);
             }
           }),
           decoration: BoxDecoration(
-              color: _isWorkoutDay(j, i) ? mainTargetedBodyPartToColorConverter(
-                  widget.dates[dateStr].mainTargetedBodyPart) : Colors
+              color: isWorkoutDay(j, i) ? Colors.orange : Colors
                   .transparent,
               shape: BoxShape.rectangle,
               border: Border.all(color: Colors.grey[500], width: 0.3)),
@@ -92,13 +99,13 @@ class CalenderPageState extends State<CalenderPage> {
     return widgets;
   }
 
-  bool _isWorkoutDay(int month, int day) {
+  bool isWorkoutDay(int month, int day) {
     DateTime date = DateTime(DateTime.now().year, month, day);
     String dateStr = date.toString().split(' ').first;
-    return widget.dates.keys.contains(dateStr);
+    return dateToRoutineMap.keys.contains(dateStr);
   }
 
-  String _intToMonth(int i) {
+  String intToMonth(int i) {
     switch (i) {
       case 1:
         return 'Jan';
@@ -127,5 +134,19 @@ class CalenderPageState extends State<CalenderPage> {
       default:
         throw Exception('Inside _intToMonth()');
     }
+  }
+
+  Map<String, Routine> getWorkoutDates(List<Routine> routines) {
+    Map<String, Routine> dates = {};
+
+    for (var routine in routines) {
+      print("${routine.routineName} has a length of history: ${routine.routineHistory.length}");
+      if (routine.routineHistory.isNotEmpty) {
+        for (var date in routine.routineHistory) {
+          dates[date] = routine;
+        }
+      }
+    }
+    return dates;
   }
 }

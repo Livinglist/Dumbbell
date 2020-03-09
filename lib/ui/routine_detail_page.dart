@@ -17,7 +17,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:workout_planner/resource/db_provider.dart';
 import 'package:workout_planner/resource/firebase_provider.dart';
 import 'package:workout_planner/main.dart';
-import 'package:workout_planner/ui/model.dart';
+import 'package:workout_planner/utils/routine_helpers.dart';
 import 'package:workout_planner/ui/components/part_detail_page_widgets.dart';
 import 'package:workout_planner/ui/part_history_page.dart';
 import 'package:workout_planner/ui/routine_edit_page.dart';
@@ -44,7 +44,7 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
 
   @override
   void initState() {
-    dataString = '-r' + FirestoreHelper.generateId();
+    dataString = '-r' + FirebaseProvider.generateId();
     super.initState();
   }
 
@@ -62,13 +62,13 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
           return Scaffold(
               key: scaffoldKey,
               backgroundColor: Colors.white,
-              body: Platform.isAndroid ? _buildBodyForAndroid() : _buildBodyForIOS(),
+              body: _buildBodyForIOS(),
               floatingActionButton: widget.isRecRoutine
                   ? Builder(
                       builder: (context) => Padding(
                             padding: EdgeInsets.only(top: 8),
                             child: FloatingActionButton.extended(
-                                backgroundColor: Colors.blueGrey[700],
+                                backgroundColor: Colors.deepOrange,
                                 heroTag: null,
                                 onPressed: () {
 //                            routines.add(routine);
@@ -92,8 +92,8 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
                   : Builder(
                       builder: (context) => FloatingActionButton.extended(
                           icon: Icon(Icons.play_arrow),
-                          label: Text('Start this routine'),
-                          backgroundColor: routine.parts.isEmpty ? Colors.grey[400] : Colors.blue,
+                          label: Text('Start this routine', style: TextStyle(fontFamily: 'Staa'),),
+                          backgroundColor: routine.parts.isEmpty ? Colors.grey[400] : Colors.deepOrange,
                           onPressed: () {
                             setState(() {
                               if (routine.parts.isEmpty) {
@@ -136,7 +136,6 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
-              iconTheme: IconThemeData(color: Colors.white),
               expandedHeight: widget.isRecRoutine ? 180 : 280.0,
               floating: false,
               pinned: true,
@@ -237,7 +236,8 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) => RoutineEditPage(
-                                              addOrEdit: AddOrEdit.Edit,
+                                              addOrEdit: AddOrEdit.edit,
+                                          mainTargetedBodyPart: routine.mainTargetedBodyPart,
                                             )));
                               },
                             ),
@@ -257,7 +257,6 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
-              iconTheme: IconThemeData(color: Colors.white),
               floating: false,
               pinned: true,
               actions: widget.isRecRoutine
@@ -289,7 +288,8 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) => RoutineEditPage(
-                                              addOrEdit: AddOrEdit.Edit,
+                                              addOrEdit: AddOrEdit.edit,
+                                          mainTargetedBodyPart: routine.mainTargetedBodyPart,
                                             )));
                               },
                             ),
@@ -420,30 +420,30 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
       showSyncFailSnackbar();
     } else {
       ///update user data if signed in
-      if (currentUser != null) {
+      if (firebaseProvider.currentUser != null) {
         ///TODO: debug this
         routinesBloc.allRoutines.first.then((routines) async {
-          await FirestoreHelper().handleUpload(routines, failCallback: () {
+          await firebaseProvider.handleUpload(routines, failCallback: () {
             showSyncFailSnackbar();
           });
         });
       }
 
       ///get the dailyData
-      if (dailyRank == 0) {
+      if (firebaseProvider.dailyRank == 0) {
         var db = Firestore.instance;
         var snapshot = await db.collection("dailyData").document(tempDateStr).get();
 
         if (snapshot.exists) {
           snapshot.reference.setData({"totalCount": snapshot["totalCount"] + 1});
-          dailyRank = snapshot["totalCount"] + 1;
+          firebaseProvider.dailyRank = snapshot["totalCount"] + 1;
 
-          dailyRankInfo = DateTime.now().toUtc().toString() + '/' + dailyRank.toString();
-          setDailyRankInfo(dailyRankInfo);
+          firebaseProvider.dailyRankInfo = DateTime.now().toUtc().toString() + '/' + firebaseProvider.dailyRank.toString();
+          setDailyRankInfo(firebaseProvider.dailyRankInfo);
         } else {
           await db.collection("dailyData").document(tempDateStr).setData({"totalCount": 1});
-          dailyRankInfo = DateTime.now().toUtc().toString() + '/' + dailyRank.toString();
-          setDailyRankInfo(dailyRankInfo);
+          firebaseProvider.dailyRankInfo = DateTime.now().toUtc().toString() + '/' + firebaseProvider.dailyRank.toString();
+          setDailyRankInfo(firebaseProvider.dailyRankInfo);
         }
       }
     }
@@ -512,7 +512,7 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
         elevation: 12,
-        color: Colors.blueGrey,
+        color: Colors.orange,
         child: Column(
           mainAxisSize: MainAxisSize.max,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -529,7 +529,6 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
                   softWrap: true,
                   style: TextStyle(
                     fontFamily: 'Staa',
-                    color: Colors.white,
                     fontSize: getFontSize(routine.routineName),
                   )),
             ),
@@ -538,35 +537,35 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
                 : Text(
                     'You have done this workout',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.white70),
+                    style: TextStyle(fontSize: 14, color: Colors.black54),
                   ),
             widget.isRecRoutine
                 ? Container()
                 : Text(
                     routine.completionCount.toString(),
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 36, color: Colors.white),
+                    style: TextStyle(fontSize: 36, color: Colors.black),
                   ),
             widget.isRecRoutine
                 ? Container()
                 : Text(
                     'times',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.white70),
+                    style: TextStyle(fontSize: 14, color: Colors.black54),
                   ),
             widget.isRecRoutine
                 ? Container()
                 : Text(
                     'since',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.white70),
+                    style: TextStyle(fontSize: 14, color: Colors.black54),
                   ),
             widget.isRecRoutine
                 ? Container()
                 : Text(
                     '${routine.createdDate.toString().split(' ').first}',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.white),
+                    style: TextStyle(fontSize: 14, color: Colors.black),
                   ),
             SizedBox(
               height: 12,

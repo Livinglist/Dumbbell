@@ -1,29 +1,12 @@
 import 'package:flutter/material.dart';
 
-import 'package:workout_planner/main.dart';
-import 'package:workout_planner/ui/model.dart';
+import 'package:workout_planner/utils/routine_helpers.dart';
 import 'package:workout_planner/ui/part_edit_page.dart';
 
 import 'package:workout_planner/models/routine.dart';
 
-//class PartEditCard extends StatefulWidget {
-//  AddOrEdit addOrEdit;
-//  VoidCallback onDelete;
-//  StringCallback onTextEdited;
-//  bool isEmptyMove = true;
-//  Part part;
-//
-//  @override
-//  PartEditCardState createState() => new PartEditCardState();
-//
-//  PartEditCard(
-//      {Key key,
-//      @required this.onDelete,
-//      this.onTextEdited,
-//      @required this.part})
-//      : assert(onDelete != null),
-//        super(key: key);
-//}
+
+typedef void StringCallback(String val);
 
 enum WhyFarther { harder, smarter, selfStarter, tradingCharter }
 
@@ -89,7 +72,7 @@ class PartEditCard extends StatelessWidget {
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => PartEditPage(
-                                          addOrEdit: AddOrEdit.Edit,
+                                          addOrEdit: AddOrEdit.edit,
                                           part: part,
                                         )));
                           }),

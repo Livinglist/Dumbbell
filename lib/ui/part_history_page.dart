@@ -18,7 +18,7 @@ class PartHistoryPage extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.grey[500],
         appBar: AppBar(
-          iconTheme: IconThemeData(color: Colors.white),
+          //iconTheme: IconThemeData(color: Colors.white),
           bottom: TabBar(
             isScrollable: true,
             tabs: _getTabs(part),

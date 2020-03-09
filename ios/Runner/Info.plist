@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>To save QR code in the gallery</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -34,11 +32,31 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>4</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>This app needs access to Apple Music.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>This app needs access to calendars.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Dumbbell requires access to your phone&apos;s camera.</string>
+	<string>This app needs access to camera.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>This app needs access to contacts.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs access to location.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to location when open.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs access to microphone.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>This app needs access to motion.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>To save QR code in the gallery</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to Photo Library.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>This app needs access to speech.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -56,5 +74,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>kTCCServiceMediaLibrary</key>
+	<string>This app needs access to music.</string>
 </dict>
 </plist>

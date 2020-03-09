@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'package:workout_planner/main.dart';
-import 'package:workout_planner/ui/model.dart';
+import 'package:workout_planner/utils/routine_helpers.dart';
 
 import 'package:workout_planner/models/routine.dart';
 
 typedef void PartTapCallback(Part part);
+typedef void StringCallback(String val);
+
 
 class PartCard extends StatefulWidget {
   final VoidCallback onDelete;

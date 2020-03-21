@@ -18,14 +18,12 @@ class PartHistoryPage extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.grey[500],
         appBar: AppBar(
-          //iconTheme: IconThemeData(color: Colors.white),
           bottom: TabBar(
             isScrollable: true,
             tabs: _getTabs(part),
           ),
           title: Text("History"),
         ),
-        //body: _historyColumnBuilder(part),
         body: TabBarView(
           children: _getTabChildren(part),
         ),
@@ -72,44 +70,6 @@ class PartHistoryPage extends StatelessWidget {
         throw Exception('Inside setTypeToThemeConverter');
     }
   }
-
-//  Widget _historyColumnBuilder(Part part) {
-//    List<Widget> _widgets = List<Widget>();
-//    for (var ex in part.exercises) {
-//      _widgets.add(Padding(
-//        padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-//        child: Text(
-//          ex.name,
-//          textAlign: TextAlign.center,
-//          style: TextStyle(color: Colors.black),
-//        ),
-//      ));
-//      _widgets.add(Padding(
-//        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-//        child: Container(
-//          height: 200,
-//          child: ListView.separated(
-//              itemBuilder: (context, i) {
-//                return ListTile(
-//                  title: Text(ex.exHistory.keys.toList()[i]),
-//                  subtitle: Text(ex.exHistory.values.toList()[i]),
-//                );
-//                return Text(
-//                  ex.exHistory.keys.toList()[i] +
-//                      ' ' +
-//                      ex.exHistory.values.toList()[i],
-//                  style: TextStyle(color: Colors.white),
-//                );
-//              },
-//              separatorBuilder: (BuildContext context, int index) => Divider(),
-//              itemCount: ex.exHistory.length),
-//        ),
-//      ));
-//      _widgets.add(Padding(padding: EdgeInsets.symmetric(vertical: 8,horizontal: 12),child: Container(height: 200, child: StackedAreaLineChart(ex)),));
-//    }
-//
-//    return ListView(children: _widgets);
-//  }
 }
 
 class TabChild extends StatelessWidget {

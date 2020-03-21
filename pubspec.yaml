@@ -10,7 +10,7 @@ description: A workout plan application.
 version: 1.0.0+11
 
 environment:
-  sdk: ">=2.3.0 <3.0.0"
+  sdk: ">=2.1.0 <3.0.0"
 
 dependencies:
   url_launcher: 5.4.1
@@ -22,7 +22,7 @@ dependencies:
   qrcode_reader: 0.4.4
   #barcode_scan: 0.0.8
   shared_preferences: ^0.4.2
-  package_info: 0.4.0
+  package_info: 0.4.0+13
   google_sign_in: 4.0.0
   percent_indicator: ^1.0.13
   cloud_firestore: 0.13.4
@@ -34,8 +34,13 @@ dependencies:
   #esys_flutter_share: 1.0.0
   #image: 2.0.9
   share: 0.6.1+1
-  firebase_auth: 0.15.3
+  firebase_auth: 0.15.4
   uuid: 2.0.4
+  app_review: 1.1.0+1
+  apple_sign_in: 0.1.0
+  font_awesome_flutter: 8.7.0
+  flutter_signin_button: 1.0.0
+
   flutter:
     sdk: flutter
 

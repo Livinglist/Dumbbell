@@ -7,16 +7,13 @@ class RecommendPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 7,
+      length: 6,
       child: Scaffold(
         //backgroundColor: Colors.transparent,
         appBar: AppBar(
           elevation: 0,
           bottom: TabBar(
             isScrollable: true,
-//            labelStyle: TextStyle(fontWeight: FontWeight.bold,fontSize: 18),
-//            unselectedLabelStyle: TextStyle(color: Colors.black, fontSize: 12),
-//            indicator: ShapeDecoration(shape: StadiumBorder(), color: Colors.black),
             tabs: [
               Tab(
                 text: 'Abs',
@@ -34,9 +31,6 @@ class RecommendPage extends StatelessWidget {
                 text: "Legs",
               ),
               Tab(
-                text: "Shoulders",
-              ),
-              Tab(
                 text: "Full Body",
               ),
             ],
@@ -52,46 +46,12 @@ class RecommendPage extends StatelessWidget {
             _tabChild(MainTargetedBodyPart.Back),
             _tabChild(MainTargetedBodyPart.Chest),
             _tabChild(MainTargetedBodyPart.Leg),
-            _tabChild(MainTargetedBodyPart.Shoulder),
             _tabChild(MainTargetedBodyPart.FullBody),
           ],
         ),
       ),
     );
   }
-
-//  Positioned(
-//  child: Transform.translate(
-//  offset: Offset(0, -140),
-//  child: Container(
-//  height: MediaQuery.of(context).size.height + 140,
-//  width: MediaQuery.of(context).size.width,
-//  // Add box decoration
-//  color: Colors.pink,
-//  ),
-//  )
-////                child: Container(
-////                    height: MediaQuery.of(context).size.height + 340,
-////                    width: MediaQuery.of(context).size.width,
-////                    // Add box decoration
-////                    decoration: BoxDecoration(
-////                      // Box decoration takes a gradient
-////                      gradient: LinearGradient(
-////                        // Where the linear gradient begins and ends
-////                        begin: Alignment.topRight,
-////                        end: Alignment.bottomLeft,
-////                        // Add one stop for each color. Stops should increase from 0 to 1
-////                        stops: [0.1, 0.5, 0.6, 0.9],
-////                        colors: [
-////                          // Colors are easy thanks to Flutter's Colors class.
-////                          Colors.yellow[500],
-////                          Colors.yellow[300],
-////                          Colors.yellow[200],
-////                          Colors.yellow[50],
-////                        ],
-////                      ),
-////                    )),
-//  ),
 
   Widget _tabChild(MainTargetedBodyPart mainTargetedBodyPart) {
     return RoutineOverviewListView(

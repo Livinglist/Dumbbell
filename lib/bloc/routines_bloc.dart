@@ -4,10 +4,11 @@ import 'package:workout_planner/models/routine.dart';
 import 'package:workout_planner/resource/db_provider.dart';
 import 'package:workout_planner/resource/firebase_provider.dart';
 
-
 export 'package:workout_planner/models/routine.dart';
 
-enum UpdateType {parts, }
+enum UpdateType {
+  parts,
+}
 
 class RoutinesBloc {
   final _allRoutinesFetcher = BehaviorSubject<List<Routine>>();
@@ -27,7 +28,7 @@ class RoutinesBloc {
     DBProvider.db.getAllRoutines().then((routines) {
       _allRoutines = routines;
       if (!_allRoutinesFetcher.isClosed) _allRoutinesFetcher.sink.add(_allRoutines);
-    }).catchError((exp){
+    }).catchError((exp) {
       _allRoutinesFetcher.sink.addError(Exception());
     });
   }
@@ -40,44 +41,51 @@ class RoutinesBloc {
   }
 
   void deleteRoutine({int routineId, Routine routine}) {
-    if(routineId == null){
+    if (routineId == null) {
       print("special!!!111 ${_allRoutines.length}");
       _allRoutines.removeWhere((r) => r.id == routine.id);
       print("special!!!222 ${_allRoutines.length}");
-    }else{
+    } else {
       _allRoutines.removeWhere((routine) => routine.id == routineId);
     }
     if (!_allRoutinesFetcher.isClosed) _allRoutinesFetcher.sink.add(_allRoutines);
     DBProvider.db.deleteRoutine(routine);
+    firebaseProvider.uploadRoutines(_allRoutines).catchError(() {});
   }
 
-  void addRoutine(Routine routine){
-    DBProvider.db.newRoutine(routine).then((routineId){
+  void addRoutine(Routine routine) {
+    DBProvider.db.newRoutine(routine).then((routineId) {
       routine.id = routineId;
+
       _allRoutines.add(routine);
-      if(!_allRoutinesFetcher.isClosed) _allRoutinesFetcher.sink.add(_allRoutines);
-      if(!_currentRoutineFetcher.isClosed) _currentRoutineFetcher.sink.add(routine);
+
+      firebaseProvider.uploadRoutines(_allRoutines);
+
+      if (!_allRoutinesFetcher.isClosed) _allRoutinesFetcher.sink.add(_allRoutines);
+      if (!_currentRoutineFetcher.isClosed) _currentRoutineFetcher.sink.add(routine);
     });
   }
 
-  void updateRoutine(Routine routine){
-    int index = _allRoutines.indexWhere((r)=>r.id == routine.id);
+  void updateRoutine(Routine routine) {
+    int index = _allRoutines.indexWhere((r) => r.id == routine.id);
     _allRoutines[index] = Routine.copyFromRoutine(routine);
-    if(!_allRoutinesFetcher.isClosed) _allRoutinesFetcher.sink.add(_allRoutines);
-    if(!_currentRoutineFetcher.isClosed) _currentRoutineFetcher.sink.add(routine);
+    if (!_allRoutinesFetcher.isClosed) _allRoutinesFetcher.sink.add(_allRoutines);
+    if (!_currentRoutineFetcher.isClosed) _currentRoutineFetcher.sink.add(routine);
+
     DBProvider.db.updateRoutine(routine);
+    firebaseProvider.uploadRoutines(_allRoutines);
   }
 
-  void restoreRoutines(){
-    firebaseProvider.restoreRoutines().then((routines){
+  void restoreRoutines() {
+    firebaseProvider.restoreRoutines().then((routines) {
       DBProvider.db.deleteAllRoutines();
       DBProvider.db.addAllRoutines(routines);
       _allRoutines = routines;
-      if(!_allRoutinesFetcher.isClosed) _allRoutinesFetcher.sink.add(_allRoutines);
+      if (!_allRoutinesFetcher.isClosed) _allRoutinesFetcher.sink.add(_allRoutines);
     });
   }
 
-  void setCurrentRoutine(Routine routine){
+  void setCurrentRoutine(Routine routine) {
     _currentRoutine = routine;
     _currentRoutineFetcher.sink.add(_currentRoutine);
   }

@@ -1,9 +1,3 @@
-// Copyright 2018 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
-// You can read about packages here: https://flutter.io/using-packages/
-
 import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
@@ -11,10 +5,8 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-//import 'package:firebase_admob/firebase_admob.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:package_info/package_info.dart';
 import 'package:share/share.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,6 +25,7 @@ import 'package:workout_planner/ui/statistics_page.dart';
 import 'bloc/routines_bloc.dart';
 import 'package:workout_planner/ui/components/custom_snack_bars.dart';
 import 'resource/firebase_provider.dart';
+import 'resource/shared_prefs_provider.dart';
 
 import 'ui/main_page.dart';
 
@@ -58,42 +51,6 @@ import 'ui/main_page.dart';
 //
 //GoogleSignInAccount currentUser;
 
-class RoutineContext {
-  Widget child;
-  Color color;
-}
-
-///return 0 if haven't workout today
-Future<int> getDailyRank() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String dailyRankInfo = prefs.getString(DailyRankKey);
-  if (dailyRankInfo == null || DateTime.now().day - DateTime.parse(dailyRankInfo.split('/').first).toLocal().day == 1) {
-    return 0;
-  }
-  return int.parse(dailyRankInfo.split('/')[1]);
-}
-
-void setWeeklyAmount(int amt) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setInt(WeeklyAmountKey, amt);
-  firebaseProvider.weeklyAmount = amt;
-}
-
-void setDailyRankInfo(String dailyRankInfo) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setString(DailyRankKey, dailyRankInfo);
-}
-
-void setDatabaseStatus(bool dbStatus) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setBool(DatabaseStatusKey, dbStatus);
-}
-
-Future<bool> getDatabaseStatus() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  return prefs.getBool(DatabaseStatusKey);
-}
-
 void main() {
   runApp(App());
 }
@@ -113,6 +70,7 @@ class App extends StatelessWidget {
             bottomSheetTheme: BottomSheetThemeData(backgroundColor: Colors.transparent)),
         debugShowCheckedModeBanner: false,
         title: 'Workout Planner',
+        routes: {'/routine_edit_page': (context) => RoutineEditPage()},
         home: MainPage());
   }
 }
@@ -133,9 +91,11 @@ class MainPageState extends State<MainPage> {
     routinesBloc.fetchAllRoutines();
     routinesBloc.fetchAllRecRoutines();
 
-    firebaseProvider.signInSilently();
+    firebaseProvider.signInSilently().then((_){
+      print("Sign in silently end.");
+    });
 
-    _pepareData();
+    sharedPrefsProvider.prepareData();
   }
 
   @override
@@ -450,7 +410,7 @@ class MainPageState extends State<MainPage> {
           ));
         }
         if (snapshot.hasData) {
-          setDatabaseStatus(true);
+          sharedPrefsProvider.setDatabaseStatus(true);
           //RoutinesContext.of(context).routines = snapshot.data;
           var routines = snapshot.data;
           var children = <Widget>[];
@@ -515,9 +475,9 @@ class MainPageState extends State<MainPage> {
 
   Future<void> _handleSignIn() async {
     try {
-      await firebaseProvider.signIn().whenComplete(() async {
+      await firebaseProvider.signInApple().whenComplete(() async {
         var db = Firestore.instance;
-        var snapshot = await db.collection("users").document(firebaseProvider.currentUser.id).get();
+        var snapshot = await db.collection("users").document(firebaseProvider.appleIdCredential.user).get();
 
         if (snapshot.exists) {
           //TODO: restore user's data after a successful login
@@ -583,7 +543,7 @@ class MainPageState extends State<MainPage> {
         scaffoldKey.currentState.showSnackBar(noNetworkSnackBar);
       } else {
         var db = Firestore.instance;
-        var snapshot = await db.collection("users").document(firebaseProvider.currentUser.id).get();
+        var snapshot = await db.collection("users").document(firebaseProvider.appleIdCredential.user).get();
 
         firebaseProvider.firstRunDate = snapshot.data["registerDate"];
         var routines = (json.decode(snapshot.data["routines"]) as List).map((map) => Routine.fromMap(map)).toList();
@@ -613,33 +573,5 @@ class MainPageState extends State<MainPage> {
         ],
       ),
     ));
-  }
-
-  void _pepareData() async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    ///if true, this is the first time the app is run after installation
-    if (prefs.getString(FirstRunDateKey) == null) {
-      var dateStr = dateTimeToStringConverter(DateTime.now());
-
-      prefs.setString(FirstRunDateKey, dateStr);
-
-      prefs.setBool(DatabaseStatusKey, false);
-
-      prefs.setInt(WeeklyAmountKey, 3);
-    }
-
-    ///if true, this is the first time the app is run after installation/update
-    if (prefs.getString(AppVersionKey) == null || prefs.getString(AppVersionKey) != packageInfo.version) {
-      prefs.setString(AppVersionKey, packageInfo.version);
-      firebaseProvider.isFirstRun = true;
-    } else {
-      firebaseProvider.isFirstRun = false;
-    }
-    firebaseProvider.firstRunDate = prefs.getString(FirstRunDateKey);
-    firebaseProvider.dailyRankInfo = prefs.getString(DailyRankKey);
-    firebaseProvider.dailyRank = await getDailyRank();
-    firebaseProvider.weeklyAmount = prefs.getInt(WeeklyAmountKey);
   }
 }

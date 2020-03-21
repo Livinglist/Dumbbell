@@ -21,13 +21,13 @@ class Routine {
 
   Routine(
       {@required this.mainTargetedBodyPart,
-        @required this.routineName,
-        @required this.parts,
-        @required this.createdDate,
-        this.weekdays,
-        this.routineHistory,
-        this.completionCount,
-        this.lastCompletedDate}) {
+      @required this.routineName,
+      @required this.parts,
+      @required this.createdDate,
+      this.weekdays,
+      this.routineHistory,
+      this.completionCount,
+      this.lastCompletedDate}) {
     if (lastCompletedDate == null) {}
     if (completionCount == null) {
       completionCount = 0;
@@ -69,24 +69,12 @@ class Routine {
     id = map["Id"];
     routineName = map['RoutineName'];
     mainTargetedBodyPart = intToMainTargetedBodyPartConverter(map['MainPart']);
-    parts = map['Parts'] != null
-        ? (jsonDecode(map['Parts']) as List)
-        .map((partMap) => Part.fromMap(partMap))
-        .toList()
-        : null;
-    lastCompletedDate = map['LastCompletedDate'] != null
-        ? stringToDateTimeConverter(map['LastCompletedDate'])
-        : DateTime.now();
-    createdDate = map['CreatedDate'] != null
-        ? stringToDateTimeConverter(map['CreatedDate'])
-        : DateTime.now();
+    parts = map['Parts'] != null ? (jsonDecode(map['Parts']) as List).map((partMap) => Part.fromMap(partMap)).toList() : null;
+    lastCompletedDate = map['LastCompletedDate'] != null ? stringToDateTimeConverter(map['LastCompletedDate']) : DateTime.now();
+    createdDate = map['CreatedDate'] != null ? stringToDateTimeConverter(map['CreatedDate']) : DateTime.now();
     completionCount = map['Count'];
-    routineHistory = (map["RoutineHistory"] == null
-        ? <String>[]
-        : (jsonDecode(map['RoutineHistory']) as List).cast<String>());
-    weekdays = (map["Weekdays"] == null
-        ? <int>[]
-        : (jsonDecode(map["Weekdays"]) as List).cast<int>());
+    routineHistory = (map["RoutineHistory"] == null ? <String>[] : (jsonDecode(map['RoutineHistory']) as List).cast<String>());
+    weekdays = (map["Weekdays"] == null ? <int>[] : (jsonDecode(map["Weekdays"]) as List).cast<int>());
   }
 
   Map<String, dynamic> toMap() {
@@ -129,18 +117,10 @@ class Routine {
 }
 
 String dateTimeToStringConverter(DateTime date) {
-//  return date.month.toString() +
-//      '/' +
-//      date.day.toString() +
-//      '/' +
-//      date.year.toString();
   return date.toString().split(' ').first;
 }
 
 DateTime stringToDateTimeConverter(String str) {
-//  var strs = str.split('/');
-//  DateTime date = new DateTime(int.tryParse(strs[2]) ?? 2019,
-//      int.tryParse(strs[0]) ?? 1, int.tryParse(strs[1]) ?? 1);
   return DateTime.parse(str);
 }
 

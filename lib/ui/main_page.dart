@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:app_review/app_review.dart';
+import 'package:apple_sign_in/apple_sign_in.dart';
+
 import 'package:workout_planner/bloc/routines_bloc.dart';
 import 'package:workout_planner/ui/calender_page.dart';
 import 'setting_page.dart';
@@ -32,9 +35,16 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
 
   @override
   void initState() {
+    super.initState();
+
     _initialize();
     animationController = AnimationController(duration: Duration(seconds: 10), vsync: this)..repeat(reverse: true);
-    super.initState();
+
+    AppReview.isRequestReviewAvailable.then((isAvailable) {
+      if (isAvailable) {
+        AppReview.requestReview;
+      }
+    });
   }
 
   void _initialize() {
@@ -118,25 +128,28 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
                   ),
                   floatingActionButton: AnimatedOpacity(
                     duration: Duration(milliseconds: 300),
-                    opacity: showFab?1:0,
+                    opacity: showFab ? 1 : 0,
                     child: FloatingActionButton(
                       child: Icon(Icons.add),
                       backgroundColor: Colors.white,
                       foregroundColor: background.evaluate(AlwaysStoppedAnimation(animationController.value)),
                       onPressed: () {
-                        var tempRoutine = Routine(mainTargetedBodyPart: null, routineName: null, parts: new List<Part>(), createdDate: null);
+                        var tempRoutine = Routine(
+                            mainTargetedBodyPart: pageNumberToMainPartMap[pageController.page.toInt()],
+                            routineName: null,
+                            parts: new List<Part>(),
+                            createdDate: null);
                         routinesBloc.setCurrentRoutine(tempRoutine);
                         Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (context) => RoutineEditPage(
-                                  addOrEdit: AddOrEdit.add,
-                                  mainTargetedBodyPart: pageNumberToMainPartMap[pageController.page.toInt()],
-                                )));
+                                      addOrEdit: AddOrEdit.add,
+                                      mainTargetedBodyPart: pageNumberToMainPartMap[pageController.page.toInt()],
+                                    )));
                       },
                     ),
-                  )
-              );
+                  ));
             },
             child: PageView(
                 controller: pageController, children: [SidePage(routines: routines), buildTodayPage(routines), ...buildPageviewChildren(routines)]),

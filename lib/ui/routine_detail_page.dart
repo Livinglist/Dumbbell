@@ -24,6 +24,7 @@ import 'package:workout_planner/ui/routine_edit_page.dart';
 import 'package:workout_planner/ui/routine_step_page.dart';
 import 'package:workout_planner/ui/components//custom_snack_bars.dart';
 import 'package:workout_planner/bloc/routines_bloc.dart';
+import 'package:workout_planner/resource/shared_prefs_provider.dart';
 
 class RoutineDetailPage extends StatefulWidget {
   final bool isRecRoutine;
@@ -62,37 +63,39 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
           return Scaffold(
               key: scaffoldKey,
               backgroundColor: Colors.white,
-              body: _buildBodyForIOS(),
+              body: buildBody(),
               floatingActionButton: widget.isRecRoutine
                   ? Builder(
                       builder: (context) => Padding(
-                            padding: EdgeInsets.only(top: 8),
-                            child: FloatingActionButton.extended(
-                                backgroundColor: Colors.deepOrange,
-                                heroTag: null,
-                                onPressed: () {
-//                            routines.add(routine);
-//                            DBProvider.db.newRoutine(routine);
-                                  routinesBloc.addRoutine(routine);
-                                  Scaffold.of(context).showSnackBar(SnackBar(
-                                      content: Row(
-                                    children: <Widget>[
-                                      Padding(
-                                        padding: EdgeInsets.only(right: 4),
-                                        child: Icon(Icons.done),
-                                      ),
-                                      Text('Added to my routines.'),
-                                    ],
-                                  )));
-                                },
-                                icon: Icon(Icons.add),
-                                label: Text('Add to my routines')),
-                          ),
+                        padding: EdgeInsets.only(top: 8),
+                        child: FloatingActionButton.extended(
+                            backgroundColor: Colors.deepOrange,
+                            heroTag: null,
+                            onPressed: () {
+                              routinesBloc.addRoutine(routine);
+
+                              Scaffold.of(context).showSnackBar(SnackBar(
+                                  content: Row(
+                                children: <Widget>[
+                                  Padding(
+                                    padding: EdgeInsets.only(right: 4),
+                                    child: Icon(Icons.done),
+                                  ),
+                                  Text('Added to my routines.'),
+                                ],
+                              )));
+                            },
+                            icon: Icon(Icons.add),
+                            label: Text('Add to my routines')),
+                      ),
                     )
                   : Builder(
                       builder: (context) => FloatingActionButton.extended(
                           icon: Icon(Icons.play_arrow),
-                          label: Text('Start this routine', style: TextStyle(fontFamily: 'Staa'),),
+                          label: Text(
+                            'Start this routine',
+                            style: TextStyle(fontFamily: 'Staa'),
+                          ),
                           backgroundColor: routine.parts.isEmpty ? Colors.grey[400] : Colors.deepOrange,
                           onPressed: () {
                             setState(() {
@@ -130,176 +133,55 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
     );
   }
 
-  Widget _buildBodyForAndroid() {
+  Widget buildBody() {
     return NestedScrollView(
         controller: scrollController,
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
-              expandedHeight: widget.isRecRoutine ? 180 : 280.0,
               floating: false,
               pinned: true,
-              flexibleSpace: FlexibleSpaceBar(
-                  collapseMode: CollapseMode.pin,
-                  centerTitle: true,
-                  title: Text(mainTargetedBodyPartToStringConverter(routine.mainTargetedBodyPart),
-                      maxLines: 2,
-                      overflow: TextOverflow.fade,
-                      softWrap: true,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16.0,
-                      )),
-                  background: Padding(
-                    padding: EdgeInsets.only(top: 72, bottom: 0, left: 48, right: 48),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.only(bottom: 8),
-                          child: Text(routine.routineName,
-                              textAlign: TextAlign.center,
-                              maxLines: 2,
-                              overflow: TextOverflow.fade,
-                              softWrap: true,
-                              style: TextStyle(
-                                fontFamily: 'Staa',
-                                color: Colors.white,
-                                fontSize: getFontSize(routine.routineName),
-                              )),
+              actions: widget.isRecRoutine
+                  ? <Widget>[]
+                  : <Widget>[
+                      IconButton(
+                        icon: Icon(Icons.share),
+                        onPressed: onSharePressed,
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.calendar_view_day),
+                        onPressed: () {
+                          showModalBottomSheet(
+                              context: context,
+                              builder: (buildContext) {
+                                return WeekdayModalBottomSheet(
+                                  routine.weekdays,
+                                  checkedCallback: updateWorkWeekdays,
+                                );
+                              });
+                        },
+                      ),
+                      Builder(
+                        builder: (context) => IconButton(
+                          icon: Icon(Icons.edit),
+                          onPressed: () {
+                            //Navigator.pop(context);
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => RoutineEditPage(
+                                          addOrEdit: AddOrEdit.edit,
+                                          mainTargetedBodyPart: routine.mainTargetedBodyPart,
+                                        )));
+                          },
                         ),
-                        widget.isRecRoutine
-                            ? Container()
-                            : Text(
-                                'You have done this workout',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 14, color: Colors.white),
-                              ),
-                        widget.isRecRoutine
-                            ? Container()
-                            : Text(
-                                routine.completionCount.toString(),
-                                textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 36, color: Colors.white),
-                              ),
-                        widget.isRecRoutine
-                            ? Container()
-                            : Text(
-                                'times',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 14, color: Colors.white),
-                              ),
-                        widget.isRecRoutine
-                            ? Container()
-                            : Text(
-                                'since',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 14, color: Colors.white),
-                              ),
-                        widget.isRecRoutine
-                            ? Container()
-                            : Text(
-                                '${routine.createdDate.toString().split(' ').first}',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 14, color: Colors.white),
-                              ),
-                      ],
-                    ),
-                  )),
-              actions: widget.isRecRoutine
-                  ? <Widget>[]
-                  : <Widget>[
-                      IconButton(
-                        icon: Icon(Icons.share),
-                        onPressed: onSharePressed,
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.calendar_view_day),
-                        onPressed: () {
-                          showModalBottomSheet(
-                              context: context,
-                              builder: (buildContext) {
-                                return ModalBottomSheet(
-                                  routine.weekdays,
-                                  checkedCallback: updateWorkWeekdays,
-                                );
-                              });
-                        },
-                      ),
-                      Builder(
-                        builder: (context) => IconButton(
-                              icon: Icon(Icons.edit),
-                              onPressed: () {
-                                //Navigator.pop(context);
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => RoutineEditPage(
-                                              addOrEdit: AddOrEdit.edit,
-                                          mainTargetedBodyPart: routine.mainTargetedBodyPart,
-                                            )));
-                              },
-                            ),
                       )
                     ],
             )
           ];
         },
         body: SingleChildScrollView(
-          child: columnBuilderForAndroid(),
-        ));
-  }
-
-  Widget _buildBodyForIOS() {
-    return NestedScrollView(
-        controller: scrollController,
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return <Widget>[
-            SliverAppBar(
-              floating: false,
-              pinned: true,
-              actions: widget.isRecRoutine
-                  ? <Widget>[]
-                  : <Widget>[
-                      IconButton(
-                        icon: Icon(Icons.share),
-                        onPressed: onSharePressed,
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.calendar_view_day),
-                        onPressed: () {
-                          showModalBottomSheet(
-                              context: context,
-                              builder: (buildContext) {
-                                return ModalBottomSheet(
-                                  routine.weekdays,
-                                  checkedCallback: updateWorkWeekdays,
-                                );
-                              });
-                        },
-                      ),
-                      Builder(
-                        builder: (context) => IconButton(
-                              icon: Icon(Icons.edit),
-                              onPressed: () {
-                                //Navigator.pop(context);
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => RoutineEditPage(
-                                              addOrEdit: AddOrEdit.edit,
-                                          mainTargetedBodyPart: routine.mainTargetedBodyPart,
-                                            )));
-                              },
-                            ),
-                      )
-                    ],
-            )
-          ];
-        },
-        body: SingleChildScrollView(
-          child: columnBuilderForIOS(),
+          child: buildColumn(),
         ));
   }
 
@@ -343,10 +225,9 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
                               child: Text('Save'),
                               onPressed: () async {
                                 Navigator.pop(context);
-                                //var permission = PermissionHandler().checkPermissionStatus(PermissionGroup.storage);
-                                //print("permission status is " + permission.toString());
+
                                 PermissionHandler().requestPermissions(<PermissionGroup>[
-                                  PermissionGroup.storage, // 在这里添加需要的权限
+                                  PermissionGroup.storage,
                                 ]);
 
                                 final QrPainter painter = QrPainter(
@@ -363,10 +244,6 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
                                     action: SnackBarAction(label: 'Dismiss', onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar()),
                                   ));
                                 });
-//                            File file = File('test_image.png');
-//                            file = await file.writeAsBytes(imageData.buffer.asUint8List());
-                                //final int len = await file.length();
-                                ///TODO: finish this function
                               },
                             ),
                             RaisedButton(
@@ -390,7 +267,7 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
     DBProvider.db.updateRoutine(routine);
   }
 
-  void showSyncFailSnackbar() {
+  void showSyncFailSnackBar() {
     scaffoldKey.currentState.removeCurrentSnackBar();
     scaffoldKey.currentState.showSnackBar(SnackBar(
       backgroundColor: Colors.yellow,
@@ -417,14 +294,13 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
     final celebrateStrs = <String>['Well done!', 'WOW', 'Great job!', 'Nailed it', 'Pumped', 'Nooice!'];
 
     if (await Connectivity().checkConnectivity() == ConnectivityResult.none) {
-      showSyncFailSnackbar();
+      showSyncFailSnackBar();
     } else {
       ///update user data if signed in
-      if (firebaseProvider.currentUser != null) {
-        ///TODO: debug this
-        routinesBloc.allRoutines.first.then((routines) async {
-          await firebaseProvider.handleUpload(routines, failCallback: () {
-            showSyncFailSnackbar();
+      if (firebaseProvider.appleIdCredential != null) {
+        routinesBloc.allRoutines.first.then((routines) {
+          firebaseProvider.uploadRoutines(routines).catchError(() {
+            showSyncFailSnackBar();
           });
         });
       }
@@ -439,11 +315,11 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
           firebaseProvider.dailyRank = snapshot["totalCount"] + 1;
 
           firebaseProvider.dailyRankInfo = DateTime.now().toUtc().toString() + '/' + firebaseProvider.dailyRank.toString();
-          setDailyRankInfo(firebaseProvider.dailyRankInfo);
+          sharedPrefsProvider.setDailyRankInfo(firebaseProvider.dailyRankInfo);
         } else {
           await db.collection("dailyData").document(tempDateStr).setData({"totalCount": 1});
           firebaseProvider.dailyRankInfo = DateTime.now().toUtc().toString() + '/' + firebaseProvider.dailyRank.toString();
-          setDailyRankInfo(firebaseProvider.dailyRankInfo);
+          sharedPrefsProvider.setDailyRankInfo(firebaseProvider.dailyRankInfo);
         }
       }
     }
@@ -479,32 +355,14 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
                       ),
                     ))));
       },
+      barrierLabel: '',
       barrierDismissible: true,
-      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       barrierColor: Colors.black38,
       transitionDuration: const Duration(milliseconds: 200),
     );
   }
 
-  Column columnBuilderForAndroid() {
-    List<Widget> exerciseDetails = <Widget>[];
-    //_exerciseDetails.add(RoutineDescriptionCard(routine: routine));
-    exerciseDetails.addAll(this.routine.parts.map((part) => Builder(
-          builder: (context) => PartCard(
-                onDelete: () {},
-                onPartTap:
-                    widget.isRecRoutine ? () {} : () => Navigator.push(context, MaterialPageRoute(builder: (context) => PartHistoryPage(part))),
-                part: part,
-              ),
-        )));
-    exerciseDetails.add(Container(
-      color: Colors.transparent,
-      height: 60,
-    ));
-    return Column(children: exerciseDetails);
-  }
-
-  Column columnBuilderForIOS() {
+  Column buildColumn() {
     List<Widget> exerciseDetails = <Widget>[];
     //_exerciseDetails.add(RoutineDescriptionCard(routine: routine));
     exerciseDetails.add(Padding(
@@ -576,11 +434,10 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
     ));
     exerciseDetails.addAll(this.routine.parts.map((part) => Builder(
           builder: (context) => PartCard(
-                onDelete: () {},
-                onPartTap:
-                    widget.isRecRoutine ? () {} : () => Navigator.push(context, MaterialPageRoute(builder: (context) => PartHistoryPage(part))),
-                part: part,
-              ),
+            onDelete: () {},
+            onPartTap: widget.isRecRoutine ? () {} : () => Navigator.push(context, MaterialPageRoute(builder: (context) => PartHistoryPage(part))),
+            part: part,
+          ),
         )));
     exerciseDetails.add(Container(
       color: Colors.transparent,
@@ -629,21 +486,20 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> {
 //      print('error: $e');
 //    }
 //  }
-
 }
 
 typedef void WeekdaysCheckedCallback(List<int> selectedWeekdays);
 
-class ModalBottomSheet extends StatefulWidget {
+class WeekdayModalBottomSheet extends StatefulWidget {
   final List<int> checkedWeekDays;
   final WeekdaysCheckedCallback checkedCallback;
 
-  ModalBottomSheet(this.checkedWeekDays, {this.checkedCallback});
+  WeekdayModalBottomSheet(this.checkedWeekDays, {this.checkedCallback});
 
-  _ModalBottomSheetState createState() => _ModalBottomSheetState();
+  _WeekdayModalBottomSheetState createState() => _WeekdayModalBottomSheetState();
 }
 
-class _ModalBottomSheetState extends State<ModalBottomSheet> with SingleTickerProviderStateMixin {
+class _WeekdayModalBottomSheetState extends State<WeekdayModalBottomSheet> with SingleTickerProviderStateMixin {
   final List<String> weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   final List<IconData> weekDayIcons = [Icons.looks_one, Icons.looks_two, Icons.looks_3, Icons.looks_4, Icons.looks_5, Icons.looks_6, Icons.looks];
   final List<bool> isCheckedList = List<bool>(7);

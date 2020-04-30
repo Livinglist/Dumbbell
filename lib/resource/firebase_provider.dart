@@ -8,7 +8,6 @@ import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:apple_sign_in/apple_sign_in.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:workout_planner/models/routine.dart';
 import 'package:workout_planner/resource/shared_prefs_provider.dart';
@@ -96,6 +95,7 @@ class FirebaseProvider {
   Future<bool> checkUserExists() => Firestore.instance.collection('users').document(firebaseUser.uid).get().then((snapshot) => snapshot.exists);
 
   Future<List<Routine>> restoreRoutines() async {
+    print("Restoring");
     var db = Firestore.instance;
     var snapshot = await db.collection("users").document(firebaseUser.uid).get();
 
@@ -152,19 +152,21 @@ class FirebaseProvider {
       if (result.status == AuthorizationStatus.authorized) {
         this.appleIdCredential = result.credential;
 
-        print("fucked");
-        print(appleIdCredential.user ?? "null"); //All the required credentials
-        print(appleIdCredential.email);
-        print(appleIdCredential.fullName.familyName);
-        print(appleIdCredential.fullName.givenName);
-        print(appleIdCredential.fullName.nickname);
+        var userId = appleIdCredential.user;
 
         var email = appleIdCredential.email;
         var password = appleIdCredential.email;
 
-        if (result.credential.fullName.familyName == null && result.credential.fullName.givenName == null) {
+        if (appleIdCredential.email == null || (result.credential.fullName.familyName == null && result.credential.fullName.givenName == null)) {
           email = await sharedPrefsProvider.getString(emailKey);
           password = await sharedPrefsProvider.getString(passwordKey);
+
+          if (email == null) {
+            var snapshot = await Firestore.instance.collection('appleIdToEmail').document(userId).get();
+            email = snapshot.data['email'];
+            password = snapshot.data['password'];
+          }
+
           return firebaseAuth.signInWithEmailAndPassword(email: email, password: password).then((authResult) {
             this.firebaseUser = authResult.user;
             sharedPrefsProvider.setSignInMethod(SignInMethod.apple);
@@ -206,6 +208,13 @@ class FirebaseProvider {
                     ..reload();
 
                   return firebaseUser;
+                }).whenComplete(() {
+                  Firestore.instance.collection('appleIdToEmail').document(userId).setData({
+                    'email': email,
+                    'password': password,
+                    'name': (appleIdCredential.fullName.givenName ?? '') + ' ' + (appleIdCredential.fullName.familyName ?? '')
+                      ..trim()
+                  });
                 });
               }
             }

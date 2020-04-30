@@ -10,7 +10,7 @@ enum MainTargetedBodyPart { Abs, Arm, Back, Chest, Leg, Shoulder, FullBody }
 
 class Routine {
   MainTargetedBodyPart mainTargetedBodyPart;
-  List<String> routineHistory;
+  List<int> routineHistory;
   List<int> weekdays;
   String routineName;
   List<Part> parts;
@@ -42,7 +42,7 @@ class Routine {
       lastCompletedDate = DateTime.now();
     }
     if (routineHistory == null) {
-      routineHistory = List<String>();
+      routineHistory = List<int>();
     }
     if (weekdays == null) {
       weekdays = List<int>();
@@ -66,6 +66,7 @@ class Routine {
   }
 
   Routine.fromMap(Map<String, dynamic> map) {
+    print("The name is : " + map['RoutineName']);
     id = map["Id"];
     routineName = map['RoutineName'];
     mainTargetedBodyPart = intToMainTargetedBodyPartConverter(map['MainPart']);
@@ -73,7 +74,19 @@ class Routine {
     lastCompletedDate = map['LastCompletedDate'] != null ? stringToDateTimeConverter(map['LastCompletedDate']) : DateTime.now();
     createdDate = map['CreatedDate'] != null ? stringToDateTimeConverter(map['CreatedDate']) : DateTime.now();
     completionCount = map['Count'];
-    routineHistory = (map["RoutineHistory"] == null ? <String>[] : (jsonDecode(map['RoutineHistory']) as List).cast<String>());
+    print("ISUAHLFIDSufghklahfdklashlkdhlakhdfiouAHSIDHUIA======");
+    try {
+      routineHistory = (map["RoutineHistory"] == null ? <int>[] : (jsonDecode(map['RoutineHistory']) as List).cast<int>());
+    } catch (_) {
+      routineHistory = [];
+
+      var dateStrings = (jsonDecode(map['RoutineHistory']) as List).cast<String>();
+      for (var str in dateStrings) {
+        var d = DateTime.parse(str);
+
+        routineHistory.add(d.millisecondsSinceEpoch);
+      }
+    }
     weekdays = (map["Weekdays"] == null ? <int>[] : (jsonDecode(map["Weekdays"]) as List).cast<int>());
   }
 
@@ -106,13 +119,17 @@ class Routine {
   Routine.copyFromRoutineWithoutHistory(Routine routine) {
     id = routine.id;
     routineName = routine.routineName;
-    routineHistory = List<String>();
+    routineHistory = List<int>();
     weekdays = List<int>();
     mainTargetedBodyPart = routine.mainTargetedBodyPart;
     parts = routine.parts.map((part) => Part.copyFromPart(part)).toList();
     lastCompletedDate = routine.lastCompletedDate;
     createdDate = routine.createdDate;
     completionCount = routine.completionCount;
+  }
+
+  String toString() {
+    return "Instance of Routine id:${this.id} name: ${this.routineName}";
   }
 }
 

@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'package:workout_planner/main.dart';
 import 'package:workout_planner/utils/routine_helpers.dart';
 
 import 'package:workout_planner/models/routine.dart';
 
 typedef void PartTapCallback(Part part);
 typedef void StringCallback(String val);
-
 
 class PartCard extends StatefulWidget {
   final VoidCallback onDelete;
@@ -52,7 +50,7 @@ class PartCardState extends State<PartCard> {
       child: Card(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
           elevation: 12,
-          color: _getColor(_part.setType),
+          color: setTypeToColorConverter(_part.setType),
           child: InkWell(
             onTap: widget.onPartTap,
             onLongPress: widget.onPartLongPressed,
@@ -112,7 +110,7 @@ class PartCardState extends State<PartCard> {
     print('length' + part.exercises.length.toString());
     List<Widget> children = List<Widget>();
 
-    for(var ex in part.exercises){
+    for (var ex in part.exercises) {
       children.add(Row(
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -145,28 +143,9 @@ class PartCardState extends State<PartCard> {
       children.add(Divider());
     }
     children.removeLast();
-    return Column(
-      children: children
-    );
+    return Column(children: children);
   }
 
-
-  Color _getColor(SetType setType) {
-    switch (setType) {
-      case SetType.Regular:
-        return Colors.lightBlue;
-      case SetType.Drop:
-        return Colors.grey;
-      case SetType.Super:
-        return Colors.teal;
-      case SetType.Tri:
-        return Colors.pink;
-      case SetType.Giant:
-        return Colors.red;
-      default:
-        return Colors.lightBlue;
-    }
-  }
 
   Color _getSplashColor(SetType setType) {
     switch (setType) {

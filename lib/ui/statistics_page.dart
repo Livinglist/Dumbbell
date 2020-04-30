@@ -1,13 +1,14 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:workout_planner/resource/firebase_provider.dart';
+import 'package:workout_planner/ui/calender_page.dart';
 
 import 'package:workout_planner/ui/components/chart.dart';
-import 'package:workout_planner/main.dart';
 import 'package:workout_planner/bloc/routines_bloc.dart';
 
 const String API_KEY = "AIzaSyAmlHXgh8yL823yam0Cwo060R01L7YDFeU";
-const TextStyle DefaultTextStyle = TextStyle(color: Colors.white);
+const TextStyle defaultTextStyle = TextStyle(color: Colors.white);
 
 class StatisticsPage extends StatefulWidget {
   StatisticsPage();
@@ -26,25 +27,34 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: routinesBloc.allRoutines,
-      builder: (_, AsyncSnapshot<List<Routine>> snapshot) {
-        if (snapshot.hasData) {
-          return Scaffold(
-            appBar: AppBar(),
-            body: buildMainLayout(snapshot.data),
-          );
-        } else {
-          return Container();
-        }
-      },
+    return CupertinoPageScaffold(
+      child: StreamBuilder(
+        stream: routinesBloc.allRoutines,
+        builder: (_, AsyncSnapshot<List<Routine>> snapshot) {
+          if (snapshot.hasData) {
+            return CustomScrollView(
+              slivers: <Widget>[
+                CupertinoSliverNavigationBar(
+                  largeTitle: Text('Progress'),
+                ),
+                SliverSafeArea(sliver: buildMainLayout(snapshot.data)),
+                CalenderPage(routines: snapshot.data),
+              ],
+            );
+          } else {
+            return Container();
+          }
+        },
+      ),
     );
   }
 
   Widget buildMainLayout(List<Routine> routines) {
     var totalCount = getTotalWorkoutCount(routines);
     var ratio = _getRatio(routines);
-    return GridView.count(
+    print(routines);
+    print(ratio);
+    return SliverGrid.count(
       crossAxisCount: 2,
       children: <Widget>[
         Padding(
@@ -52,7 +62,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           child: Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
               elevation: 12,
-              color: Theme.of(context).primaryColor,
+              color: CupertinoTheme.of(context).primaryColor,
               child: Padding(
                 padding: EdgeInsets.all(4),
                 child: Column(
@@ -64,13 +74,13 @@ class _StatisticsPageState extends State<StatisticsPage> {
                           text: TextSpan(children: [
                         TextSpan(
                           text: 'You have been using this app since ${firebaseProvider.firstRunDate}',
-                          style: DefaultTextStyle,
+                          style: defaultTextStyle,
                         ),
-                        TextSpan(text: '\n\nIt has been\n', style: DefaultTextStyle),
+                        TextSpan(text: '\n\nIt has been\n', style: defaultTextStyle),
                         TextSpan(
                             text: DateTime.now().difference(DateTime.parse(firebaseProvider.firstRunDate)).inDays.toString(),
                             style: TextStyle(fontSize: 36)),
-                        TextSpan(text: '\ndays', style: DefaultTextStyle),
+                        TextSpan(text: '\ndays', style: defaultTextStyle),
                       ])),
                     ),
                   ],
@@ -82,7 +92,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           child: Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
               elevation: 12,
-              color: Theme.of(context).primaryColor,
+              color: CupertinoTheme.of(context).primaryColor,
               child: Padding(
                 padding: EdgeInsets.only(top: 12, bottom: 4, left: 8, right: 8),
                 child: RichText(
@@ -99,7 +109,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           child: Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
               elevation: 12,
-              color: Theme.of(context).primaryColor,
+              color: CupertinoTheme.of(context).primaryColor,
               child: Center(
                 child: totalCount == 0 ? Container() : DonutAutoLabelChart(routines),
               )),
@@ -109,7 +119,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           child: Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
               elevation: 12,
-              color: Theme.of(context).primaryColor,
+              color: CupertinoTheme.of(context).primaryColor,
               child: Center(
                 child: CircularPercentIndicator(
                   radius: 120.0,
@@ -144,15 +154,19 @@ class _StatisticsPageState extends State<StatisticsPage> {
     mondayDate = DateTime(mondayDate.year, mondayDate.month, mondayDate.day);
 
     for (var routine in routines) {
+      print(routine.routineName);
+      print(routine.weekdays);
       totalShare += routine.weekdays.length;
     }
+    print(totalShare);
 
     for (var routine in routines.where((routine) => routine.weekdays.isNotEmpty)) {
       for (var weekday in routine.weekdays) {
-        for (var dateStr in routine.routineHistory) {
-          var date = DateTime.parse(dateStr);
+        for (int ts in routine.routineHistory) {
+          var date = DateTime.fromMillisecondsSinceEpoch(ts).toLocal();
           if (date.weekday == weekday && (date.isAfter(mondayDate) || date.compareTo(mondayDate) == 0)) {
             share++;
+            break;
           }
         }
       }

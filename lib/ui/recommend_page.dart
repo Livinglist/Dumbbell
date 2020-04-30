@@ -1,135 +1,67 @@
 import 'package:flutter/material.dart';
-
-import 'package:workout_planner/ui/components/routine_overview_card.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:workout_planner/bloc/routines_bloc.dart';
+import 'package:workout_planner/utils/routine_helpers.dart';
 
-class RecommendPage extends StatelessWidget {
+import 'components/routine_card.dart';
+
+class RecommendPage extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 6,
-      child: Scaffold(
-        //backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          elevation: 0,
-          bottom: TabBar(
-            isScrollable: true,
-            tabs: [
-              Tab(
-                text: 'Abs',
-              ),
-              Tab(
-                text: "Arms",
-              ),
-              Tab(
-                text: "Back",
-              ),
-              Tab(
-                text: "Chest",
-              ),
-              Tab(
-                text: "Legs",
-              ),
-              Tab(
-                text: "Full Body",
-              ),
-            ],
-          ),
-          title: Text(
-            "Recommendations",
-          ),
-        ),
-        body: TabBarView(
-          children: [
-            _tabChild(MainTargetedBodyPart.Abs),
-            _tabChild(MainTargetedBodyPart.Arm),
-            _tabChild(MainTargetedBodyPart.Back),
-            _tabChild(MainTargetedBodyPart.Chest),
-            _tabChild(MainTargetedBodyPart.Leg),
-            _tabChild(MainTargetedBodyPart.FullBody),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _tabChild(MainTargetedBodyPart mainTargetedBodyPart) {
-    return RoutineOverviewListView(
-      mainTargetedBodyPart: mainTargetedBodyPart,
-    );
-  }
+  _RecommendPageState createState() => _RecommendPageState();
 }
 
-class RoutineOverviewListView extends StatelessWidget {
-  final MainTargetedBodyPart mainTargetedBodyPart;
-
-  RoutineOverviewListView({@required this.mainTargetedBodyPart});
-
+class _RecommendPageState extends State<RecommendPage> {
   @override
   Widget build(BuildContext context) {
-//    final RoutinesContext roc = RoutinesContext.of(context);
-//    final List<Routine> routines = RoutinesContext.of(context).routines;
-    routinesBloc.fetchAllRecRoutines();
-
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: _buildCategories(),
-    );
+    return CupertinoPageScaffold(
+        child: Container(
+      height: MediaQuery.of(context).size.height,
+      child: StreamBuilder(
+        stream: routinesBloc.allRecRoutines,
+        builder: (_, AsyncSnapshot<List<Routine>> snapshot) {
+          if (snapshot.hasData) {
+            var routines = snapshot.data;
+            return CustomScrollView(
+              slivers: <Widget>[
+                CupertinoSliverNavigationBar(
+                  largeTitle: Text("Dev's Favorite"),
+                  previousPageTitle: 'My Routines',
+                ),
+                SliverSafeArea(
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate(buildChildren(routines)),
+                  ),
+                )
+              ],
+            );
+          }
+          return Center(child: CircularProgressIndicator());
+        },
+      ),
+    ));
   }
 
-  Widget _buildCategories() {
-    List<Routine> desiredRoutines;
+  List<Widget> buildChildren(List<Routine> routines) {
+    var map = <MainTargetedBodyPart, List<Routine>>{};
+    var children = <Widget>[];
 
-    return StreamBuilder(
-      stream: routinesBloc.allRecRoutines,
-      builder: (_, AsyncSnapshot<List<Routine>> snapshot) {
-        if (snapshot.hasData) {
-          desiredRoutines = snapshot.data.where((routine) => routine.mainTargetedBodyPart == mainTargetedBodyPart).toList();
-          return ListView.builder(
-            itemCount: desiredRoutines.length,
-            itemBuilder: (context, i) {
-              return _buildRow(desiredRoutines[i]);
-            },
-          );
-        } else {
-          return Container(
-            alignment: Alignment.center,
-            child: CircularProgressIndicator(),
-          );
-        }
-      },
-    );
+    var textColor = MediaQuery.of(context).platformBrightness == Brightness.dark ? CupertinoColors.white : CupertinoColors.black;
+    var style = TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: textColor);
 
-//    return FutureBuilder<List<Routine>>(
-//      future: RoutinesContext.of(context).getAllRecRoutines(),
-//      builder: (BuildContext context, AsyncSnapshot<List<Routine>> snapshot){
-//        print("inside the recPage: "+(snapshot.data == null).toString());
-//        if(snapshot.hasData){
-//          RoutinesContext.of(context).recRoutines = snapshot.data;
-//          desiredRoutines = snapshot.data.where((routine)=>routine.mainTargetedBodyPart == widget.mainTargetedBodyPart).toList();
-//          routines = RoutinesContext.of(context).routines;
-//          return ListView.builder(
-//            itemCount: desiredRoutines.length,
-//            itemBuilder: (context, i) {
-//                return _buildRow(desiredRoutines[i]);
-//            },
-//          );
-//        }else{
-//          return Container(
-//            alignment: Alignment.center,
-//            child: CircularProgressIndicator(
-//
-//            ),
-//          );
-//        }
-//      },
-//    );
-  }
+    routines.forEach((routine) {
+      if (map.containsKey(routine.mainTargetedBodyPart) == false) map[routine.mainTargetedBodyPart] = [];
+      map[routine.mainTargetedBodyPart].add(routine);
+    });
 
-  Widget _buildRow(Routine routine) {
-    return RoutineOverview(
-      routine: routine,
-      isRecRoutine: true,
-    );
+    map.keys.forEach((bodyPart) {
+      children.add(Padding(
+        padding: EdgeInsets.only(left: 16),
+        child: Text(mainTargetedBodyPartToStringConverter(bodyPart), style: style),
+      ));
+      children.addAll(map[bodyPart].map((routine) => RoutineCard(routine: routine,isRecRoutine: true)));
+      children.add(Divider());
+    });
+
+    return children;
   }
 }

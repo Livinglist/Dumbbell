@@ -27,6 +27,7 @@ class RoutinesBloc {
   void fetchAllRoutines() {
     DBProvider.db.getAllRoutines().then((routines) {
       _allRoutines = routines;
+      print("!!!!!!!!!!!!!!!!!!");
       if (!_allRoutinesFetcher.isClosed) _allRoutinesFetcher.sink.add(_allRoutines);
     }).catchError((exp) {
       _allRoutinesFetcher.sink.addError(Exception());
@@ -50,7 +51,9 @@ class RoutinesBloc {
     }
     if (!_allRoutinesFetcher.isClosed) _allRoutinesFetcher.sink.add(_allRoutines);
     DBProvider.db.deleteRoutine(routine);
-    firebaseProvider.uploadRoutines(_allRoutines).catchError(() {});
+    firebaseProvider.uploadRoutines(_allRoutines).catchError((Object err) {
+      print(err);
+    });
   }
 
   void addRoutine(Routine routine) {

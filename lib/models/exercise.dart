@@ -72,6 +72,10 @@ class Exercise {
     //exHistory = ex.exHistory; this seems to be shallow copy?
     exHistory = {};
   }
+
+  String toString(){
+    return "Instance of Exercise: name: ${this.name}";
+  }
 }
 
 int workoutTypeToIntConverter(WorkoutType wt) {

@@ -1,7 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'package:workout_planner/utils/routine_helpers.dart';
+import 'package:keyboard_actions/keyboard_actions.dart';
 
+import 'package:workout_planner/utils/routine_helpers.dart';
 import 'package:workout_planner/models/routine.dart';
 
 class PartEditPage extends StatefulWidget {
@@ -35,13 +37,13 @@ class _PartEditPageState extends State<PartEditPage> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   Routine curRoutine;
   List<TextEditingController> textControllers = List<TextEditingController>();
+  List<FocusNode> focusNodes = List<FocusNode>();
   int radioValueTargetedBodyPart = 0;
   int radioValueSetType = 0;
   bool additionalNotesIsExpanded;
   bool isNewlyCreated = false;
   List<Item> items;
   List<Exercise> tempExs = List<Exercise>();
-  List<Widget> _widgets;
   SetType setType;
 
   ///the widgets that are gonna be displayed in the expansionPanel of exercise detail
@@ -138,6 +140,10 @@ class _PartEditPageState extends State<PartEditPage> {
           textControllers[j + 3].text = widget.part.exercises[i].reps;
         } else {}
       }
+
+      textControllers.forEach((_) {
+        focusNodes.add(FocusNode());
+      });
     }
 
     //_widgets = buildSetDetails(isNewlyCreated ? SetType.Regular : widget.part.setType);
@@ -152,37 +158,38 @@ class _PartEditPageState extends State<PartEditPage> {
   }
 
   Future<bool> onWillPop() {
-     return showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('Are you sure?'),
-            content: Text('Your editing will not be saved.'),
-            actions: <Widget>[
-              FlatButton(
-                onPressed: ()=>Navigator.of(context).pop(false),
-                child: Text('No'),
-              ),
-              FlatButton(
-                onPressed: () {
-                  if (widget.addOrEdit == AddOrEdit.add) widget.curRoutine.parts.removeLast();
-                  Navigator.of(context).pop(true);
-                },
-                child: Text('Yes'),
-              ),
-            ],
+    return showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text('Are you sure?'),
+        content: Text('Your editing will not be saved.'),
+        actions: <Widget>[
+          CupertinoDialogAction(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('No'),
           ),
-     ).then((value){
-       if(value == null || value == false){
-         return false;
-       }else{
-         Navigator.pop(context, widget.part);
-         return true;
-       }
-     });
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () {
+              if (widget.addOrEdit == AddOrEdit.add) widget.curRoutine.parts.removeLast();
+              Navigator.of(context).pop(true);
+            },
+            child: Text('Yes'),
+          ),
+        ],
+      ),
+    ).then((value) {
+      if (value == null || value == false) {
+        return false;
+      } else {
+        return true;
+      }
+    });
   }
 
   Widget buildTargetedBodyPartRadioList() {
     return Material(
+      color: Colors.transparent,
       child: Padding(
           padding: EdgeInsets.all(12.0),
           child: Column(children: <Widget>[
@@ -200,22 +207,44 @@ class _PartEditPageState extends State<PartEditPage> {
   }
 
   Widget buildSetTypeList() {
-    return Material(
-      child: Padding(
-          padding: EdgeInsets.all(12.0),
-          child: Column(children: <Widget>[
-            RadioListTile(value: 0, groupValue: radioValueSetType, onChanged: onRadioSetTypeValueChanged, title: Text('Regular Sets')),
-            RadioListTile(value: 1, groupValue: radioValueSetType, onChanged: onRadioSetTypeValueChanged, title: Text('Drop Sets')),
-            RadioListTile(value: 2, groupValue: radioValueSetType, onChanged: onRadioSetTypeValueChanged, title: Text('Super Sets')),
-            RadioListTile(value: 3, groupValue: radioValueSetType, onChanged: onRadioSetTypeValueChanged, title: Text('Tri-Sets')),
-            RadioListTile(value: 4, groupValue: radioValueSetType, onChanged: onRadioSetTypeValueChanged, title: Text('Giant Sets')),
-          ])),
+    return CupertinoSlidingSegmentedControl<SetType>(
+      children: {
+        SetType.Regular: Text('Regular'),
+        SetType.Super: Text('Super'),
+        SetType.Tri: Text('Tri'),
+        SetType.Giant: Text('Giant'),
+        SetType.Drop: Text('Drop')
+      },
+      onValueChanged: (setType) {
+        setState(() {
+          this.setType = setType;
+        });
+      },
+      groupValue: setType,
     );
   }
 
   ///Build the expansion panel for detailed information on exercises
   Widget buildSetDetailsList() {
-    return Material(child: Padding(padding: EdgeInsets.all(16.0), child: Column(children: buildSetDetails())));
+    return Material(
+        color: Colors.transparent,
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(children: buildSetDetails()),
+        ));
+  }
+
+  KeyboardActionsConfig _buildConfig(BuildContext context) {
+    return KeyboardActionsConfig(
+        keyboardActionsPlatform: KeyboardActionsPlatform.ALL,
+        keyboardBarColor: Colors.grey[200],
+        nextFocus: true,
+        actions: focusNodes.map((node) {
+          return KeyboardAction(
+            focusNode: node,
+            onTapAction: () {},
+          );
+        }).toList());
   }
 
   List<Widget> buildSetDetails() {
@@ -271,6 +300,7 @@ class _PartEditPageState extends State<PartEditPage> {
         widgets.add(Builder(
           builder: (context) => TextFormField(
             controller: textControllers[j],
+            focusNode: focusNodes[j],
             onFieldSubmitted: (str) {
               setState(() {
                 //widget.part.exercises[i].name = str;
@@ -279,18 +309,6 @@ class _PartEditPageState extends State<PartEditPage> {
             decoration: InputDecoration(labelText: 'Name'),
             validator: (str) {
               if (str.isEmpty) {
-                Scaffold.of(context).showSnackBar(SnackBar(
-                  backgroundColor: Colors.red,
-                  content: Row(
-                    children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.only(right: 4),
-                        child: Icon(Icons.report),
-                      ),
-                      Text("Name cannot be blank.")
-                    ],
-                  ),
-                ));
                 return 'Please enter the name of exercise';
               } else {
                 tempExs[i].name = textControllers[j].text;
@@ -305,8 +323,10 @@ class _PartEditPageState extends State<PartEditPage> {
               child: Builder(
                   builder: (context) => TextFormField(
                         controller: textControllers[j + 1],
+                        focusNode: focusNodes[j + 1],
                         onFieldSubmitted: (str) {},
                         keyboardType: TextInputType.numberWithOptions(signed: false, decimal: false),
+                        textInputAction: TextInputAction.done,
                         decoration: InputDecoration(labelText: 'Weight'),
                         validator: (str) {
                           if (str.isEmpty) {
@@ -346,7 +366,8 @@ class _PartEditPageState extends State<PartEditPage> {
             Flexible(
               child: TextFormField(
                 controller: textControllers[2],
-                //before: _textControllers[j + 2],
+                focusNode: focusNodes[j + 2],
+                textInputAction: TextInputAction.done,
                 onFieldSubmitted: (str) {},
                 keyboardType: TextInputType.numberWithOptions(signed: false, decimal: false),
                 decoration: InputDecoration(labelText: 'Sets'),
@@ -369,13 +390,15 @@ class _PartEditPageState extends State<PartEditPage> {
             Flexible(
               child: TextFormField(
                 controller: textControllers[j + 3],
+                focusNode: focusNodes[j + 3],
+                textInputAction: TextInputAction.done,
                 onFieldSubmitted: (str) {},
                 keyboardType: TextInputType.numberWithOptions(signed: false, decimal: false),
                 decoration: InputDecoration(labelText: tempExs[i].workoutType == WorkoutType.Weight ? 'Reps' : 'Seconds'),
                 validator: (str) {
-                  if (str.isEmpty)
-                    tempExs[i].reps = '';
-                  else
+                  if (str.isEmpty) {
+                    return 'Cannot be empty';
+                  } else
                     tempExs[i].reps = textControllers[j + 3].text;
                   return null;
                 },
@@ -392,140 +415,83 @@ class _PartEditPageState extends State<PartEditPage> {
     return widgets;
   }
 
-  ListView listView;
   ScrollController scrollController;
 
   @override
   Widget build(BuildContext context) {
-    var _expansionPanelChildren = items.map((Item item) {
-      return ExpansionPanel(
-        headerBuilder: (BuildContext context, bool isExpanded) {
-          return ListTile(
-              leading: item.iconpic,
-              title: Text(
-                item.header,
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.w400,
-                ),
-              ));
-        },
-        isExpanded: item.isExpanded,
-        body: item.callback(),
-      );
-    }).toList();
+    var children = <Widget>[];
+    items.forEach((Item item) {
+      children.add(ListTile(
+          leading: item.iconpic,
+          title: Text(item.header,
+              textAlign: TextAlign.left,
+              style: TextStyle(
+                fontSize: 16.0,
+                fontWeight: FontWeight.w400,
+              ))));
+      children.add(item.callback());
+    });
 
-    listView = ListView(
-      controller: scrollController,
-      children: [
-        Form(
-            key: formKey,
-            child: Padding(
-              //Targeted Body Part, Type of set, Details
-              padding: EdgeInsets.all(12.0),
-              child: ExpansionPanelList(
-                  expansionCallback: (int index, bool isExpanded) {
-                    setState(() {
-                      items[index].isExpanded = !items[index].isExpanded;
-                    });
-                  },
-                  children: _expansionPanelChildren),
-            )),
-        Padding(
-            //Additional notes
-            padding: EdgeInsets.all(12),
-            child: ExpansionPanelList(
-              expansionCallback: (int index, bool isExpanded) {
-                setState(() {
-                  additionalNotesIsExpanded = !additionalNotesIsExpanded;
-                });
-              },
-              children: <ExpansionPanel>[
-                ExpansionPanel(
-                    headerBuilder: (BuildContext context, bool isExpanded) {
-                      return isExpanded
-                          ? ListTile(
-                              leading: Icon(Icons.assignment),
-                              subtitle: Text('Remind yourself what to pay attention to while doing these exercises'),
-                              title: Text(
-                                'Additional Notes',
-                                style: TextStyle(
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            )
-                          : ListTile(
-                              leading: Icon(Icons.assignment),
-                              title: Text(
-                                'Additional Notes',
-                                style: TextStyle(
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            );
-                    },
-                    isExpanded: additionalNotesIsExpanded,
-                    body: Material(
-                      child: Padding(
-                        padding: EdgeInsets.all(12),
-                        child: TextField(
-                          controller: addtionalNotesTextEditingController,
-                          onTap: () {
-                            scrollController.animateTo(scrollController.position.maxScrollExtent,
-                                duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
-                          },
-                          keyboardType: TextInputType.multiline,
-                          maxLines: 4,
-                          decoration: InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
-                        ),
-                      ),
-                    ))
-              ],
-            ))
-      ],
-    );
-
-    Scaffold scaffold = Scaffold(
-      key: scaffoldKey,
-      appBar: AppBar(
-        title: Text("Criteria Selection"),
-        actions: <Widget>[
-          Builder(
-            builder: (context) {
-              return IconButton(
-                icon: Icon(Icons.done),
-                onPressed: () {
-                  if (formKey.currentState.validate()) {
-                    widget.part.targetedBodyPart = PartEditPageHelper.radioValueToTargetedBodyPartConverter(radioValueTargetedBodyPart);
-                    widget.part.setType = PartEditPageHelper.radioValueToSetTypeConverter(radioValueSetType);
-                    widget.part.exercises = List<Exercise>();
-                    for (int i = 0; i < enabledList.where((res) => res).length; i++) {
-                      widget.part.exercises.add(Exercise(
-                          name: tempExs[i].name,
-                          weight: tempExs[i].weight,
-                          sets: tempExs[i].sets,
-                          reps: tempExs[i].reps,
-                          workoutType: tempExs[i].workoutType,
-                          exHistory: tempExs[i].exHistory));
-                    }
-                    widget.part.additionalNotes = addtionalNotesTextEditingController.text;
-                    Navigator.pop(context, widget.part);
-                  } else {}
-                },
-              );
-            },
-          )
+    var listView = KeyboardActions(
+      config: _buildConfig(context),
+      child: Column(
+        children: [
+          Form(
+              key: formKey,
+              child: Padding(
+                  //Targeted Body Part, Type of set, Details
+                  padding: EdgeInsets.all(0),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Column(
+                      children: children,
+                    ),
+                  ))),
         ],
       ),
-      body: listView,
     );
-    return WillPopScope(
-      onWillPop: onWillPop,
-      child: scaffold,
+
+    var scaffold = CupertinoPageScaffold(
+      key: scaffoldKey,
+      navigationBar: CupertinoNavigationBar(
+          middle: Text("Criteria Selection"),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Transform.translate(
+                  offset: Offset(12, -6),
+                  child: Builder(
+                    builder: (context) {
+                      return CupertinoButton(
+                        child: Icon(Icons.done),
+                        onPressed: () {
+                          if (formKey.currentState.validate()) {
+                            widget.part.targetedBodyPart = PartEditPageHelper.radioValueToTargetedBodyPartConverter(radioValueTargetedBodyPart);
+                            widget.part.setType = setType;
+                            widget.part.exercises = List<Exercise>();
+                            for (int i = 0; i < enabledList.where((res) => res).length; i++) {
+                              widget.part.exercises.add(Exercise(
+                                  name: tempExs[i].name,
+                                  weight: tempExs[i].weight,
+                                  sets: tempExs[i].sets,
+                                  reps: tempExs[i].reps,
+                                  workoutType: tempExs[i].workoutType,
+                                  exHistory: tempExs[i].exHistory));
+                            }
+                            widget.part.additionalNotes = addtionalNotesTextEditingController.text;
+                            Navigator.pop(context, widget.part);
+                          } else {}
+                        },
+                      );
+                    },
+                  ))
+            ],
+          )),
+      child: SafeArea(
+        child: listView,
+      ),
     );
+    return WillPopScope(onWillPop: onWillPop, child: scaffold);
   }
 
   void onRadioValueChanged(int value) {

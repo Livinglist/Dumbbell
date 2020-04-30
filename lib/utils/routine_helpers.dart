@@ -43,18 +43,18 @@ String mainTargetedBodyPartToStringConverter(MainTargetedBodyPart targetedBodyPa
     case MainTargetedBodyPart.FullBody:
       return 'Full Body';
     default:
-      throw Exception;
+      throw Exception('Unmatched main targetedBodyPart: $targetedBodyPart');
   }
 }
 
 Color setTypeToColorConverter(SetType setType) {
   switch (setType) {
     case SetType.Regular:
-      return Colors.lightBlue;
+      return Colors.orangeAccent;
     case SetType.Drop:
       return Colors.grey;
     case SetType.Super:
-      return Colors.teal;
+      return Colors.orange;
     case SetType.Tri:
       return Colors.pink;
     case SetType.Giant:
@@ -164,8 +164,9 @@ Widget targetedBodyPartToImageConverter(TargetedBodyPart targetedBodyPart) {
   }
 }
 
-String getTodayDate() {
-  return dateTimeToStringConverter(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
+int getTimestampNow() {
+  return DateTime.now().millisecondsSinceEpoch;
+  //return dateTimeToStringConverter(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
 }
 
 class StringHelper {

@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:workout_planner/main.dart';
 import 'package:workout_planner/models/routine.dart';
 
 class DBProvider {
@@ -103,7 +102,9 @@ class DBProvider {
       await db.rawInsert(
           'INSERT Into Routines (Id, RoutineName, MainPart, Parts, LastCompletedDate, CreatedDate, Count, RoutineHistory, Weekdays) VALUES (?,?,?,?,?,?,?,?,?)',
           [
-            id, ///changed from [map['id']] to [id]
+            id,
+
+            ///changed from [map['id']] to [id]
             map['RoutineName'],
             map['MainPart'],
             map['Parts'],
@@ -120,6 +121,16 @@ class DBProvider {
     final db = await database;
     List<Map> res;
     res = await db.query('Routines');
+
+    print("aaaaaaaa");
+
+    var a = res.map((r) {
+      return Routine.fromMap(r);
+    }).toList();
+
+    print(a.length);
+
+    print("bbbbbbbb");
 
     return res.isNotEmpty
         ? res.map((r) {

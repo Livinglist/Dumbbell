@@ -24,9 +24,7 @@ class _ScanPageState extends State<ScanPage> {
 
   @override
   initState() {
-    textEditingController.addListener((){
-
-    });
+    textEditingController.addListener(() {});
     super.initState();
   }
 
@@ -34,32 +32,24 @@ class _ScanPageState extends State<ScanPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         key: scaffoldKey,
-        appBar: new AppBar(
+        appBar: AppBar(
           iconTheme: IconThemeData(color: Colors.white),
-          title: new Text('Scan'),
+          title: Text('Scan'),
         ),
-        body: new Center(
-          child: new Column(
+        body: Center(
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: RaisedButton(
-                  color: Colors.blueGrey,
-                    textColor: Colors.white,
-                    splashColor: Colors.blueGrey,
-                    onPressed: input,
-                    child: Text('Enter routine ID')),
+                    color: Colors.blueGrey, textColor: Colors.white, splashColor: Colors.blueGrey, onPressed: input, child: Text('Enter routine ID')),
               ),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: RaisedButton(
-                  color: Colors.blueGrey,
-                    textColor: Colors.white,
-                    splashColor: Colors.blueGrey,
-                    onPressed: scan,
-                    child: Text('Scan QR code')),
+                    color: Colors.blueGrey, textColor: Colors.white, splashColor: Colors.blueGrey, onPressed: scan, child: Text('Scan QR code')),
               ),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 0, vertical: 8.0),
@@ -84,23 +74,23 @@ class _ScanPageState extends State<ScanPage> {
                     ? Builder(
                         builder: (context) => RaisedButton(
                           color: Colors.blueGrey,
-                              textColor: Colors.white,
-                              splashColor: Colors.blueGrey,
-                              onPressed: () {
-                                DBProvider.db.newRoutine(routine);
-                                Scaffold.of(context).showSnackBar(SnackBar(
-                                    content: Row(
-                                  children: <Widget>[
-                                    Padding(
-                                      padding: EdgeInsets.only(right: 4),
-                                      child: Icon(Icons.done),
-                                    ),
-                                    Text('Added to my routines.'),
-                                  ],
-                                )));
-                              },
-                              child: const Text('Add to my routines'),
-                            ),
+                          textColor: Colors.white,
+                          splashColor: Colors.blueGrey,
+                          onPressed: () {
+                            DBProvider.db.newRoutine(routine);
+                            Scaffold.of(context).showSnackBar(SnackBar(
+                                content: Row(
+                              children: <Widget>[
+                                Padding(
+                                  padding: EdgeInsets.only(right: 4),
+                                  child: Icon(Icons.done),
+                                ),
+                                Text('Added to my routines.'),
+                              ],
+                            )));
+                          },
+                          child: const Text('Add to my routines'),
+                        ),
                       )
                     : Container(),
               ),
@@ -109,34 +99,35 @@ class _ScanPageState extends State<ScanPage> {
         ));
   }
 
-  Future input() async{
+  Future input() async {
     if (await Connectivity().checkConnectivity() == ConnectivityResult.none) {
       scaffoldKey.currentState.showSnackBar(noNetworkSnackBar);
     } else {
       showDialog(
-          context: context, builder: (_){
-        return Center(
-          child: Container(
-            width: MediaQuery.of(context).size.width*0.8,
-            child: Material(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
-              child: Padding(
-                padding: EdgeInsets.all(8),
-                child: TextField(
-                  onSubmitted: (str){
-                    Navigator.pop(context);
-                    setState(() {
-                      barcode = '-r'+str;
-                    });
-                  },
-                  controller: textEditingController,
-                  decoration: InputDecoration(hintText: 'Routine ID'),
+          context: context,
+          builder: (_) {
+            return Center(
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.8,
+                child: Material(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
+                  child: Padding(
+                    padding: EdgeInsets.all(8),
+                    child: TextField(
+                      onSubmitted: (str) {
+                        Navigator.pop(context);
+                        setState(() {
+                          barcode = '-r' + str;
+                        });
+                      },
+                      controller: textEditingController,
+                      decoration: InputDecoration(hintText: 'Routine ID'),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-        );
-      });
+            );
+          });
     }
   }
 
@@ -162,10 +153,7 @@ class _ScanPageState extends State<ScanPage> {
   }
 
   Future<RoutineOverview> getRoutineOverView(String str) async {
-    var snapshot = await Firestore.instance
-        .collection("userShares")
-        .document(barcode.replaceFirst("-r", ""))
-        .get();
+    var snapshot = await Firestore.instance.collection("userShares").document(barcode.replaceFirst("-r", "")).get();
     String routineStr = snapshot['routine'];
     routine = Routine.fromMap(jsonDecode(routineStr.replaceFirst('-r', '')));
     return RoutineOverview(

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:workout_planner/utils/routine_helpers.dart';
@@ -36,12 +37,13 @@ class PartEditCardState extends State<PartEditCard> {
 
   @override
   Widget build(BuildContext context) {
+    print("settype: ${part.setType}");
     return Padding(
       padding: EdgeInsets.only(top: 6, bottom: 6, left: 8, right: 8),
       child: Card(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
           elevation: 12,
-          color: _getColor(part.setType),
+          color: setTypeToColorConverter(part.setType),
           child: Padding(
             padding: EdgeInsets.only(top: 4, bottom: 4, left: 8, right: 8),
             child: Column(
@@ -79,10 +81,10 @@ class PartEditCardState extends State<PartEditCard> {
                                   builder: (context) => PartEditPage(
                                         addOrEdit: AddOrEdit.edit,
                                         part: part,
-                                      ))).then((value){
-                                        setState(() {
-                                          this.part = value;
-                                        });
+                                      ))).then((value) {
+                            setState(() {
+                              this.part = value;
+                            });
                           });
                         }),
                     FlatButton(
@@ -91,17 +93,19 @@ class PartEditCardState extends State<PartEditCard> {
                           style: TextStyle(color: Colors.white),
                         ),
                         onPressed: () {
-                          showDialog(
+                          showCupertinoDialog(
                             context: context,
-                            builder: (context) => AlertDialog(
+                            builder: (context) => CupertinoAlertDialog(
                               title: Text('Delete this part of routine?'),
                               content: Text('You cannot undo this.'),
                               actions: <Widget>[
-                                FlatButton(
+                                CupertinoDialogAction(
+                                  isDefaultAction: true,
                                   onPressed: () => Navigator.of(context).pop(false),
                                   child: Text('No'),
                                 ),
-                                FlatButton(
+                                CupertinoDialogAction(
+                                  isDestructiveAction: true,
                                   onPressed: () {
                                     widget.onDelete();
                                     Navigator.of(context).pop(true);
@@ -159,14 +163,15 @@ class PartEditCardState extends State<PartEditCard> {
               Expanded(
                 flex: 3,
                 child: Text(
-                  'Sets: ' + part.exercises[i].sets.toString(),
+                  part.exercises[i].sets.toString() + ' Set${part.exercises[i].sets == 1 ? '' : 's'}',
                   style: defaultTextStyle,
                 ),
               ),
               Expanded(
                 flex: 3,
                 child: Text(
-                  (part.exercises[i].workoutType == WorkoutType.Weight ? 'Reps: ' : 'Seconds: ') + part.exercises[i].reps,
+                  part.exercises[i].reps +
+                      (part.exercises[i].workoutType == WorkoutType.Weight ? ' Reps' : ' Sec'),
                   style: defaultTextStyle,
                 ),
               )
@@ -176,23 +181,6 @@ class PartEditCardState extends State<PartEditCard> {
       );
     } else {
       return null;
-    }
-  }
-
-  Color _getColor(SetType setType) {
-    switch (setType) {
-      case SetType.Regular:
-        return Colors.lightBlue;
-      case SetType.Drop:
-        return Colors.grey;
-      case SetType.Super:
-        return Colors.teal;
-      case SetType.Tri:
-        return Colors.pink;
-      case SetType.Giant:
-        return Colors.red;
-      default:
-        return Colors.lightBlue;
     }
   }
 }

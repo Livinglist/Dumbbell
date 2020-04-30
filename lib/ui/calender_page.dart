@@ -1,8 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:workout_planner/models/routine.dart';
-import 'package:workout_planner/ui/components/routine_overview_card.dart';
-import 'package:workout_planner/utils/routine_helpers.dart';
+import 'package:workout_planner/ui/components/routine_card.dart';
+import 'package:workout_planner/utils/date_time_extension.dart';
 
 class CalenderPage extends StatefulWidget {
   final List<Routine> routines;
@@ -26,32 +27,23 @@ class CalenderPageState extends State<CalenderPage> {
   }
 
   void showBottomSheet(Routine routine) {
-    showModalBottomSheet(
+    showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
           return Padding(
             padding: EdgeInsets.only(bottom: 12),
-            child: Container(
-                color: Colors.transparent,
-                width: MediaQuery.of(context).size.width,
-                child: RoutineOverview(routine: routine)
-            ),
+            child: Container(color: Colors.transparent, width: MediaQuery.of(context).size.width, child: RoutineCard(routine: routine)),
           );
         });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: scaffoldKey,
-      appBar: AppBar(
-        title: Text('This Year'),
-      ),
-      body: GridView.count(
-        controller: scrollController,
-        crossAxisCount: 13,
-        children: buildMonthRow(),
-      ),
+    return SliverGrid.count(
+      crossAxisCount: 13,
+      mainAxisSpacing: 4,
+      crossAxisSpacing: 4,
+      children: buildMonthRow(),
     );
   }
 
@@ -61,7 +53,11 @@ class CalenderPageState extends State<CalenderPage> {
     widgets.add(Text(' '));
 
     for (int i = 1; i <= 12; i++) {
-      widgets.add(Center(child: Text(intToMonth(i))));
+      widgets.add(Center(
+          child: Text(intToMonth(i),
+              style: TextStyle(
+                  fontSize: 10,
+                  color: MediaQuery.of(context).platformBrightness == Brightness.dark ? CupertinoColors.white : CupertinoColors.black))));
     }
 
     widgets.addAll(buildDayRows());
@@ -73,29 +69,34 @@ class CalenderPageState extends State<CalenderPage> {
     List<Widget> widgets = List<Widget>();
 
     for (int i = 1; i <= 31; i++) {
-      widgets.add(Center(child: Text(i.toString())));
+      widgets.add(Center(child: Text(i.toString(), style: TextStyle(fontSize: 12,color: MediaQuery.of(context).platformBrightness == Brightness.dark ? CupertinoColors.white : CupertinoColors.black))));
       for (int j = 1; j <= 12; j++) {
-        DateTime date = DateTime(DateTime
-            .now()
-            .year, j, i);
-        String dateStr = date
-            .toString()
-            .split(' ')
-            .first;
-        widgets.add(Container(
-          child: GestureDetector(onTap: () {
-            if (isWorkoutDay(j, i)) {
-              showBottomSheet(dateToRoutineMap[dateStr]);
-            }
-          }),
-          decoration: BoxDecoration(
-              color: isWorkoutDay(j, i) ? Colors.orange : Colors
-                  .transparent,
-              shape: BoxShape.rectangle,
-              border: Border.all(color: Colors.grey[500], width: 0.3)),
+        DateTime date = DateTime(DateTime.now().year, j, i);
+        String dateStr = date.toSimpleString();
+        widgets.add(Material(
+          elevation: 4,
+          child: Container(
+            child: GestureDetector(onTap: () {
+              if (isWorkoutDay(j, i)) {
+                showBottomSheet(dateToRoutineMap[dateStr]);
+              }
+            }),
+            decoration: BoxDecoration(
+                color: isWorkoutDay(j, i) ? Colors.orange : Colors.transparent,
+                shape: BoxShape.rectangle,
+                border: Border.all(color: Colors.grey[500], width: 0.3)),
+          ),
         ));
       }
     }
+
+    for (int i = 1; i <= 31; i++) {
+      widgets.add(Container());
+      for (int j = 1; j <= 1; j++) {
+        widgets.add(Container());
+      }
+    }
+
     return widgets;
   }
 
@@ -140,13 +141,15 @@ class CalenderPageState extends State<CalenderPage> {
     Map<String, Routine> dates = {};
 
     for (var routine in routines) {
-      print("${routine.routineName} has a length of history: ${routine.routineHistory.length}");
       if (routine.routineHistory.isNotEmpty) {
-        for (var date in routine.routineHistory) {
-          dates[date] = routine;
+        for (var timestamp in routine.routineHistory) {
+          var d = DateTime.fromMillisecondsSinceEpoch(timestamp).toLocal();
+          dates[d.toSimpleString()] = routine;
         }
       }
     }
+
+    print(dates);
     return dates;
   }
 }

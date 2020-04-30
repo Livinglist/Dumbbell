@@ -13,24 +13,26 @@ typedef int Operation(int);
 class RoutineStepPage extends StatefulWidget {
   final Routine routine;
   final VoidCallback celebrateCallback;
+  final VoidCallback onBackPressed;
 
-  RoutineStepPage({@required this.routine, this.celebrateCallback});
+  RoutineStepPage({@required this.routine, this.celebrateCallback, this.onBackPressed});
 
   @override
   State<StatefulWidget> createState() => _RoutineStepPageState();
-  
 }
 
 const LabelTextStyle = TextStyle(color: Colors.white70);
 const SmallBoldTextStyle = TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold);
 
 class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderStateMixin {
-  final GlobalKey<ScaffoldState> _scaffoldKey =  GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final _duration = Duration(milliseconds: 50);
   var stepperKey = GlobalKey();
-  
+
   AnimationController opacityController;
   Animation<double> opacity;
+
+  bool finished = false;
 
   double maxOffset;
   Routine routine;
@@ -141,147 +143,39 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
     return WillPopScope(
         onWillPop: onWillPop,
         child: FadeTransition(
-          opacity: opacity,
-          child: Scaffold(
-            key: _scaffoldKey,
-            appBar: AppBar(
-              //iconTheme: IconThemeData(color: Colors.white),
-              title: Text(
-                title,
-                style: TextStyle(color: Colors.white54),
-              ),
-              bottom: PreferredSize(
-                  child: LinearProgressIndicator(
-                    value: position / totalLength,
-                  ),
-                  preferredSize: null),
-              backgroundColor: appBarColors,
-              actions: <Widget>[
-                curExIndex == routineCopy.parts.length
-                    ? Container()
-                    : IconButton(
-                        icon: Icon(Icons.assignment),
-                        onPressed: () {
-                          showModalBottomSheet(
-                              context: context,
-                              builder: (buildContext) {
-                                return Container(
-                                  width: double.infinity,
-                                  color: Colors.white,
-                                  child: Padding(
-                                    padding: EdgeInsets.all(8),
-                                    child: Text(
-                                      routineCopy.parts[curExIndex].additionalNotes.isEmpty
-                                          ? "No additional notes"
-                                          : routineCopy.parts[curExIndex].additionalNotes,
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                );
-                              });
-                        },
-                      )
-              ],
-            ),
-            body: buildMainLayout(),
-            floatingActionButton: fabEnabled
-                ? FloatingActionButton(
-                    child: Text('+1'),
+            opacity: opacity,
+            child: MaterialApp(
+              home: Scaffold(
+                key: _scaffoldKey,
+                appBar: AppBar(
+                  //iconTheme: IconThemeData(color: Colors.white),
+                  leading: IconButton(
+                    icon: Icon(Icons.arrow_back_ios),
                     onPressed: () {
-                      showDialog(
-                          context: context,
-                          builder: (context) => Dialog(
-                                backgroundColor: Colors.white,
-                                elevation: 4,
-                                child: Container(
-                                  height: 200,
-                                  child: Flex(
-                                    direction: Axis.vertical,
-                                    children: <Widget>[
-                                      Flexible(
-                                          flex: 7,
-                                          child: Container(
-                                            width: double.infinity,
-                                            color: Colors.orange,
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.center,
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              mainAxisSize: MainAxisSize.max,
-                                              children: <Widget>[
-                                                Text(
-                                                  'Congrats! You finished it!',
-                                                  style: TextStyle(color: Colors.white, fontSize: 16),
-                                                ),
-                                                Text(
-                                                  'Add one to the completion counter?',
-                                                  style: TextStyle(color: Colors.white, fontSize: 16),
-                                                ),
-                                              ],
-                                            ),
-                                          )),
-                                      Flexible(
-                                          flex: 3,
-                                          child: Container(
-                                            height: double.infinity,
-                                            width: double.infinity,
-                                            color: Colors.transparent,
-                                            child: Row(
-                                              crossAxisAlignment: CrossAxisAlignment.center,
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              mainAxisSize: MainAxisSize.max,
-                                              children: <Widget>[
-                                                FlatButton(
-                                                  onPressed: () => Navigator.of(context).pop(false),
-                                                  child: Text(
-                                                    'Nah',
-                                                    style: TextStyle(color: Colors.blue, fontSize: 16),
-                                                  ),
-                                                ),
-                                                FlatButton(
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop(true);
-
-                                                    routineCopy.completionCount++;
-                                                    if (!routineCopy.routineHistory.contains(getTodayDate())) {
-                                                      routineCopy.routineHistory.add(getTodayDate());
-                                                    }
-
-//                                                    RoutinesContext.of(context).routines.removeWhere((r) => r.id == routineCopy.id);
-//                                                    RoutinesContext.of(context).routines.add(Routine.copyFromRoutine(routineCopy));
-//                                                    RoutinesContext.of(context).curRoutine = RoutinesContext.of(context).routines.last;
-
-                                                    //DBProvider.db.updateRoutine(RoutinesContext.of(context).curRoutine);
-
-                                                    routinesBloc.updateRoutine(routineCopy);
-
-                                                    widget.celebrateCallback();
-
-                                                    Navigator.pop(context);
-                                                    Navigator.pop(context);
-                                                  },
-                                                  child: Text(
-                                                    'Sure',
-                                                    style: TextStyle(color: Colors.blue, fontSize: 36),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ))
-                                    ],
-                                  ),
-                                ),
-                              ));
-                    })
-                : Container(),
-          ),
-        ));
+                      Navigator.pop(context);
+                    },
+                  ),
+                  title: Text(
+                    title,
+                    style: TextStyle(color: Colors.white54),
+                  ),
+                  bottom: PreferredSize(
+                      child: LinearProgressIndicator(
+                        value: position / totalLength,
+                      ),
+                      preferredSize: null),
+                  backgroundColor: appBarColors,
+                ),
+                body: buildMainLayout(),
+              ),
+            )));
   }
 
   Widget buildMainLayout() {
-    if (curExIndex < routine.parts.length)
+    if (curExIndex < routine.parts.length) {
       return buildRow();
-    else
-      fabEnabled = true;
+    } else {}
+
     return Container(
       alignment: Alignment.center,
       height: queryData.size.height,
@@ -297,7 +191,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
       ),
     );
   }
-  
+
   Widget buildRow() {
     return AnimatedContainer(
       duration: Duration(milliseconds: 500),
@@ -328,8 +222,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
   void updateExHistory(int curEx, int setLeft) {
     String tempDateStr = dateTimeToStringConverter(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
     if (routineCopy.parts[curExIndex].exercises[curEx].exHistory.containsKey(tempDateStr)) {
-      routineCopy.parts[curExIndex].exercises[curEx].exHistory[tempDateStr] +=
-          '/' + routineCopy.parts[curExIndex].exercises[curEx].weight.toString();
+      routineCopy.parts[curExIndex].exercises[curEx].exHistory[tempDateStr] += '/' + routineCopy.parts[curExIndex].exercises[curEx].weight.toString();
     } else {
       routineCopy.parts[curExIndex].exercises[curEx].exHistory[tempDateStr] = routineCopy.parts[curExIndex].exercises[curEx].weight.toString();
     }
@@ -338,6 +231,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
   Widget buildExerciseDetailRow(int i, List<Exercise> exs, SetType setType) {
     return Stepper(
       key: stepperKey,
+      physics: NeverScrollableScrollPhysics(),
       controlsBuilder: (context, {onStepContinue, onStepCancel}) {
         return ButtonBar(
           alignment: MainAxisAlignment.center,
@@ -359,12 +253,22 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
       onStepContinue: () {
         updateExHistory(currentSteps[i], setsLeft[i]);
         position++;
-        //TODO: organize
         if (currentSteps[i] == exs.length - 1 && setsLeft[i] == 0) {
           opacityController.reverse();
+          if (curExIndex + 1 == routine.parts.length && finished == false) {
+            finished = true;
+            routineCopy.completionCount++;
+
+            if (!routineCopy.routineHistory.contains(getTimestampNow())) {
+              routineCopy.routineHistory.add(getTimestampNow());
+            }
+
+            routinesBloc.updateRoutine(routineCopy);
+          }
+
           Timer(Duration(milliseconds: 500), () {
             setState(() {
-              curExIndex++;
+              if (curExIndex < routine.parts.length) curExIndex++;
               stepperKey = GlobalKey();
             });
           });

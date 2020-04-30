@@ -120,6 +120,10 @@ class Part {
     exercises =
         part.exercises.map((ex) => Exercise.copyFromExercise(ex)).toList();
   }
+
+  String toString(){
+    return this.exercises.toString();
+  }
 }
 
 int setTypeToIntConverter(SetType setType) {

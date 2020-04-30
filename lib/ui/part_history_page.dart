@@ -13,19 +13,28 @@ class PartHistoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: part.exercises.length,
-      child: Scaffold(
-        backgroundColor: Colors.grey[500],
-        appBar: AppBar(
-          bottom: TabBar(
-            isScrollable: true,
-            tabs: _getTabs(part),
+    return MaterialApp(
+      theme: ThemeData(primaryColor: Colors.orange, primarySwatch: Colors.deepOrange),
+      home: DefaultTabController(
+        length: part.exercises.length,
+        child: Scaffold(
+          appBar: AppBar(
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+              onPressed: (){
+                Navigator.pop(context);
+              },
+            ),
+            bottom: TabBar(
+              isScrollable: true,
+              tabs: _getTabs(part),
+              labelColor: Colors.white,
+            ),
+            title: Text("History", style: TextStyle(color: Colors.white)),
           ),
-          title: Text("History"),
-        ),
-        body: TabBarView(
-          children: _getTabChildren(part),
+          body: TabBarView(
+            children: _getTabChildren(part),
+          ),
         ),
       ),
     );
@@ -85,11 +94,9 @@ class TabChild extends StatelessWidget {
         children: <Widget>[
           Padding(
             padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-            child:
-                Container(height: 200, child: StackedAreaLineChart(exercise)),
+            child: Container(height: 200, child: StackedAreaLineChart(exercise)),
           ),
-          Expanded(
-              child: HistoryExpansionTile(exercise.exHistory, Colors.blue)),
+          Expanded(child: HistoryExpansionTile(exercise.exHistory, Colors.blue)),
         ],
       ),
     );
@@ -100,8 +107,7 @@ class Year {
   final String year;
   final List<String> dates = List<String>();
 
-  Year(this.year)
-      : assert(year.length == 4 && year[0] == '2' && year[1] == '0');
+  Year(this.year) : assert(year.length == 4 && year[0] == '2' && year[1] == '0');
 }
 
 class HistoryExpansionTile extends StatelessWidget {
@@ -121,8 +127,7 @@ class HistoryExpansionTile extends StatelessWidget {
         years.add(Year(date.toString().split('-').first));
         years.last.dates.add(date);
       } else {
-        if (date.toString()[2] != years.last.year[2] ||
-            date.toString()[3] != years.last.year[3]) {
+        if (date.toString()[2] != years.last.year[2] || date.toString()[3] != years.last.year[3]) {
           years.add(Year(date.toString().split('-').first));
         } else {
           years.last.dates.add(date);
@@ -132,8 +137,11 @@ class HistoryExpansionTile extends StatelessWidget {
 
     // TODO: implement build
     return ListView.builder(
-        itemCount: years.length,
+        itemCount: years.length + 1,
         itemBuilder: (context, i) {
+          if (i == years.length) {
+            return SizedBox(height: 48);
+          }
           return custom.ExpansionTile(
             foregroundColor: foregroundColor,
             title: Text(years[i].year),

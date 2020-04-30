@@ -1,14 +1,12 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:connectivity/connectivity.dart';
 
-import 'package:workout_planner/resource/firebase_provider.dart';
 import 'package:workout_planner/utils/routine_helpers.dart';
 import 'package:workout_planner/ui/components/part_edit_card.dart';
 import 'package:workout_planner/ui/part_edit_page.dart';
 import 'package:workout_planner/bloc/routines_bloc.dart';
-import 'package:workout_planner/utils/list_helpers.dart';
 
 class RoutineEditPage extends StatefulWidget {
   final AddOrEdit addOrEdit;
@@ -57,52 +55,66 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
                 textEditingController.text = routineCopy.routineName;
               } else if (widget.addOrEdit == AddOrEdit.add) {}
 
-              return Scaffold(
-                appBar: AppBar(
-                  iconTheme: IconThemeData(color: Colors.black),
-                  title: Text(
-                    'Design Your ${mainTargetedBodyPartToStringConverter(widget.mainTargetedBodyPart)} Routine',
-                    style: TextStyle(fontFamily: 'Staa'),
-                  ),
-                  actions: <Widget>[
-                    widget.addOrEdit == AddOrEdit.edit
-                        ? IconButton(
-                            icon: Icon(Icons.delete_forever),
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: Text('Delete this routine'),
-                                  content: Text("Are you sure? You cannot undo this."),
-                                  actions: <Widget>[
-                                    FlatButton(onPressed: () => Navigator.pop(context), child: Text('No')),
-                                    FlatButton(
-                                      onPressed: () {
-                                        if (widget.addOrEdit == AddOrEdit.edit) {
-                                          routinesBloc.deleteRoutine(routine: routineCopy);
-                                        }
-                                        Navigator.pop(context);
-                                        Navigator.pop(context);
-                                        Navigator.pop(context);
-                                      },
-                                      child: Text('Yes'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          )
-                        : Container(),
-                    Builder(
-                      builder: (context) => IconButton(icon: Icon(Icons.done), onPressed: onDonePressed),
+              return CupertinoPageScaffold(
+                  navigationBar: CupertinoNavigationBar(
+                      middle: Text(
+                        'Edit Your ${mainTargetedBodyPartToStringConverter(widget.mainTargetedBodyPart)} Routine',
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          widget.addOrEdit == AddOrEdit.edit
+                              ? Transform.translate(
+                                  offset: Offset(24, -6),
+                                  child: CupertinoButton(
+                                    child: Icon(Icons.delete_forever),
+                                    onPressed: () {
+                                      showCupertinoDialog(
+                                        context: context,
+                                        builder: (_) => CupertinoAlertDialog(
+                                          title: Text('Delete this routine'),
+                                          content: Text("Are you sure? You cannot undo this."),
+                                          actions: <Widget>[
+                                            CupertinoDialogAction(isDefaultAction: true, onPressed: () => Navigator.pop(_), child: Text('No')),
+                                            CupertinoDialogAction(
+                                              isDestructiveAction: true,
+                                              onPressed: () {
+                                                Navigator.pop(_);
+                                                Navigator.popUntil(context, (Route r) {
+                                                  print(r);
+                                                  return r.settings.name == '/';
+                                                });
+                                                if (widget.addOrEdit == AddOrEdit.edit) {
+                                                  routinesBloc.deleteRoutine(routine: routineCopy);
+                                                }
+                                              },
+                                              child: Text('Yes'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ))
+                              : Container(),
+                          Transform.translate(
+                              offset: Offset(12, -6),
+                              child: Builder(
+                                builder: (context) => CupertinoButton(child: Icon(Icons.done), onPressed: onDonePressed),
+                              ))
+                        ],
+                      )),
+                  child: CustomScrollView(slivers: [
+                    SliverSafeArea(
+                      sliver: SliverList(
+                        delegate: SliverChildListDelegate(buildExerciseDetails()),
+                      ),
                     )
-                  ],
-                ),
-                backgroundColor: Colors.white,
-                body: buildExerciseDetails(),
-                floatingActionButton: FloatingActionButton.extended(
-                    backgroundColor: Colors.blueGrey[700], icon: Icon(Icons.add), label: Text('Add an exercise'), onPressed: onAddExercisePressed),
-              );
+                  ])
+//                backgroundColor: Colors.white,
+//                body: buildExerciseDetails(),
+//                floatingActionButton: FloatingActionButton.extended(
+//                    backgroundColor: Colors.blueGrey[700], icon: Icon(Icons.add), label: Text('Add an exercise'), onPressed: onAddExercisePressed),
+                  );
             } else {
               return Container();
             }
@@ -119,6 +131,7 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
     } else {
       routinesBloc.updateRoutine(routineCopy);
     }
+
     Navigator.pop(context);
   }
 
@@ -130,14 +143,14 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
     });
   }
 
-  Widget buildExerciseDetails() {
-    var children = <Widget>[];
+  List<Widget> buildExerciseDetails() {
+    var children = <Widget>[Form(key: formKey, child: _routineDescriptionEditCard())];
 
     print('the length of parts:: ' + routineCopy.parts.length.toString());
 
     if (routineCopy.parts.isNotEmpty) {
       children.addAll(routineCopy.parts.map((part) {
-        print(part.exercises.first.name);
+        //print(part.exercises.first.name);
         return PartEditCard(
           key: UniqueKey(),
           onDelete: () {
@@ -157,15 +170,12 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
       height: 60,
     ));
 
-    return ReorderableListView(
-      onReorder: (int a, int b) {
-        setState(() {
-          routineCopy.parts.swap(a, b);
-        });
-      },
-      header: Form(key: formKey, child: _routineDescriptionEditCard()),
-      children: children
-    );
+    children.add(Padding(
+      padding: EdgeInsets.all(12),
+      child: CupertinoButton.filled(child: Icon(CupertinoIcons.add), onPressed: onAddExercisePressed),
+    ));
+
+    return children;
   }
 
   Widget _routineDescriptionEditCard() {
@@ -202,21 +212,21 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
   }
 
   Future<bool> _onWillPop() {
-    return showDialog(
+    return showCupertinoDialog(
           context: context,
-          builder: (context) => AlertDialog(
+          builder: (context) => CupertinoAlertDialog(
             title: Text('Are you sure?'),
             content: Text('Your editing will not be saved.'),
             actions: <Widget>[
-              FlatButton(
+              CupertinoDialogAction(
                 onPressed: () => Navigator.of(context).pop(false),
                 child: Text('No'),
               ),
-              FlatButton(
+              CupertinoDialogAction(
                 onPressed: () {
                   Navigator.of(context).pop(true);
                 },
-                child: Text('Yes'),
+                child: Text('Yes', style: TextStyle(color: Colors.red)),
               ),
             ],
           ),

@@ -30,16 +30,31 @@ class _RoutineCardState extends State<RoutineCard> {
     var routine = widget.routine;
 
     var exList = <Widget>[];
+    var exInfoList = <Widget>[];
 
-    for (var part in routine.parts) {
-      for (var ex in part.exercises) {
-        exList.add(Text(ex.name.toUpperCase()));
-        exList.add(Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Divider()));
-      }
-      if (exList.length >= 8) break;
+    List<Exercise> exes = [];
+    routine.parts.forEach((part) {
+      exes.addAll(part.exercises);
+    });
+
+    for (var ex in exes.sublist(0, min(5, exes.length))) {
+      exList.add(Text(ex.name.toUpperCase()));
+      exList.add(Padding(padding: EdgeInsets.symmetric(horizontal: 0), child: Divider()));
+
+      exInfoList.add(RichText(
+          text: TextSpan(style: TextStyle(fontFamily: 'Staa'), children: [
+        TextSpan(text: ex.reps, style: TextStyle(color: Colors.black)),
+        TextSpan(text: (ex.workoutType == WorkoutType.Weight ? ' reps' : ' secs'), style: TextStyle(color: Colors.black54)),
+        TextSpan(text: ' x ${ex.sets} ', style: TextStyle(color: Colors.black)),
+        TextSpan(text: 'sets', style: TextStyle(color: Colors.black54)),
+      ])));
+      exInfoList.add(Divider(
+        color: Colors.transparent,
+      ));
     }
 
     exList.removeLast();
+    exInfoList.removeLast();
 
     return Card(
         color: Theme.of(context).primaryColor,
@@ -109,10 +124,18 @@ class _RoutineCardState extends State<RoutineCard> {
                   Positioned(
                       top: 72,
                       left: 24,
-                      right: 96,
+                      right: 24,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: exList,
+                      )),
+                  Positioned(
+                      top: 72,
+                      left: 24,
+                      right: 24,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: exInfoList,
                       )),
                 ],
               )),
@@ -320,7 +343,7 @@ class _ExerciseNameListViewState extends State<ExerciseNameListView> with Single
   Widget _buildRow(String move) {
     return RichText(
         textAlign: TextAlign.left,
-        maxLines: 2,
+        maxLines: 1,
         overflow: TextOverflow.clip,
         text: TextSpan(
             style: TextStyle(

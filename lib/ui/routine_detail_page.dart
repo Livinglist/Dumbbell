@@ -63,91 +63,67 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> with SingleTicker
       builder: (_, AsyncSnapshot<Routine> snapshot) {
         if (snapshot.hasData) {
           routine = snapshot.data;
-          return CupertinoPageScaffold(
+          return Scaffold(
               key: scaffoldKey,
-              navigationBar: CupertinoNavigationBar(
-                  middle: Text(mainTargetedBodyPartToStringConverter(routine.mainTargetedBodyPart)),
-                  previousPageTitle: 'Routines',
-                  trailing: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      if (widget.isRecRoutine == false)
-                        Transform.translate(
-                          offset: Offset(36, -6),
-                          child: CupertinoButton(
-                            child: Icon(Icons.calendar_view_day),
-                            onPressed: () {
-                              showCupertinoModalPopup(
-                                  context: context,
-                                  builder: (buildContext) {
-                                    return Container(
-                                      height: 600,
-                                      child: WeekdayModalBottomSheet(
-                                        routine.weekdays,
-                                        checkedCallback: updateWorkWeekdays,
-                                      ),
-                                    );
-                                  });
-                            },
-                          ),
-                        ),
-                      if (widget.isRecRoutine == false)
-                        Transform.translate(
-                          offset: Offset(24, -6),
-                          child: CupertinoButton(
-                            child: Icon(Icons.edit),
-                            onPressed: () {
-                              Navigator.push(
-                                  context,
-                                  CupertinoPageRoute(
-                                      builder: (_) => RoutineEditPage(
-                                            addOrEdit: AddOrEdit.edit,
-                                            mainTargetedBodyPart: routine.mainTargetedBodyPart,
-                                          )));
-                            },
-                          ),
-                        ),
-                      if (widget.isRecRoutine == false)
-                        Transform.translate(
-                          offset: Offset(12, -6),
-                          child: CupertinoButton(
-                            child: Icon(Icons.play_arrow),
-                            onPressed: () {
-                              Navigator.push(
-                                  context,
-                                  CupertinoPageRoute(
-                                      fullscreenDialog: true,
-                                      builder: (_) => RoutineStepPage(
-                                          routine: routine,
-                                          onBackPressed: () {
-                                            Navigator.pop(context);
-                                          })
-                                  ));
-                            },
-                          ),
-                        ),
-                      if (widget.isRecRoutine)
-                        Transform.translate(
-                          offset: Offset(12, -6),
-                          child: CupertinoButton(
-                              child: AnimatedIcon(
-                                icon: AnimatedIcons.add_event,
-                                progress: animationController,
-                              ),
-                              onPressed: onAddRecPressed),
-                        ),
-                    ],
-                  )),
-              child: CustomScrollView(
-                slivers: <Widget>[
-                  SliverSafeArea(
-                    sliver: SliverList(
-                      delegate: SliverChildListDelegate(buildColumn()),
+              appBar: AppBar(
+                centerTitle: true,
+                title: Text(mainTargetedBodyPartToStringConverter(routine.mainTargetedBodyPart)),
+                actions: [
+                  if (widget.isRecRoutine == false)
+                    IconButton(
+                      icon: Icon(Icons.calendar_view_day),
+                      onPressed: () {
+                        showCupertinoModalPopup(
+                            context: context,
+                            builder: (buildContext) {
+                              return Container(
+                                height: 600,
+                                child: WeekdayModalBottomSheet(
+                                  routine.weekdays,
+                                  checkedCallback: updateWorkWeekdays,
+                                ),
+                              );
+                            });
+                      },
                     ),
-                  )
+                  if (widget.isRecRoutine == false)
+                    IconButton(
+                      icon: Icon(Icons.edit),
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => RoutineEditPage(
+                                      addOrEdit: AddOrEdit.edit,
+                                      mainTargetedBodyPart: routine.mainTargetedBodyPart,
+                                    )));
+                      },
+                    ),
+                  if (widget.isRecRoutine == false)
+                    IconButton(
+                      icon: Icon(Icons.play_arrow),
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                fullscreenDialog: true,
+                                builder: (_) => RoutineStepPage(
+                                    routine: routine,
+                                    onBackPressed: () {
+                                      Navigator.pop(context);
+                                    })));
+                      },
+                    ),
+                  if (widget.isRecRoutine)
+                    IconButton(
+                        icon: AnimatedIcon(
+                          icon: AnimatedIcons.add_event,
+                          progress: animationController,
+                        ),
+                        onPressed: onAddRecPressed),
                 ],
-              ));
+              ),
+              body: ListView(children: buildColumn()));
         } else {
           return Container();
         }
@@ -156,20 +132,19 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> with SingleTicker
   }
 
   void onAddRecPressed() {
-    showCupertinoDialog<bool>(
+    showDialog<bool>(
         context: context,
         builder: (context) {
-          return CupertinoAlertDialog(
+          return AlertDialog(
             title: Text('Add to your routines?'),
             actions: <Widget>[
-              CupertinoDialogAction(
+              FlatButton(
                 child: Text('No'),
                 onPressed: () {
                   Navigator.pop(context, false);
                 },
               ),
-              CupertinoDialogAction(
-                isDefaultAction: true,
+              FlatButton(
                 child: Text('Yes'),
                 onPressed: () {
                   Navigator.pop(context, true);
@@ -190,10 +165,10 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> with SingleTicker
       scaffoldKey.currentState.showSnackBar(noNetworkSnackBar);
     } else {
       ///update the database
-      Firestore.instance
+      FirebaseFirestore.instance
           .collection("userShares")
-          .document(dataString.replaceFirst("-r", ""))
-          .setData({"id": dataString.replaceFirst("-r", ""), "routine": jsonEncode(Routine.copyFromRoutineWithoutHistory(routine).toMap())});
+          .doc(dataString.replaceFirst("-r", ""))
+          .set({"id": dataString.replaceFirst("-r", ""), "routine": jsonEncode(Routine.copyFromRoutineWithoutHistory(routine).toMap())});
 
       ///show qr code
       showDialog(
@@ -264,7 +239,8 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> with SingleTicker
   void updateWorkWeekdays(List<int> checkedWeekdays) {
     routine.weekdays.clear();
     routine.weekdays.addAll(checkedWeekdays);
-    DBProvider.db.updateRoutine(routine);
+    //DBProvider.db.updateRoutine(routine);
+    routinesBloc.updateRoutine(routine);
   }
 
   void showSyncFailSnackBar() {
@@ -295,7 +271,7 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> with SingleTicker
     exerciseDetails.add(Padding(
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
         elevation: 12,
         color: Colors.orange,
         child: Column(

@@ -8,7 +8,7 @@ import 'package:workout_planner/ui/components/chart.dart';
 import 'package:workout_planner/bloc/routines_bloc.dart';
 
 const String API_KEY = "AIzaSyAmlHXgh8yL823yam0Cwo060R01L7YDFeU";
-const TextStyle defaultTextStyle = TextStyle(color: Colors.white);
+const TextStyle defaultTextStyle = TextStyle();
 
 class StatisticsPage extends StatefulWidget {
   StatisticsPage();
@@ -27,16 +27,13 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      child: StreamBuilder(
+    return Scaffold(
+      body: StreamBuilder(
         stream: routinesBloc.allRoutines,
         builder: (_, AsyncSnapshot<List<Routine>> snapshot) {
           if (snapshot.hasData) {
             return CustomScrollView(
               slivers: <Widget>[
-                CupertinoSliverNavigationBar(
-                  largeTitle: Text('Progress'),
-                ),
                 SliverSafeArea(sliver: buildMainLayout(snapshot.data)),
                 CalenderPage(routines: snapshot.data),
               ],
@@ -62,7 +59,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           child: Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
               elevation: 12,
-              color: CupertinoTheme.of(context).primaryColor,
+              color: Theme.of(context).primaryColor,
               child: Padding(
                 padding: EdgeInsets.all(4),
                 child: Column(
@@ -80,8 +77,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
                         TextSpan(
                             text: DateTime.now().difference(DateTime.parse(firebaseProvider.firstRunDate)).inDays.toString(),
                             style: TextStyle(fontSize: 36)),
-                        TextSpan(text: '\ndays', style: defaultTextStyle),
-                      ])),
+                        TextSpan(text: '\ndays'),
+                      ], style: TextStyle(fontFamily: 'Staa'))),
                     ),
                   ],
                 ),
@@ -92,7 +89,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           child: Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
               elevation: 12,
-              color: CupertinoTheme.of(context).primaryColor,
+              color: Theme.of(context).primaryColor,
               child: Padding(
                 padding: EdgeInsets.only(top: 12, bottom: 4, left: 8, right: 8),
                 child: RichText(
@@ -100,7 +97,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   text: TextSpan(children: [
                     TextSpan(text: 'Total Completion\n'),
                     TextSpan(text: totalCount.toString(), style: TextStyle(fontSize: getFontSize(totalCount.toString())))
-                  ]),
+                  ],style: TextStyle(
+                    fontFamily: 'Staa'
+                  )),
                 ),
               )),
         ),
@@ -109,7 +108,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           child: Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
               elevation: 12,
-              color: CupertinoTheme.of(context).primaryColor,
+              color: Theme.of(context).primaryColor,
               child: Center(
                 child: totalCount == 0 ? Container() : DonutAutoLabelChart(routines),
               )),
@@ -119,7 +118,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           child: Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
               elevation: 12,
-              color: CupertinoTheme.of(context).primaryColor,
+              color: Theme.of(context).primaryColor,
               child: Center(
                 child: CircularPercentIndicator(
                   radius: 120.0,

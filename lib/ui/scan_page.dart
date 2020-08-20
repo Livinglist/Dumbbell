@@ -153,8 +153,8 @@ class _ScanPageState extends State<ScanPage> {
   }
 
   Future<RoutineOverview> getRoutineOverView(String str) async {
-    var snapshot = await Firestore.instance.collection("userShares").document(barcode.replaceFirst("-r", "")).get();
-    String routineStr = snapshot['routine'];
+    var snapshot = await FirebaseFirestore.instance.collection("userShares").doc(barcode.replaceFirst("-r", "")).get();
+    String routineStr = snapshot.data()['routine'];
     routine = Routine.fromMap(jsonDecode(routineStr.replaceFirst('-r', '')));
     return RoutineOverview(
       routine: routine,

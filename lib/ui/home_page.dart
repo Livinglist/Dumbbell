@@ -12,96 +12,124 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
+  final scrollController = ScrollController();
+  AnimationController animationController;
+  bool showShadow = false;
+
+  @override
+  void initState() {
+    animationController = AnimationController(vsync: this, value: 0);
+
+    scrollController.addListener(() {
+      if (this.mounted) {
+        if (scrollController.offset <= 0) {
+          setState(() {
+            showShadow = false;
+          });
+        } else if (showShadow == false) {
+          setState(() {
+            showShadow = true;
+          });
+        }
+      }
+    });
+
+    scrollController.addListener(() {
+      if (this.mounted) {
+        if (scrollController.offset <= 30) {
+          animationController.value = 1- (30 - scrollController.offset) / 30;
+        } else {
+          animationController.value = 1;
+        }
+      }
+    });
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-        child: Container(
-      height: MediaQuery.of(context).size.height,
-      child: StreamBuilder(
-        stream: routinesBloc.allRoutines,
-        builder: (_, AsyncSnapshot<List<Routine>> snapshot) {
-          print(snapshot.hasData);
-          if (snapshot.hasData) {
-            var routines = snapshot.data;
-            print(routines);
-            routines.forEach((r)=>print(r.parts));
-            return CustomScrollView(
-              slivers: <Widget>[
-                CupertinoSliverNavigationBar(
-                  largeTitle: Text('My Routines'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Transform.translate(
-                        offset: Offset(24, -6),
-                        child: CupertinoButton(
-                          child: Icon(Icons.star),
-                          onPressed: () {
-                            Navigator.push(
-                                context,
-                                CupertinoPageRoute(
-                                    builder: (context) => RecommendPage()));
-                          },
-                        ),
-                      ),
-                      Transform.translate(
-                        offset: Offset(12, -6),
-                        child: CupertinoButton(
-                          child: Icon(CupertinoIcons.add),
-                          onPressed: () {
-                            showCupertinoModalPopup(
-                                context: context,
-                                builder: (context) {
-                                  return CupertinoActionSheet(
-                                    title: Text('Choose a targeted muscle group for this routine'),
-                                    actions: MainTargetedBodyPart.values.map((val) {
-                                      var title = mainTargetedBodyPartToStringConverter(val);
+    return Scaffold(
+        appBar: AppBar(
+          title: AnimatedBuilder(
+            animation: animationController,
+            child: Text(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][DateTime.now().weekday - 1],
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.orangeAccent)),
+            builder: (_, child) {
+              return Opacity(
+                child: child,
+                opacity: animationController.value,
+              );
+            },
+          ),
+          elevation: showShadow ? 8 : 0,
+          backgroundColor: Color.fromRGBO(250, 250, 250, 1),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.star),
+              onPressed: () {
+                Navigator.push(context, CupertinoPageRoute(builder: (context) => RecommendPage()));
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.add),
+              onPressed: () {
+                showCupertinoModalPopup(
+                    context: context,
+                    builder: (context) {
+                      return CupertinoActionSheet(
+                        title: Text('Choose a targeted muscle group for this routine'),
+                        actions: MainTargetedBodyPart.values.map((val) {
+                          var title = mainTargetedBodyPartToStringConverter(val);
 
-                                      return CupertinoActionSheetAction(
-                                        child: Text(title),
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          var tempRoutine =
-                                          Routine(mainTargetedBodyPart: val, routineName: null, parts: new List<Part>(), createdDate: null);
-                                          routinesBloc.setCurrentRoutine(tempRoutine);
-                                          Navigator.push(
-                                              context,
-                                              CupertinoPageRoute(
-                                                  builder: (context) => RoutineEditPage(
-                                                    addOrEdit: AddOrEdit.add,
-                                                    mainTargetedBodyPart: val,
-                                                  )));
-                                        },
-                                      );
-                                    }).toList(),
-                                    cancelButton: CupertinoActionSheetAction(
-                                      isDefaultAction: true,
-                                      child: Text('Cancel'),
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                    ),
-                                  );
-                                });
+                          return CupertinoActionSheetAction(
+                            child: Text(title),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              var tempRoutine = Routine(mainTargetedBodyPart: val, routineName: null, parts: new List<Part>(), createdDate: null);
+                              routinesBloc.setCurrentRoutine(tempRoutine);
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => RoutineEditPage(
+                                            addOrEdit: AddOrEdit.add,
+                                            mainTargetedBodyPart: val,
+                                          )));
+                            },
+                          );
+                        }).toList(),
+                        cancelButton: CupertinoActionSheetAction(
+                          isDefaultAction: true,
+                          child: Text('Cancel'),
+                          onPressed: () {
+                            Navigator.pop(context);
                           },
                         ),
-                      ),
-                    ],
-                  )
-                ),
-                SliverSafeArea(
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate(buildChildren(routines)),
-                  ),
-                )
-              ],
-            );
-          }
-          return Center(child: CircularProgressIndicator());
-        },
-      ),
-    ));
+                      );
+                    });
+              },
+            ),
+          ],
+          //title: Text('My Routines'),
+        ),
+        body: Container(
+          height: MediaQuery.of(context).size.height,
+          child: StreamBuilder(
+            stream: routinesBloc.allRoutines,
+            builder: (_, AsyncSnapshot<List<Routine>> snapshot) {
+              if (snapshot.hasData) {
+                var routines = snapshot.data;
+
+                return ListView(
+                  controller: scrollController,
+                  children: buildChildren(routines),
+                );
+              }
+              return Center(child: CircularProgressIndicator());
+            },
+          ),
+        ));
   }
 
   List<Widget> buildChildren(List<Routine> routines) {
@@ -121,14 +149,13 @@ class _HomePageState extends State<HomePage> {
     }
 
     children.add(Padding(
-      padding: EdgeInsets.only(left: 16),
-      child: Row(
-        children: <Widget>[
-          Text('Today ', style:routineTitleTextStyle),
-          Text(['Monday', 'Tuesday', 'Wednesday', 'Thusrday', 'Friday', 'Saturday', 'Sunday'][weekday - 1], style: todaysRoutineTitleTextStyle),
-        ],
-      )
-    ));
+        padding: EdgeInsets.only(left: 16),
+        child: Row(
+          children: <Widget>[
+            Text('Today ', style: routineTitleTextStyle),
+            Text(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][weekday - 1], style: todaysRoutineTitleTextStyle),
+          ],
+        )));
     children.addAll(todaysRoutines.map((routine) => RoutineCard(isActive: true, routine: routine)));
 
     routines.forEach((routine) {
@@ -138,9 +165,22 @@ class _HomePageState extends State<HomePage> {
 
     map.keys.forEach((bodyPart) {
       children.add(Padding(
-        padding: EdgeInsets.only(left: 16),
-        child: Text(mainTargetedBodyPartToStringConverter(bodyPart), style: routineTitleTextStyle),
-      ));
+          padding: EdgeInsets.only(left: 16, right: 16),
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            child: Flex(
+              direction: Axis.horizontal,
+              children: [
+                Text(mainTargetedBodyPartToStringConverter(bodyPart), style: routineTitleTextStyle),
+                SizedBox(
+                  width: 16,
+                ),
+                Expanded(
+                  child: Divider(),
+                )
+              ],
+            ),
+          )));
       children.addAll(map[bodyPart].map((routine) => RoutineCard(routine: routine)));
     });
 

@@ -4,28 +4,6 @@ import 'package:workout_planner/models/routine.dart';
 
 enum AddOrEdit { add, edit }
 
-Color mainTargetedBodyPartToColorConverter(MainTargetedBodyPart mainTB) {
-  switch (mainTB) {
-    case MainTargetedBodyPart.Abs:
-      return Color(0xff8E24AA);
-    case MainTargetedBodyPart.Arm:
-      return Color(0xff64B5F6);
-    case MainTargetedBodyPart.Back:
-      return Color(0xff29B6F6);
-    case MainTargetedBodyPart.Chest:
-      return Color(0xff0097A7);
-    case MainTargetedBodyPart.Leg:
-      return Color(0xff00BFA5);
-    case MainTargetedBodyPart.Shoulder:
-      return Color(0xff00C853);
-    case MainTargetedBodyPart.FullBody:
-      return Color(0xffD84315);
-    default:
-      throw Exception('Inside of mainTargetedBodyPartToColorConverter ' + mainTB.toString());
-  }
-  //return <Color>[Colors.grey[600], Colors.grey[700]];
-}
-
 String mainTargetedBodyPartToStringConverter(MainTargetedBodyPart targetedBodyPart) {
   switch (targetedBodyPart) {
     case MainTargetedBodyPart.Abs:
@@ -56,11 +34,11 @@ Color setTypeToColorConverter(SetType setType) {
     case SetType.Super:
       return Colors.orange;
     case SetType.Tri:
-      return Colors.pink;
+      return Colors.deepOrange;
     case SetType.Giant:
       return Colors.red;
     default:
-      return Colors.lightBlue;
+      return Colors.orange;
   }
 }
 

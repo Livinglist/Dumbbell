@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import 'resource/db_provider.dart';
 import 'resource/firebase_provider.dart';
@@ -13,53 +14,37 @@ import 'resource/shared_prefs_provider.dart';
 
 import 'ui/home_page.dart';
 
-//typedef void StringCallback(String val);
-//const String FirstRunDateKey = "firstRunDate";
-//const String AppVersionKey = "appVersion";
-//const String DailyRankKey = "dailyRank";
-//const String DatabaseStatusKey = "databaseStatus";
-//const String WeeklyAmountKey = "weeklyAmount";
-//
-/////format: {"2019-01-01":50} (use UTC time)
-//String firstRunDate;
-//bool isFirstRun;
-//String dailyRankInfo;
-//int dailyRank;
-//int weeklyAmount;
-//
-//GoogleSignIn _googleSignIn = GoogleSignIn(
-//  scopes: <String>[
-//    'email',
-//  ],
-//);
-//
-//GoogleSignInAccount currentUser;
-
 void main() {
   runApp(App());
 }
 
-/// This widget is the root of our application.
-/// Currently, we just show one widget in our app.
 class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return CupertinoApp(
-        theme: CupertinoThemeData(
-          //fontFamily: 'Staa',
-          primaryColor: Colors.orange,
-          //buttonColor: Colors.orange[300],
-          //toggleableActiveColor: Colors.orangeAccent,
-          //indicatorColor: Colors.orangeAccent,
-          //bottomSheetTheme: BottomSheetThemeData(backgroundColor: Colors.transparent)
-        ),
+    return MaterialApp(
+        theme: ThemeData(
+            //fontFamily: 'Staa',
+            primaryColor: Colors.orange,
+            primarySwatch: Colors.deepOrange
+            //buttonColor: Colors.orange[300],
+            //toggleableActiveColor: Colors.orangeAccent,
+            //indicatorColor: Colors.orangeAccent,
+            //bottomSheetTheme: BottomSheetThemeData(backgroundColor: Colors.transparent)
+            ,fontFamily: 'Staa'),
         debugShowCheckedModeBanner: false,
-        title: 'Workout Planner',
+        title: 'Dumbbell',
         routes: {
           '/routine_edit_page': (context) => RoutineEditPage(),
           '/home_page': (context) => HomePage(),
         },
-        home: MainPage());
+        home: FutureBuilder(
+          future: Firebase.initializeApp(),
+          builder: (_, snapshot) {
+            if (!snapshot.hasData) return Container();
+
+            return MainPage();
+          },
+        ));
   }
 }
 
@@ -69,8 +54,12 @@ class MainPage extends StatefulWidget {
 }
 
 class MainPageState extends State<MainPage> {
+  final pageController = PageController(initialPage: 0, keepPage: true);
   final scrollController = ScrollController();
   final scaffoldKey = GlobalKey<ScaffoldState>();
+
+  var tabs = [HomePage(), StatisticsPage(), SettingPage()];
+  int selectedIndex = 0;
 
   @override
   void initState() {
@@ -90,14 +79,25 @@ class MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoTabScaffold(
-      tabBar: CupertinoTabBar(
-        items: <BottomNavigationBarItem>[
+    return Scaffold(
+      body: PageView(
+        controller: pageController,
+        onPageChanged: (index) {
+          setState(() {
+            selectedIndex = index;
+          });
+        },
+        children: tabs,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: [
           BottomNavigationBarItem(
-              icon: Icon(FontAwesomeIcons.dumbbell, size: 24),
+              icon: Icon(
+                Icons.wrap_text,
+              ),
               title: Center(
                 child: Text(
-                  '  My Routines',
+                  'Routines',
                   textAlign: TextAlign.center,
                 ),
               )),
@@ -112,7 +112,6 @@ class MainPageState extends State<MainPage> {
           BottomNavigationBarItem(
             icon: Icon(
               Icons.settings,
-              size: 28,
             ),
             title: Text(
               'Settings',
@@ -120,23 +119,19 @@ class MainPageState extends State<MainPage> {
             ),
           ),
         ],
-      ),
-      tabBuilder: (BuildContext context, int index) {
-        return CupertinoTabView(
-          builder: (BuildContext context) {
-            switch (index) {
-              case 0:
-                return HomePage();
-              case 1:
-                return StatisticsPage();
-              case 2:
-                return SettingPage();
-              default:
-                throw Exception("Unmatched index: $index");
+        currentIndex: selectedIndex,
+        onTap: (index) {
+          setState(() {
+            if ((selectedIndex - index).abs() > 1) {
+              selectedIndex = index;
+              pageController.jumpToPage(index);
+            } else {
+              selectedIndex = index;
+              pageController.animateToPage(index, duration: Duration(milliseconds: 500), curve: Curves.ease);
             }
-          },
-        );
-      },
+          });
+        },
+      ),
     );
   }
 }

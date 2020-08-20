@@ -28,6 +28,96 @@ class _RoutineCardState extends State<RoutineCard> {
   @override
   Widget build(BuildContext context) {
     var routine = widget.routine;
+
+    var exList = <Widget>[];
+
+    for (var part in routine.parts) {
+      for (var ex in part.exercises) {
+        exList.add(Text(ex.name.toUpperCase()));
+        exList.add(Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Divider()));
+      }
+      if (exList.length >= 8) break;
+    }
+
+    exList.removeLast();
+
+    return Card(
+        color: Theme.of(context).primaryColor,
+        child: InkWell(
+          splashColor: Colors.deepOrange,
+          onTap: () {
+            routinesBloc.setCurrentRoutine(routine);
+            Navigator.push(context, CupertinoPageRoute(builder: (_) => RoutineDetailPage(isRecRoutine: widget.isRecRoutine)));
+          },
+          child: Container(
+              height: 240,
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: Material(
+                      color: Colors.white60,
+                      child: Container(
+                          height: 64,
+                          child: Padding(
+                              padding: EdgeInsets.only(left: 12, top: 12),
+                              child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                SizedBox(
+                                  width: MediaQuery.of(context).size.width,
+                                ),
+                                Text(
+                                  routine.routineName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.fade,
+                                  style: TextStyle(fontSize: getFontSize(routine.routineName), fontFamily: 'Staa'),
+                                ),
+                              ]))),
+                    ),
+                  ),
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: Row(
+                        children: [1, 2, 3, 4, 5, 6, 7].map((weekday) {
+                      Color color, textColor;
+                      if (routine.weekdays.contains(weekday)) {
+                        color = Colors.deepOrange;
+                        textColor = Colors.white;
+                      } else {
+                        color = Colors.transparent;
+                        textColor = Colors.black;
+                      }
+                      return Padding(
+                        padding: EdgeInsets.only(right: 4),
+                        child: Container(
+                          height: 12,
+                          width: 12,
+                          decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(6)), color: color),
+                          child: Center(
+                            child: Text(
+                              ['M', 'T', 'W', 'T', 'F', 'S', 'S'][weekday - 1],
+                              style: TextStyle(color: textColor, fontSize: 6, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList()),
+                  ),
+                  Positioned(
+                      top: 72,
+                      left: 24,
+                      right: 96,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: exList,
+                      )),
+                ],
+              )),
+        ));
+
     return CupertinoButton(
         child: Container(
             width: double.infinity,
@@ -41,7 +131,8 @@ class _RoutineCardState extends State<RoutineCard> {
                   top: 8,
                   left: 16,
                   right: 16,
-                  child: Text(mainTargetedBodyPartToStringConverter(routine.mainTargetedBodyPart),style: TextStyle(color: Colors.orangeAccent, fontSize:12)),
+                  child: Text(mainTargetedBodyPartToStringConverter(routine.mainTargetedBodyPart),
+                      style: TextStyle(color: Colors.orangeAccent, fontSize: 12)),
                 ),
                 Positioned(
                   top: 64,
@@ -146,6 +237,16 @@ class _RoutineCardState extends State<RoutineCard> {
           Navigator.push(context, CupertinoPageRoute(builder: (_) => RoutineDetailPage(isRecRoutine: widget.isRecRoutine)));
         });
   }
+
+  double getFontSize(String str) {
+    if (str.length > 56) {
+      return 14;
+    } else if (str.length > 17) {
+      return 24;
+    } else {
+      return 36;
+    }
+  }
 }
 
 class _ExerciseNameListViewState extends State<ExerciseNameListView> with SingleTickerProviderStateMixin {
@@ -196,7 +297,14 @@ class _ExerciseNameListViewState extends State<ExerciseNameListView> with Single
 
     if (exNames.isNotEmpty) {
       for (var exName in exNames) {
-        children..add(_buildRow(exName))..add(Divider());
+        children
+          ..add(_buildRow(exName))
+          ..add(Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: Divider(
+              color: Colors.white,
+            ),
+          ));
       }
 
       children.removeLast();

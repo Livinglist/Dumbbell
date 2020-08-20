@@ -13,32 +13,25 @@ class RecommendPage extends StatefulWidget {
 class _RecommendPageState extends State<RecommendPage> {
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-        child: Container(
-      height: MediaQuery.of(context).size.height,
-      child: StreamBuilder(
-        stream: routinesBloc.allRecRoutines,
-        builder: (_, AsyncSnapshot<List<Routine>> snapshot) {
-          if (snapshot.hasData) {
-            var routines = snapshot.data;
-            return CustomScrollView(
-              slivers: <Widget>[
-                CupertinoSliverNavigationBar(
-                  largeTitle: Text("Dev's Favorite"),
-                  previousPageTitle: 'My Routines',
-                ),
-                SliverSafeArea(
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate(buildChildren(routines)),
-                  ),
-                )
-              ],
-            );
-          }
-          return Center(child: CircularProgressIndicator());
-        },
-      ),
-    ));
+    return Scaffold(
+        appBar: AppBar(
+          title: Text("Dev's Favorite"),
+        ),
+        body: Container(
+          height: MediaQuery.of(context).size.height,
+          child: StreamBuilder(
+            stream: routinesBloc.allRecRoutines,
+            builder: (_, AsyncSnapshot<List<Routine>> snapshot) {
+              if (snapshot.hasData) {
+                var routines = snapshot.data;
+                return ListView(
+                  children: buildChildren(routines),
+                );
+              }
+              return Center(child: CircularProgressIndicator());
+            },
+          ),
+        ));
   }
 
   List<Widget> buildChildren(List<Routine> routines) {
@@ -58,7 +51,7 @@ class _RecommendPageState extends State<RecommendPage> {
         padding: EdgeInsets.only(left: 16),
         child: Text(mainTargetedBodyPartToStringConverter(bodyPart), style: style),
       ));
-      children.addAll(map[bodyPart].map((routine) => RoutineCard(routine: routine,isRecRoutine: true)));
+      children.addAll(map[bodyPart].map((routine) => RoutineCard(routine: routine, isRecRoutine: true)));
       children.add(Divider());
     });
 

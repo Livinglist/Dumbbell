@@ -26,7 +26,7 @@ class PartCard extends StatefulWidget {
 }
 
 class PartCardState extends State<PartCard> {
-  final _defaultTextStyle = TextStyle(color: Colors.white);
+  final _defaultTextStyle = TextStyle(fontFamily: 'Staa');
   final textController = TextEditingController();
   final textSetController = TextEditingController();
   final textRepController = TextEditingController();
@@ -48,14 +48,14 @@ class PartCardState extends State<PartCard> {
     return Padding(
       padding: EdgeInsets.only(top: 6, bottom: 6, left: 8, right: 8),
       child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
           elevation: 12,
           color: setTypeToColorConverter(_part.setType),
           child: InkWell(
             onTap: widget.onPartTap,
             onLongPress: widget.onPartLongPressed,
-            splashColor: _getSplashColor(_part.setType),
-            borderRadius: BorderRadius.all(Radius.circular(8)),
+            splashColor: Colors.deepOrange,
+            borderRadius: BorderRadius.all(Radius.circular(4)),
             child: Padding(
               padding: EdgeInsets.only(top: 4, bottom: 4, left: 8, right: 8),
               child: Column(
@@ -125,19 +125,19 @@ class PartCardState extends State<PartCard> {
             ),
           ),
           Expanded(
-            flex: 3,
-            child: Text(
-              ex.sets.toString() + ' sets',
-              style: _defaultTextStyle,
-            ),
-          ),
+              flex: 2,
+              child: RichText(
+                  text: TextSpan(style: _defaultTextStyle, children: [
+                TextSpan(text: ex.sets.toString(), style: TextStyle(color: Colors.black)),
+                TextSpan(text: ' sets', style: TextStyle(color: Colors.black54)),
+              ]))),
           Expanded(
-            flex: 3,
-            child: Text(
-              ex.reps + (ex.workoutType == WorkoutType.Weight ? ' reps' : ' seconds'),
-              style: _defaultTextStyle,
-            ),
-          )
+              flex: 2,
+              child: RichText(
+                  text: TextSpan(style: _defaultTextStyle, children: [
+                TextSpan(text: ex.reps, style: TextStyle(color: Colors.black)),
+                TextSpan(text: (ex.workoutType == WorkoutType.Weight ? ' reps' : ' secs'), style: TextStyle(color: Colors.black54)),
+              ]))),
         ],
       ));
       children.add(Divider());
@@ -145,7 +145,6 @@ class PartCardState extends State<PartCard> {
     children.removeLast();
     return Column(children: children);
   }
-
 
   Color _getSplashColor(SetType setType) {
     switch (setType) {
@@ -182,7 +181,7 @@ class RoutineDescriptionCardState extends State<RoutineDescriptionCard> {
     return Padding(
       padding: EdgeInsets.only(top: 6, bottom: 6, left: 8, right: 8),
       child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
           elevation: 12,
           color: Colors.grey[700],
           child: Padding(

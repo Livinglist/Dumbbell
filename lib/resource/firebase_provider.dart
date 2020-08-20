@@ -18,7 +18,7 @@ const String FirstRunDateKey = "firstRunDate";
 
 class FirebaseProvider {
   AppleIdCredential appleIdCredential;
-  FirebaseUser firebaseUser;
+  User firebaseUser;
   GoogleSignInAccount googleSignInAccount;
   String firstRunDate;
   bool isFirstRun;
@@ -45,13 +45,14 @@ class FirebaseProvider {
       if (connectivity == ConnectivityResult.none) {
         throw ("No connections to internet.");
       } else {
-        var db = Firestore.instance;
-        var snapshot = await db.collection("users").document(firebaseUser.uid).get();
+        if(firebaseUser == null) return;
+        var db = FirebaseFirestore.instance;
+        var snapshot = await db.collection("users").doc(firebaseUser.uid).get();
 
         if (snapshot.exists) {
-          return snapshot.reference.updateData({"routines": routines.map((routine) => jsonEncode(routine.toMap())).toList()});
+          return snapshot.reference.update({"routines": routines.map((routine) => jsonEncode(routine.toMap())).toList()});
         } else {
-          return db.collection("users").document(firebaseUser.uid).setData({
+          return db.collection("users").doc(firebaseUser.uid).set({
             "registerDate": firstRunDate,
             "email": firebaseUser.email,
             "routines": routines.map((routine) => jsonEncode(routine.toMap())).toList()
@@ -67,24 +68,24 @@ class FirebaseProvider {
     if (await Connectivity().checkConnectivity() == ConnectivityResult.none) {
       return -1;
     } else {
-      var db = Firestore.instance;
-      var snapshot = await db.collection("dailyData").document(tempDateStr).get();
+      var db = FirebaseFirestore.instance;
+      var snapshot = await db.collection("dailyData").doc(tempDateStr).get();
 
       if (snapshot.exists) {
-        return snapshot["totalCount"];
+        return snapshot.data()["totalCount"];
       } else {
-        await db.collection("dailyData").document(tempDateStr).setData({"totalCount": 0});
+        await db.collection("dailyData").doc(tempDateStr).set({"totalCount": 0});
         return 0;
       }
     }
   }
 
   Future<DocumentSnapshot> handleRestore() async {
-    var db = Firestore.instance;
-    var snapshot = await db.collection("users").document(appleIdCredential.user).get();
+    var db = FirebaseFirestore.instance;
+    var snapshot = await db.collection("users").doc(appleIdCredential.user).get();
 
     if (snapshot.exists) {
-      firstRunDate = snapshot.data["registerDate"];
+      firstRunDate = snapshot.data()["registerDate"];
       //var routines = (json.decode(snapshot.data["routines"]) as List).map((map) => Routine.fromMap(map)).toList();
     }
 
@@ -92,14 +93,15 @@ class FirebaseProvider {
   }
 
   //Check whether or not user has routines in the cloud.
-  Future<bool> checkUserExists() => Firestore.instance.collection('users').document(firebaseUser.uid).get().then((snapshot) => snapshot.exists);
+  Future<bool> checkUserExists() => FirebaseFirestore.instance.collection('users').doc(firebaseUser.uid).get().then((snapshot) => snapshot.exists);
 
   Future<List<Routine>> restoreRoutines() async {
     print("Restoring");
-    var db = Firestore.instance;
-    var snapshot = await db.collection("users").document(firebaseUser.uid).get();
+    var db = FirebaseFirestore.instance;
+    var snapshot = await db.collection("users").doc(firebaseUser.uid).get();
 
-    List<Routine> routines = snapshot.data["routines"]
+    List<Routine> routines = snapshot
+        .data()["routines"]
         .map((json) {
           Map map = jsonDecode(json);
           var r = Routine.fromMap(map);
@@ -113,7 +115,7 @@ class FirebaseProvider {
 
   //Future<bool> isSignedIn() => googleSignIn.isSignedIn();
 
-  Future<FirebaseUser> signInSilently() async {
+  Future<User> signInSilently() async {
     var signInMethod = await sharedPrefsProvider.getSignInMethod();
 
     String email, password;
@@ -143,7 +145,7 @@ class FirebaseProvider {
     return null;
   }
 
-  Future<FirebaseUser> signInApple() async {
+  Future<User> signInApple() async {
     if (await AppleSignIn.isAvailable()) {
       final result = await AppleSignIn.performRequests([
         AppleIdRequest(requestedScopes: [Scope.email, Scope.fullName])
@@ -162,9 +164,9 @@ class FirebaseProvider {
           password = await sharedPrefsProvider.getString(passwordKey);
 
           if (email == null) {
-            var snapshot = await Firestore.instance.collection('appleIdToEmail').document(userId).get();
-            email = snapshot.data['email'];
-            password = snapshot.data['password'];
+            var snapshot = await FirebaseFirestore.instance.collection('appleIdToEmail').doc(userId).get();
+            email = snapshot.data()['email'];
+            password = snapshot.data()['password'];
           }
 
           return firebaseAuth.signInWithEmailAndPassword(email: email, password: password).then((authResult) {
@@ -199,17 +201,14 @@ class FirebaseProvider {
                   sharedPrefsProvider.setSignInMethod(SignInMethod.apple);
                   sharedPrefsProvider.saveEmailAndPassword(email, password);
 
-                  var updateInfo = UserUpdateInfo();
-                  updateInfo.displayName = (appleIdCredential.fullName.givenName ?? '') + ' ' + (appleIdCredential.fullName.familyName ?? '')
+                  var displayName = (appleIdCredential.fullName.givenName ?? '') + ' ' + (appleIdCredential.fullName.familyName ?? '')
                     ..trim();
 
-                  this.firebaseUser = firebaseUser
-                    ..updateProfile(updateInfo)
-                    ..reload();
+                  this.firebaseUser.updateProfile(displayName: displayName).whenComplete(() => this.firebaseUser.reload());
 
                   return firebaseUser;
                 }).whenComplete(() {
-                  Firestore.instance.collection('appleIdToEmail').document(userId).setData({
+                  FirebaseFirestore.instance.collection('appleIdToEmail').doc(userId).set({
                     'email': email,
                     'password': password,
                     'name': (appleIdCredential.fullName.givenName ?? '') + ' ' + (appleIdCredential.fullName.familyName ?? '')
@@ -230,7 +229,7 @@ class FirebaseProvider {
     }
   }
 
-  Future<FirebaseUser> registerNewUser(String email, String password) async {
+  Future<User> registerNewUser(String email, String password) async {
     var authResult = await firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
 
     //verify email address
@@ -252,7 +251,7 @@ class FirebaseProvider {
         return value;
       });
 
-  Future<FirebaseUser> signInGoogle() async {
+  Future<User> signInGoogle() async {
     var googleUser = await googleSignIn.signIn().then((value) {
       this.googleSignInAccount = value;
       return value;
@@ -276,12 +275,9 @@ class FirebaseProvider {
             sharedPrefsProvider.setSignInMethod(SignInMethod.google);
             sharedPrefsProvider.saveGmailAndPassword(email, password);
 
-            var updateInfo = UserUpdateInfo();
-            updateInfo.displayName = googleUser.displayName;
+            var displayName = googleUser.displayName;
 
-            this.firebaseUser = firebaseUser
-              ..updateProfile(updateInfo)
-              ..reload();
+            this.firebaseUser.updateProfile(displayName: displayName).whenComplete(() => this.firebaseUser.reload());
 
             return firebaseUser;
           });

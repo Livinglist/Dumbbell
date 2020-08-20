@@ -13,28 +13,26 @@ class PartHistoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(primaryColor: Colors.orange, primarySwatch: Colors.deepOrange),
-      home: DefaultTabController(
-        length: part.exercises.length,
-        child: Scaffold(
-          appBar: AppBar(
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios, color: Colors.white),
-              onPressed: (){
-                Navigator.pop(context);
-              },
-            ),
-            bottom: TabBar(
-              isScrollable: true,
-              tabs: _getTabs(part),
-              labelColor: Colors.white,
-            ),
-            title: Text("History", style: TextStyle(color: Colors.white)),
+    return DefaultTabController(
+      length: part.exercises.length,
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios),
+            onPressed: () {
+              Navigator.pop(context);
+            },
           ),
-          body: TabBarView(
-            children: _getTabChildren(part),
+          bottom: TabBar(
+            indicator: CircleTabIndicator(color: Colors.deepOrange, radius: 3),
+            indicatorColor: Colors.deepOrange,
+            isScrollable: true,
+            tabs: _getTabs(part),
           ),
+          title: Text("History"),
+        ),
+        body: TabBarView(
+          children: _getTabChildren(part),
         ),
       ),
     );
@@ -174,5 +172,30 @@ class HistoryExpansionTile extends StatelessWidget {
     }
     listTiles.removeLast();
     return listTiles;
+  }
+}
+
+class CircleTabIndicator extends Decoration {
+  final BoxPainter _painter;
+
+  CircleTabIndicator({@required Color color, @required double radius}) : _painter = _CirclePainter(color, radius);
+
+  @override
+  BoxPainter createBoxPainter([onChanged]) => _painter;
+}
+
+class _CirclePainter extends BoxPainter {
+  final Paint _paint;
+  final double radius;
+
+  _CirclePainter(Color color, this.radius)
+      : _paint = Paint()
+          ..color = color
+          ..isAntiAlias = true;
+
+  @override
+  void paint(Canvas canvas, Offset offset, ImageConfiguration cfg) {
+    final Offset circleOffset = offset + Offset(cfg.size.width / 2, cfg.size.height - radius - 5);
+    canvas.drawCircle(circleOffset, radius, _paint);
   }
 }

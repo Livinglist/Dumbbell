@@ -149,27 +149,26 @@ class _PartEditPageState extends State<PartEditPage> {
     //_widgets = buildSetDetails(isNewlyCreated ? SetType.Regular : widget.part.setType);
 
     items = <Item>[
-      Item(isExpanded: true, header: 'Targeted Body Part', callback: buildTargetedBodyPartRadioList, iconpic: Icon(Icons.accessibility_new)),
-      Item(isExpanded: false, header: 'Type of Set', callback: buildSetTypeList, iconpic: Icon(Icons.blur_linear)),
-      Item(isExpanded: true, header: 'Details', callback: buildSetDetailsList, iconpic: Icon(Icons.fitness_center))
+      Item(isExpanded: true, header: 'Targeted Muscle Group', callback: buildTargetedBodyPartRadioList, iconpic: Icon(Icons.accessibility_new)),
+      Item(isExpanded: false, header: 'Set Type', callback: buildSetTypeList, iconpic: Icon(Icons.blur_linear)),
+      Item(isExpanded: true, header: 'Set Details', callback: buildSetDetailsList, iconpic: Icon(Icons.fitness_center))
     ];
 
     super.initState();
   }
 
   Future<bool> onWillPop() {
-    return showCupertinoDialog(
+    return showDialog(
       context: context,
-      builder: (context) => CupertinoAlertDialog(
+      builder: (context) => AlertDialog(
         title: Text('Are you sure?'),
         content: Text('Your editing will not be saved.'),
         actions: <Widget>[
-          CupertinoDialogAction(
+          FlatButton(
             onPressed: () => Navigator.of(context).pop(false),
             child: Text('No'),
           ),
-          CupertinoDialogAction(
-            isDestructiveAction: true,
+          FlatButton(
             onPressed: () {
               if (widget.addOrEdit == AddOrEdit.add) widget.curRoutine.parts.removeLast();
               Navigator.of(context).pop(true);
@@ -191,17 +190,34 @@ class _PartEditPageState extends State<PartEditPage> {
     return Material(
       color: Colors.transparent,
       child: Padding(
-          padding: EdgeInsets.all(12.0),
+          padding: EdgeInsets.symmetric(horizontal: 12),
           child: Column(children: <Widget>[
-            RadioListTile(value: 0, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Abs')),
-            RadioListTile(value: 1, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Arm')),
-            RadioListTile(value: 2, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Back')),
-            RadioListTile(value: 3, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Chest')),
-            RadioListTile(value: 4, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Leg')),
-            RadioListTile(value: 5, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Shoulder')),
-            RadioListTile(value: 6, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Bicep')),
-            RadioListTile(value: 7, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Tricep')),
-            RadioListTile(value: 8, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Full Body')),
+            RadioListTile(
+                activeColor: Colors.orange, value: 0, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Abs')),
+            RadioListTile(
+                activeColor: Colors.orange, value: 1, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Arm')),
+            RadioListTile(
+                activeColor: Colors.orange, value: 2, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Back')),
+            RadioListTile(
+                activeColor: Colors.orange, value: 3, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Chest')),
+            RadioListTile(
+                activeColor: Colors.orange, value: 4, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Leg')),
+            RadioListTile(
+                activeColor: Colors.orange,
+                value: 5,
+                groupValue: radioValueTargetedBodyPart,
+                onChanged: onRadioValueChanged,
+                title: Text('Shoulder')),
+            RadioListTile(
+                activeColor: Colors.orange, value: 6, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Bicep')),
+            RadioListTile(
+                activeColor: Colors.orange, value: 7, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Tricep')),
+            RadioListTile(
+                activeColor: Colors.orange,
+                value: 8,
+                groupValue: radioValueTargetedBodyPart,
+                onChanged: onRadioValueChanged,
+                title: Text('Full Body')),
           ])),
     );
   }
@@ -220,6 +236,7 @@ class _PartEditPageState extends State<PartEditPage> {
           this.setType = setType;
         });
       },
+      thumbColor: setTypeToColorConverter(this.setType),
       groupValue: setType,
     );
   }
@@ -451,45 +468,36 @@ class _PartEditPageState extends State<PartEditPage> {
       ),
     );
 
-    var scaffold = CupertinoPageScaffold(
+    var scaffold = Scaffold(
       key: scaffoldKey,
-      navigationBar: CupertinoNavigationBar(
-          middle: Text("Criteria Selection"),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Transform.translate(
-                  offset: Offset(12, -6),
-                  child: Builder(
-                    builder: (context) {
-                      return CupertinoButton(
-                        child: Icon(Icons.done),
-                        onPressed: () {
-                          if (formKey.currentState.validate()) {
-                            widget.part.targetedBodyPart = PartEditPageHelper.radioValueToTargetedBodyPartConverter(radioValueTargetedBodyPart);
-                            widget.part.setType = setType;
-                            widget.part.exercises = List<Exercise>();
-                            for (int i = 0; i < enabledList.where((res) => res).length; i++) {
-                              widget.part.exercises.add(Exercise(
-                                  name: tempExs[i].name,
-                                  weight: tempExs[i].weight,
-                                  sets: tempExs[i].sets,
-                                  reps: tempExs[i].reps,
-                                  workoutType: tempExs[i].workoutType,
-                                  exHistory: tempExs[i].exHistory));
-                            }
-                            widget.part.additionalNotes = addtionalNotesTextEditingController.text;
-                            Navigator.pop(context, widget.part);
-                          } else {}
-                        },
-                      );
-                    },
-                  ))
-            ],
-          )),
-      child: SafeArea(
-        child: listView,
-      ),
+      appBar: AppBar(title: Text("Criteria Selection"), actions: <Widget>[
+        Builder(
+          builder: (context) {
+            return IconButton(
+              icon: Icon(Icons.done),
+              onPressed: () {
+                if (formKey.currentState.validate()) {
+                  widget.part.targetedBodyPart = PartEditPageHelper.radioValueToTargetedBodyPartConverter(radioValueTargetedBodyPart);
+                  widget.part.setType = setType;
+                  widget.part.exercises = List<Exercise>();
+                  for (int i = 0; i < enabledList.where((res) => res).length; i++) {
+                    widget.part.exercises.add(Exercise(
+                        name: tempExs[i].name,
+                        weight: tempExs[i].weight,
+                        sets: tempExs[i].sets,
+                        reps: tempExs[i].reps,
+                        workoutType: tempExs[i].workoutType,
+                        exHistory: tempExs[i].exHistory));
+                  }
+                  widget.part.additionalNotes = addtionalNotesTextEditingController.text;
+                  Navigator.pop(context, widget.part);
+                } else {}
+              },
+            );
+          },
+        )
+      ]),
+      body: listView,
     );
     return WillPopScope(onWillPop: onWillPop, child: scaffold);
   }

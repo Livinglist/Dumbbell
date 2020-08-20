@@ -143,32 +143,31 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
     return WillPopScope(
         onWillPop: onWillPop,
         child: FadeTransition(
-            opacity: opacity,
-            child: MaterialApp(
-              home: Scaffold(
-                key: _scaffoldKey,
-                appBar: AppBar(
-                  //iconTheme: IconThemeData(color: Colors.white),
-                  leading: IconButton(
-                    icon: Icon(Icons.arrow_back_ios),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  title: Text(
-                    title,
-                    style: TextStyle(color: Colors.white54),
-                  ),
-                  bottom: PreferredSize(
-                      child: LinearProgressIndicator(
-                        value: position / totalLength,
-                      ),
-                      preferredSize: null),
-                  backgroundColor: appBarColors,
-                ),
-                body: buildMainLayout(),
+          opacity: opacity,
+          child: Scaffold(
+            key: _scaffoldKey,
+            appBar: AppBar(
+              //iconTheme: IconThemeData(color: Colors.white),
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back_ios),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
               ),
-            )));
+              title: Text(
+                title,
+                style: TextStyle(color: Colors.white54),
+              ),
+              bottom: PreferredSize(
+                  child: LinearProgressIndicator(
+                    value: position / totalLength,
+                  ),
+                  preferredSize: null),
+              backgroundColor: appBarColors,
+            ),
+            body: buildMainLayout(),
+          ),
+        ));
   }
 
   Widget buildMainLayout() {

@@ -22,7 +22,7 @@ class PartEditCard extends StatefulWidget {
 }
 
 class PartEditCardState extends State<PartEditCard> {
-  final defaultTextStyle = TextStyle(color: Colors.white);
+  final defaultTextStyle = TextStyle();
   final textController = TextEditingController();
   final textSetController = TextEditingController();
   final textRepController = TextEditingController();
@@ -37,11 +37,10 @@ class PartEditCardState extends State<PartEditCard> {
 
   @override
   Widget build(BuildContext context) {
-    print("settype: ${part.setType}");
     return Padding(
       padding: EdgeInsets.only(top: 6, bottom: 6, left: 8, right: 8),
       child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
           elevation: 12,
           color: setTypeToColorConverter(part.setType),
           child: Padding(
@@ -53,11 +52,9 @@ class PartEditCardState extends State<PartEditCard> {
                   leading: targetedBodyPartToImageConverter(part.targetedBodyPart ?? TargetedBodyPart.Arm),
                   title: Text(
                     part.setType == null ? 'To be edited' : setTypeToStringConverter(part.setType),
-                    style: TextStyle(color: Colors.white),
                   ),
                   subtitle: Text(
                     part.targetedBodyPart == null ? 'To be edited' : targetedBodyPartToStringConverter(part.targetedBodyPart),
-                    style: TextStyle(color: Colors.white),
                   ),
                 ),
                 Padding(
@@ -72,7 +69,7 @@ class PartEditCardState extends State<PartEditCard> {
                     FlatButton(
                         child: Text(
                           'EDIT',
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(color: Colors.black),
                         ),
                         onPressed: () {
                           Navigator.push(
@@ -83,29 +80,27 @@ class PartEditCardState extends State<PartEditCard> {
                                         part: part,
                                       ))).then((value) {
                             setState(() {
-                              this.part = value;
+                              if (value != null) this.part = value;
                             });
                           });
                         }),
                     FlatButton(
                         child: Text(
-                          'DELETE',
-                          style: TextStyle(color: Colors.white),
+                          'DELETE',style: TextStyle(color: Colors.black),
                         ),
                         onPressed: () {
-                          showCupertinoDialog(
+                          showDialog(
                             context: context,
-                            builder: (context) => CupertinoAlertDialog(
+                            barrierDismissible: false,
+                            builder: (context) => AlertDialog(
                               title: Text('Delete this part of routine?'),
                               content: Text('You cannot undo this.'),
                               actions: <Widget>[
-                                CupertinoDialogAction(
-                                  isDefaultAction: true,
+                                FlatButton(
                                   onPressed: () => Navigator.of(context).pop(false),
                                   child: Text('No'),
                                 ),
-                                CupertinoDialogAction(
-                                  isDestructiveAction: true,
+                                FlatButton(
                                   onPressed: () {
                                     widget.onDelete();
                                     Navigator.of(context).pop(true);
@@ -115,9 +110,7 @@ class PartEditCardState extends State<PartEditCard> {
                               ],
                             ),
                           );
-                        }
-                        //widget.onDelete()
-                        ),
+                        }),
                   ],
                 ),
               ],
@@ -129,15 +122,15 @@ class PartEditCardState extends State<PartEditCard> {
   double _getHeight(SetType setType) {
     switch (setType) {
       case SetType.Regular:
-        return 40;
+        return 20;
       case SetType.Drop:
-        return 40;
+        return 20;
       case SetType.Super:
-        return 60;
+        return 50;
       case SetType.Tri:
-        return 70;
+        return 80;
       case SetType.Giant:
-        return 100;
+        return 120;
       default:
         throw Exception('Unmatched SetType in _getHight');
     }
@@ -145,39 +138,47 @@ class PartEditCardState extends State<PartEditCard> {
 
   Widget _buildExerciseListView(Part part) {
     if (part.exercises.length != 0) {
-      return ListView.builder(
+      var children = <Widget>[];
+
+      for (var ex in part.exercises) {
+        children.add(Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            Expanded(
+              flex: 6,
+              child: Text(
+                ex.name,
+                maxLines: 1,
+                style: defaultTextStyle,
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                ex.sets.toString() + ' Set${ex.sets == 1 ? '' : 's'}',
+                style: defaultTextStyle,
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                ex.reps + (ex.workoutType == WorkoutType.Weight ? ' Reps' : ' Sec'),
+                style: defaultTextStyle,
+              ),
+            )
+          ],
+        ));
+        children.add(Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: Divider(),
+        ));
+      }
+      children.removeLast();
+
+      return ListView(
         controller: ScrollController(),
         physics: NeverScrollableScrollPhysics(),
-        itemCount: part.exercises.length,
-        itemBuilder: (context, i) {
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              Expanded(
-                flex: 6,
-                child: Text(
-                  part.exercises[i].name,
-                  style: defaultTextStyle,
-                ),
-              ),
-              Expanded(
-                flex: 3,
-                child: Text(
-                  part.exercises[i].sets.toString() + ' Set${part.exercises[i].sets == 1 ? '' : 's'}',
-                  style: defaultTextStyle,
-                ),
-              ),
-              Expanded(
-                flex: 3,
-                child: Text(
-                  part.exercises[i].reps +
-                      (part.exercises[i].workoutType == WorkoutType.Weight ? ' Reps' : ' Sec'),
-                  style: defaultTextStyle,
-                ),
-              )
-            ],
-          );
-        },
+        children: children,
       );
     } else {
       return null;

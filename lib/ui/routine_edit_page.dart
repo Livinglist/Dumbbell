@@ -55,61 +55,47 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
                 textEditingController.text = routineCopy.routineName;
               } else if (widget.addOrEdit == AddOrEdit.add) {}
 
-              return CupertinoPageScaffold(
-                  navigationBar: CupertinoNavigationBar(
-                      middle: Text(
-                        'Edit Your ${mainTargetedBodyPartToStringConverter(widget.mainTargetedBodyPart)} Routine',
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          widget.addOrEdit == AddOrEdit.edit
-                              ? Transform.translate(
-                                  offset: Offset(24, -6),
-                                  child: CupertinoButton(
-                                    child: Icon(Icons.delete_forever),
+              return Scaffold(
+                  appBar: AppBar(
+                    actions: <Widget>[
+                      if (widget.addOrEdit == AddOrEdit.edit)
+                        IconButton(
+                          icon: Icon(Icons.delete_forever),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (_) => AlertDialog(
+                                title: Text('Delete this routine'),
+                                content: Text("Are you sure? You cannot undo this."),
+                                actions: <Widget>[
+                                  FlatButton(onPressed: () => Navigator.pop(_), child: Text('No')),
+                                  FlatButton(
                                     onPressed: () {
-                                      showCupertinoDialog(
-                                        context: context,
-                                        builder: (_) => CupertinoAlertDialog(
-                                          title: Text('Delete this routine'),
-                                          content: Text("Are you sure? You cannot undo this."),
-                                          actions: <Widget>[
-                                            CupertinoDialogAction(isDefaultAction: true, onPressed: () => Navigator.pop(_), child: Text('No')),
-                                            CupertinoDialogAction(
-                                              isDestructiveAction: true,
-                                              onPressed: () {
-                                                Navigator.pop(_);
-                                                Navigator.popUntil(context, (Route r) {
-                                                  print(r);
-                                                  return r.settings.name == '/';
-                                                });
-                                                if (widget.addOrEdit == AddOrEdit.edit) {
-                                                  routinesBloc.deleteRoutine(routine: routineCopy);
-                                                }
-                                              },
-                                              child: Text('Yes'),
-                                            ),
-                                          ],
-                                        ),
-                                      );
+                                      Navigator.pop(_);
+                                      Navigator.popUntil(context, (Route r) {
+                                        return r.settings.name == '/';
+                                      });
+                                      if (widget.addOrEdit == AddOrEdit.edit) {
+                                        routinesBloc.deleteRoutine(routine: routineCopy);
+                                      }
                                     },
-                                  ))
-                              : Container(),
-                          Transform.translate(
-                              offset: Offset(12, -6),
-                              child: Builder(
-                                builder: (context) => CupertinoButton(child: Icon(Icons.done), onPressed: onDonePressed),
-                              ))
-                        ],
-                      )),
-                  child: CustomScrollView(slivers: [
-                    SliverSafeArea(
-                      sliver: SliverList(
-                        delegate: SliverChildListDelegate(buildExerciseDetails()),
-                      ),
-                    )
-                  ])
+                                    child: Text('Yes'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      Builder(
+                        builder: (context) => IconButton(icon: Icon(Icons.done), onPressed: onDonePressed),
+                      )
+                    ],
+                  ),
+                  body: SingleChildScrollView(
+                    child: Column(
+                      children: buildExerciseDetails(),
+                    ),
+                  )
 //                backgroundColor: Colors.white,
 //                body: buildExerciseDetails(),
 //                floatingActionButton: FloatingActionButton.extended(
@@ -146,15 +132,11 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
   List<Widget> buildExerciseDetails() {
     var children = <Widget>[Form(key: formKey, child: _routineDescriptionEditCard())];
 
-    print('the length of parts:: ' + routineCopy.parts.length.toString());
-
     if (routineCopy.parts.isNotEmpty) {
       children.addAll(routineCopy.parts.map((part) {
-        //print(part.exercises.first.name);
         return PartEditCard(
           key: UniqueKey(),
           onDelete: () {
-            print("called ${part.exercises.first.name}");
             setState(() {
               routineCopy.parts.remove(part);
             });
@@ -167,12 +149,23 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
     children.add(Container(
       key: UniqueKey(),
       color: Colors.transparent,
-      height: 60,
+      height: 24,
     ));
 
-    children.add(Padding(
-      padding: EdgeInsets.all(12),
-      child: CupertinoButton.filled(child: Icon(CupertinoIcons.add), onPressed: onAddExercisePressed),
+    children.add(Center(
+      child: SizedBox(
+        width: 120,
+        child: RaisedButton(
+          child: Icon(Icons.add),
+          color: Colors.orange,
+          onPressed: onAddExercisePressed,
+          shape: StadiumBorder(),
+        ),
+      )
+    ));
+
+    children.add(SizedBox(
+      height: 36,
     ));
 
     return children;
@@ -182,9 +175,8 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
     return Padding(
       padding: EdgeInsets.only(top: 6, bottom: 6, left: 8, right: 8),
       child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
           elevation: 12,
-          color: Colors.white,
           child: Padding(
             padding: EdgeInsets.only(top: 4, bottom: 4, left: 8, right: 8),
             child: Column(
@@ -195,7 +187,7 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
                     controller: textEditingController,
                     //style: TextStyle(color: Colors.white, fontSize: 24),
                     decoration: InputDecoration(
-                      labelText: 'Name this routine',
+                      labelText: 'Routine Title',
                       //labelStyle: TextStyle(color: Colors.white, fontSize: 18)
                     ),
                     onSaved: (str) {
@@ -212,17 +204,17 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
   }
 
   Future<bool> _onWillPop() {
-    return showCupertinoDialog(
+    return showDialog(
           context: context,
-          builder: (context) => CupertinoAlertDialog(
+          builder: (context) => AlertDialog(
             title: Text('Are you sure?'),
             content: Text('Your editing will not be saved.'),
             actions: <Widget>[
-              CupertinoDialogAction(
+              FlatButton(
                 onPressed: () => Navigator.of(context).pop(false),
                 child: Text('No'),
               ),
-              CupertinoDialogAction(
+              FlatButton(
                 onPressed: () {
                   Navigator.of(context).pop(true);
                 },

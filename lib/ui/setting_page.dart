@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'package:flutter_signin_button/flutter_signin_button.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:workout_planner/bloc/routines_bloc.dart';
 import 'package:workout_planner/resource/firebase_provider.dart';
@@ -44,9 +46,9 @@ class _SettingPageState extends State<SettingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
+    return Scaffold(
         key: scaffoldKey,
-        child: Material(
+        body: Material(
           color: Colors.transparent,
           child: Container(
             height: MediaQuery.of(context).size.height,
@@ -56,82 +58,83 @@ class _SettingPageState extends State<SettingPage> {
                 if (snapshot.hasData) {
                   var routines = snapshot.data;
                   return StreamBuilder(
-                    stream: firebaseProvider.firebaseAuth.onAuthStateChanged,
+                    stream: firebaseProvider.firebaseAuth.authStateChanges(),
                     builder: (_, sp) {
                       var firebaseUser = sp.data;
                       if (firebaseUser != null) firebaseProvider.firebaseUser = firebaseUser;
-                      return CustomScrollView(
-                        slivers: <Widget>[
-                          CupertinoSliverNavigationBar(
-                            largeTitle: Text("Settings"),
+                      return ListView(
+                        children: [
+                          ListTile(
+                            leading: Icon(Icons.cloud_upload),
+                            title: Text("Back up my data"),
+                            onTap: onBackUpTapped,
                           ),
-                          SliverList(
-                            delegate: SliverChildListDelegate([
-                              ListTile(
-                                leading: Icon(Icons.cloud_upload, color: CupertinoColors.systemGrey),
-                                title: Text(
-                                  "Back up my data",
-                                  style: TextStyle(
-                                      color: MediaQuery.of(context).platformBrightness == Brightness.dark
-                                          ? CupertinoColors.white
-                                          : CupertinoColors.black),
-                                ),
-                                onTap: onBackUpTapped,
+                          Padding(padding: EdgeInsets.only(left: 56), child: Divider(height: 0)),
+                          ListTile(
+                            leading: Icon(Icons.cloud_download),
+                            title: Text("Restore my data"),
+                            onTap: () {
+                              if (firebaseUser == null) {
+                                showMsg("You should sign in first");
+                                return;
+                              }
+                              handleRestore().whenComplete(() => showMsg("Restored Successfully"));
+                            },
+                          ),
+                          Padding(padding: EdgeInsets.only(left: 56), child: Divider(height: 0)),
+                          ListTile(
+                            leading: Icon(Icons.person),
+                            title: Text(firebaseUser == null ? 'Sign In' : 'Sign out'),
+                            subtitle: firebaseUser == null ? null : Text(firebaseUser.displayName ?? ""),
+                            onTap: () {
+                              if (firebaseUser == null)
+                                showSignInModalSheet();
+                              else
+                                signOut();
+                            },
+                          ),
+                          Padding(padding: EdgeInsets.only(left: 56), child: Divider(height: 0)),
+                          AboutListTile(
+                            applicationIcon: Container(
+                              height: 50,
+                              width: 50,
+                              child: Image.asset(
+                                'assets/app_icon.png',
+                                fit: BoxFit.contain,
                               ),
-                              Padding(padding: EdgeInsets.only(left: 56), child: Divider(height: 0)),
-                              ListTile(
-                                leading: Icon(Icons.cloud_download, color: CupertinoColors.systemGrey),
-                                title: Text("Restore my data",
-                                    style: TextStyle(
-                                        color: MediaQuery.of(context).platformBrightness == Brightness.dark
-                                            ? CupertinoColors.white
-                                            : CupertinoColors.black)),
-                                onTap: () {
-                                  if (firebaseUser == null) {
-                                    showMsg("You should sign in first");
-                                    return;
-                                  }
-                                  handleRestore().whenComplete(() => showMsg("Restored Successfully"));
+                            ),
+                            applicationVersion: 'v1.1.1',
+                            aboutBoxChildren: [
+                              RaisedButton(
+                                onPressed: () {
+                                  launch("https://livinglist.github.io");
                                 },
+                                child: Row(
+                                  children: <Widget>[
+                                    Icon(FontAwesomeIcons.addressCard),
+                                    SizedBox(
+                                      width: 12,
+                                    ),
+                                    Text("Developer"),
+                                  ],
+                                ),
                               ),
-                              Material(
-                                  color: Colors.transparent,
-                                  child: Column(
-                                    children: <Widget>[
-                                      firebaseUser == null
-                                          ? Container()
-                                          : Padding(
-                                              padding: EdgeInsets.only(top: 8),
-                                              child: Text(
-                                                firebaseUser == null ? "null" : firebaseUser.displayName ?? "",
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                    color: MediaQuery.of(context).platformBrightness == Brightness.dark
-                                                        ? CupertinoColors.white
-                                                        : CupertinoColors.black,
-                                                    fontSize: 18),
-                                              ),
-                                            ),
-                                      Padding(
-                                        padding: EdgeInsets.only(top: 8),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: <Widget>[
-                                            firebaseUser == null
-                                                ? CupertinoButton.filled(
-                                                    child: Text('SIGN IN', style: TextStyle(fontSize: 18)),
-                                                    onPressed: showSignInModalSheet,
-                                                  )
-                                                : CupertinoButton.filled(
-                                                    child: Text('SIGN OUT', style: TextStyle(fontSize: 18)),
-                                                    onPressed: signOut,
-                                                  ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  )),
-                            ]),
+                              RaisedButton(
+                                onPressed: () {
+                                  launch("https://github.com/Livinglist/Dumbbell");
+                                },
+                                child: Row(
+                                  children: <Widget>[
+                                    Icon(FontAwesomeIcons.github),
+                                    SizedBox(
+                                      width: 12,
+                                    ),
+                                    Text("Source Code"),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            icon: Icon(Icons.info),
                           ),
                         ],
                       );
@@ -146,13 +149,13 @@ class _SettingPageState extends State<SettingPage> {
   }
 
   void showMsg(String msg) {
-    showCupertinoDialog(
+    showDialog(
         context: context,
         builder: (_) {
-          return CupertinoAlertDialog(
+          return AlertDialog(
             title: Text(msg),
             actions: <Widget>[
-              CupertinoDialogAction(
+              FlatButton(
                 child: Text('Okay'),
                 onPressed: () {
                   Navigator.pop(_);
@@ -164,35 +167,20 @@ class _SettingPageState extends State<SettingPage> {
   }
 
   void onBackUpTapped() {
-    uploadRoutines().whenComplete(() {
-      showCupertinoDialog(
-          context: context,
-          builder: (_) {
-            return CupertinoAlertDialog(
-              title: Text('Uploaded'),
-              actions: <Widget>[
-                CupertinoDialogAction(
-                  child: Text('Nice'),
-                  onPressed: () {
-                    Navigator.pop(_);
-                  },
-                )
-              ],
-            );
-          });
-    });
-  }
-
-  Future uploadRoutines() async {
-    return Connectivity().checkConnectivity().then((connectivity) {
-      if (connectivity == ConnectivityResult.none) {
-        showCupertinoDialog(
+    if (firebaseProvider.firebaseUser == null)
+      scaffoldKey.currentState.showSnackBar(SnackBar(
+        content: Text('No User Signed In'),
+        action: SnackBarAction(label: 'Okay', onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar()),
+      ));
+    else
+      uploadRoutines().whenComplete(() {
+        showDialog(
             context: context,
             builder: (_) {
-              return CupertinoAlertDialog(
-                title: Text('No Internet Connections'),
+              return AlertDialog(
+                title: Text('Data uploaded'),
                 actions: <Widget>[
-                  CupertinoDialogAction(
+                  FlatButton(
                     child: Text('Okay'),
                     onPressed: () {
                       Navigator.pop(_);
@@ -201,7 +189,16 @@ class _SettingPageState extends State<SettingPage> {
                 ],
               );
             });
-        throw ("No internet connections.");
+      });
+  }
+
+  Future uploadRoutines() async {
+    return Connectivity().checkConnectivity().then((connectivity) {
+      if (connectivity == ConnectivityResult.none) {
+        scaffoldKey.currentState.showSnackBar(SnackBar(
+          content: Text('No Internet Connections'),
+          action: SnackBarAction(label: 'Okay', onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar()),
+        ));
       } else {
         return routinesBloc.allRoutines.first.then((routines) {
           print("uploading");

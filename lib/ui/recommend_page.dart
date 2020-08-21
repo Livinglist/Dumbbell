@@ -11,11 +11,34 @@ class RecommendPage extends StatefulWidget {
 }
 
 class _RecommendPageState extends State<RecommendPage> {
+  final scrollController = ScrollController();
+  bool showShadow = false;
+
+  @override
+  void initState() {
+    scrollController.addListener(() {
+      if (this.mounted) {
+        if (scrollController.offset <= 0) {
+          setState(() {
+            showShadow = false;
+          });
+        } else if (showShadow == false) {
+          setState(() {
+            showShadow = true;
+          });
+        }
+      }
+    });
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
           title: Text("Dev's Favorite"),
+          elevation: showShadow ? 8 : 0,
         ),
         body: Container(
           height: MediaQuery.of(context).size.height,
@@ -25,6 +48,7 @@ class _RecommendPageState extends State<RecommendPage> {
               if (snapshot.hasData) {
                 var routines = snapshot.data;
                 return ListView(
+                  controller: scrollController,
                   children: buildChildren(routines),
                 );
               }
@@ -38,7 +62,7 @@ class _RecommendPageState extends State<RecommendPage> {
     var map = <MainTargetedBodyPart, List<Routine>>{};
     var children = <Widget>[];
 
-    var textColor =Colors.black;
+    var textColor = Colors.black;
     var style = TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: textColor);
 
     routines.forEach((routine) {

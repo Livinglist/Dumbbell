@@ -94,7 +94,7 @@ class TabChild extends StatelessWidget {
             padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
             child: Container(height: 200, child: StackedAreaLineChart(exercise)),
           ),
-          Expanded(child: HistoryExpansionTile(exercise.exHistory, Colors.blue)),
+          Expanded(child: HistoryExpansionTile(exercise.exHistory, Colors.deepOrange)),
         ],
       ),
     );

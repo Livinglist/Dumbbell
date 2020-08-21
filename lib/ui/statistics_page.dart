@@ -97,9 +97,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   text: TextSpan(children: [
                     TextSpan(text: 'Total Completion\n'),
                     TextSpan(text: totalCount.toString(), style: TextStyle(fontSize: getFontSize(totalCount.toString())))
-                  ],style: TextStyle(
-                    fontFamily: 'Staa'
-                  )),
+                  ], style: TextStyle(fontFamily: 'Staa')),
                 ),
               )),
         ),

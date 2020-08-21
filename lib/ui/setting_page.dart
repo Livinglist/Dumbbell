@@ -232,20 +232,18 @@ class _SettingPageState extends State<SettingPage> {
       barrierDismissible: false,
       context: context,
       builder: (_) {
-        return CupertinoAlertDialog(
+        return AlertDialog(
           title: Text('Restore your data?'),
           content: Text('Looks like you have your data on the cloud, do you want to restore them to this device?'),
           actions: <Widget>[
-            CupertinoDialogAction(
+            FlatButton(
               child: Text('No'),
-              textStyle: TextStyle(color: Colors.red),
               onPressed: () {
                 Navigator.pop(context);
               },
             ),
-            CupertinoDialogAction(
+            FlatButton(
               child: Text('Yes'),
-              textStyle: TextStyle(color: Colors.blue),
               onPressed: () {
                 routinesBloc.restoreRoutines();
                 Navigator.pop(context);

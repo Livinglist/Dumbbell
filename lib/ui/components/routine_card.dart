@@ -62,7 +62,7 @@ class _RoutineCardState extends State<RoutineCard> {
           splashColor: Colors.deepOrange,
           onTap: () {
             routinesBloc.setCurrentRoutine(routine);
-            Navigator.push(context, CupertinoPageRoute(builder: (_) => RoutineDetailPage(isRecRoutine: widget.isRecRoutine)));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => RoutineDetailPage(isRecRoutine: widget.isRecRoutine)));
           },
           child: Container(
               height: 240,
@@ -266,6 +266,8 @@ class _RoutineCardState extends State<RoutineCard> {
       return 14;
     } else if (str.length > 17) {
       return 24;
+    } else if (str.length > 14) {
+      return 30;
     } else {
       return 36;
     }

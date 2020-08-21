@@ -145,23 +145,6 @@ class PartCardState extends State<PartCard> {
     children.removeLast();
     return Column(children: children);
   }
-
-  Color _getSplashColor(SetType setType) {
-    switch (setType) {
-      case SetType.Regular:
-        return Colors.lightBlueAccent;
-      case SetType.Drop:
-        return Colors.greenAccent;
-      case SetType.Super:
-        return Colors.tealAccent;
-      case SetType.Tri:
-        return Colors.pinkAccent;
-      case SetType.Giant:
-        return Colors.redAccent;
-      default:
-        return Colors.lightBlueAccent;
-    }
-  }
 }
 
 class RoutineDescriptionCard extends StatefulWidget {

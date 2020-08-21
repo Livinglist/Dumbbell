@@ -108,7 +108,7 @@ class DonutAutoLabelChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new charts.PieChart(_createData(),
+    return charts.PieChart(_createData(),
         animate: animate,
         // Configure the width of the pie slices to 60px. The remaining space in
         // the chart will be left as a hole in the center.
@@ -125,33 +125,33 @@ class DonutAutoLabelChart extends StatelessWidget {
         //       new charts.ArcLabelDecorator(
         //          insideLabelStyleSpec: new charts.TextStyleSpec(...),
         //          outsideLabelStyleSpec: new charts.TextStyleSpec(...)),
-        defaultRenderer: new charts.ArcRendererConfig(
+        defaultRenderer:  charts.ArcRendererConfig(
             arcWidth: 60,
-            arcRendererDecorators: [new charts.ArcLabelDecorator()]));
+            arcRendererDecorators: [ charts.ArcLabelDecorator()]));
   }
 
   /// Create one series with sample hard coded data.
-  List<charts.Series<LinearSales, int>> _createData() {
+  List<charts.Series<LinearRecords, int>> _createData() {
     final data = [
-      new LinearSales('Abs', 0, _getTotalCount(MainTargetedBodyPart.Abs)),
-      new LinearSales('Arms', 1, _getTotalCount(MainTargetedBodyPart.Arm)),
-      new LinearSales('Back', 2, _getTotalCount(MainTargetedBodyPart.Back)),
-      new LinearSales('Chest', 3, _getTotalCount(MainTargetedBodyPart.Chest)),
-      new LinearSales('Legs', 4, _getTotalCount(MainTargetedBodyPart.Leg)),
-      new LinearSales(
+      new LinearRecords('Abs', 0, _getTotalCount(MainTargetedBodyPart.Abs)),
+      new LinearRecords('Arms', 1, _getTotalCount(MainTargetedBodyPart.Arm)),
+      new LinearRecords('Back', 2, _getTotalCount(MainTargetedBodyPart.Back)),
+      new LinearRecords('Chest', 3, _getTotalCount(MainTargetedBodyPart.Chest)),
+      new LinearRecords('Legs', 4, _getTotalCount(MainTargetedBodyPart.Leg)),
+      new LinearRecords(
           'Shoulders', 5, _getTotalCount(MainTargetedBodyPart.Shoulder)),
-      new LinearSales(
+      new LinearRecords(
           'Full Body', 6, _getTotalCount(MainTargetedBodyPart.FullBody)),
     ];
 
     return [
-      new charts.Series<LinearSales, int>(
+      new charts.Series<LinearRecords, int>(
         id: 'Sales',
-        domainFn: (LinearSales sales, _) => sales.year,
-        measureFn: (LinearSales sales, _) => sales.sales,
+        domainFn: (LinearRecords sales, _) => sales.index,
+        measureFn: (LinearRecords sales, _) => sales.totalCount,
         data: data,
         // Set a label accessor to control the text of the arc label.
-        labelAccessorFn: (LinearSales row, _) => '${row.label}',
+        labelAccessorFn: (LinearRecords row, _) => '${row.label}',
       )
     ];
   }
@@ -167,11 +167,10 @@ class DonutAutoLabelChart extends StatelessWidget {
   }
 }
 
-/// Sample linear data type.
-class LinearSales {
+class LinearRecords {
   final String label;
-  final int year;
-  final int sales;
+  final int index;
+  final int totalCount;
 
-  LinearSales(this.label, this.year, this.sales);
+  LinearRecords(this.label, this.index, this.totalCount);
 }

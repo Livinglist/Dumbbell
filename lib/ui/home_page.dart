@@ -38,7 +38,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     scrollController.addListener(() {
       if (this.mounted) {
         if (scrollController.offset <= 30) {
-          animationController.value = 1- (30 - scrollController.offset) / 30;
+          animationController.value = 1 - (30 - scrollController.offset) / 30;
         } else {
           animationController.value = 1;
         }
@@ -138,7 +138,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     int weekday = DateTime.now().weekday;
     var children = <Widget>[];
 
-    var textColor = MediaQuery.of(context).platformBrightness == Brightness.dark ? CupertinoColors.white : CupertinoColors.black;
+    var textColor = Colors.black;
     var todaysRoutineTitleTextStyle = TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.orangeAccent);
     var routineTitleTextStyle = TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: textColor);
 

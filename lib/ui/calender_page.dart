@@ -53,11 +53,7 @@ class CalenderPageState extends State<CalenderPage> {
     widgets.add(Text(' '));
 
     for (int i = 1; i <= 12; i++) {
-      widgets.add(Center(
-          child: Text(intToMonth(i),
-              style: TextStyle(
-                  fontSize: 10,
-                  color: MediaQuery.of(context).platformBrightness == Brightness.dark ? CupertinoColors.white : CupertinoColors.black))));
+      widgets.add(Center(child: Text(intToMonth(i), style: TextStyle(fontSize: 10, color: Colors.black))));
     }
 
     widgets.addAll(buildDayRows());
@@ -69,7 +65,7 @@ class CalenderPageState extends State<CalenderPage> {
     List<Widget> widgets = List<Widget>();
 
     for (int i = 1; i <= 31; i++) {
-      widgets.add(Center(child: Text(i.toString(), style: TextStyle(fontSize: 12,color: MediaQuery.of(context).platformBrightness == Brightness.dark ? CupertinoColors.white : CupertinoColors.black))));
+      widgets.add(Center(child: Text(i.toString(), style: TextStyle(fontSize: 12, color: Colors.black))));
       for (int j = 1; j <= 12; j++) {
         DateTime date = DateTime(DateTime.now().year, j, i);
         String dateStr = date.toSimpleString();

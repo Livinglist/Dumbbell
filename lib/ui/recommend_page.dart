@@ -38,7 +38,7 @@ class _RecommendPageState extends State<RecommendPage> {
     var map = <MainTargetedBodyPart, List<Routine>>{};
     var children = <Widget>[];
 
-    var textColor = MediaQuery.of(context).platformBrightness == Brightness.dark ? CupertinoColors.white : CupertinoColors.black;
+    var textColor =Colors.black;
     var style = TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: textColor);
 
     routines.forEach((routine) {

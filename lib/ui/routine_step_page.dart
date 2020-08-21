@@ -367,7 +367,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
                   text: TextSpan(children: <TextSpan>[
                     TextSpan(
                         text: StringHelper.weightToString(ex.weight),
-                        style: TextStyle(color: Colors.white, fontSize: getWeightFontSize(setType), fontWeight: FontWeight.bold)),
+                        style: TextStyle(color: Colors.white, fontSize: 64, fontWeight: FontWeight.bold)),
                   ]),
                 ),
               ),

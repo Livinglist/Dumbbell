@@ -175,7 +175,7 @@ class FirebaseProvider {
             return authResult.user;
           }, onError: (PlatformException error) {
             ///TODO: The problem is that if names are null, email is going to be null as well.
-            if (error.code == 'ERROR_USER_NOT_FOUND') {
+            if (error.code == 'user-not-found') {
               return registerNewUser(appleIdCredential.email, appleIdCredential.email).then((value) {
                 sharedPrefsProvider.saveEmailAndPassword(email, password);
 
@@ -194,7 +194,7 @@ class FirebaseProvider {
           }, onError: (Object error) {
             ///TODO: The problem is that if names are null, email is going to be null as well.
             if (error is PlatformException) {
-              if (error.code == 'ERROR_USER_NOT_FOUND') {
+              if (error.code == 'user-not-found') {
                 return registerNewUser(appleIdCredential.email, appleIdCredential.email).then((firebaseUser) async {
                   print("registernewuser retuens ${firebaseUser.email}");
 
@@ -270,7 +270,7 @@ class FirebaseProvider {
       return authResult.user;
     }, onError: (Object error) {
       if (error is PlatformException) {
-        if (error.code == "ERROR_USER_NOT_FOUND") {
+        if (error.code == "user-not-found") {
           return registerNewUser(email, password).then((firebaseUser) async {
             sharedPrefsProvider.setSignInMethod(SignInMethod.google);
             sharedPrefsProvider.saveGmailAndPassword(email, password);

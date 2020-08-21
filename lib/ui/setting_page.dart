@@ -268,8 +268,10 @@ class _SettingPageState extends State<SettingPage> {
               children: <Widget>[
                 Transform.scale(
                     scale: 1.2,
-                    child: SignInButton(
-                      Buttons.Google,
+                    child: SignInButtonBuilder(
+                      backgroundColor: Colors.blue,
+                      text: 'Sign in with Google',
+                      icon: FontAwesomeIcons.google,
                       onPressed: () {
                         Navigator.pop(_, SignInMethod.google);
                       },

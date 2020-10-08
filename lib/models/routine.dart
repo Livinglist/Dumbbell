@@ -66,7 +66,6 @@ class Routine {
   }
 
   Routine.fromMap(Map<String, dynamic> map) {
-    print("The name is : " + map['RoutineName']);
     id = map["Id"];
     routineName = map['RoutineName'];
     mainTargetedBodyPart = intToMainTargetedBodyPartConverter(map['MainPart']);
@@ -74,7 +73,7 @@ class Routine {
     lastCompletedDate = map['LastCompletedDate'] != null ? stringToDateTimeConverter(map['LastCompletedDate']) : DateTime.now();
     createdDate = map['CreatedDate'] != null ? stringToDateTimeConverter(map['CreatedDate']) : DateTime.now();
     completionCount = map['Count'];
-    print("ISUAHLFIDSufghklahfdklashlkdhlakhdfiouAHSIDHUIA======");
+
     try {
       routineHistory = (map["RoutineHistory"] == null ? <int>[] : (jsonDecode(map['RoutineHistory']) as List).cast<int>());
     } catch (_) {

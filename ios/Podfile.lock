@@ -356,7 +356,7 @@ PODS:
   - qrcode_reader (0.0.1):
     - Flutter
   - Reachability (3.2)
-  - share (0.5.2):
+  - share (0.0.1):
     - Flutter
   - shared_preferences (0.0.1):
     - Flutter
@@ -480,7 +480,7 @@ SPEC CHECKSUMS:
   PromisesObjC: b14b1c6b68e306650688599de8a45e49fae81151
   qrcode_reader: 09b34d43b4c08fe5b63a6e56c96789bcea7b9148
   Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
-  share: 7d22fe8baedfe93aefd864bf0b73f29711fbb0a3
+  share: 0b2c3e82132f5888bccca3351c504d0003b3b410
   shared_preferences: 1feebfa37bb57264736e16865e7ffae7fc99b523
   sqflite: 4001a31ff81d210346b500c55b17f4d6c7589dd0
   url_launcher: 6fef411d543ceb26efce54b05a0a40bfd74cbbef

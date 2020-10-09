@@ -73,9 +73,9 @@ class PartCardState extends State<PartCard> {
                     ),
                   ),
                   Padding(
-                      padding: EdgeInsets.only(left: 12, right: 12, top: 4, bottom: 4),
-                      child: _buildExerciseListView(_part),
-                      ),
+                    padding: EdgeInsets.only(left: 12, right: 12, top: 4, bottom: 4),
+                    child: _buildExerciseListView(_part),
+                  ),
                   SizedBox(
                     height: 12,
                   )
@@ -123,8 +123,6 @@ class PartCardState extends State<PartCard> {
       children.add(Divider());
     }
     children.removeLast();
-    return ListView(shrinkWrap: true,children: children);
+    return ListView(shrinkWrap: true, physics: NeverScrollableScrollPhysics(), children: children);
   }
 }
-
-

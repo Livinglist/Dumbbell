@@ -23,6 +23,7 @@ class PartEditCard extends StatefulWidget {
 
 class PartEditCardState extends State<PartEditCard> {
   final defaultTextStyle = TextStyle();
+  final subTextStyle = TextStyle(color: Colors.black54);
   final textController = TextEditingController();
   final textSetController = TextEditingController();
   final textRepController = TextEditingController();
@@ -59,10 +60,7 @@ class PartEditCardState extends State<PartEditCard> {
                 ),
                 Padding(
                     padding: EdgeInsets.only(left: 12, right: 12, top: 4, bottom: 4),
-                    child: Container(
-                      height: _getHeight(part.setType),
-                      child: _buildExerciseListView(part),
-                    ) //_buildExerciseListView(_part)
+                    child: _buildExerciseListView(part),
                     ),
                 ButtonBar(
                   children: <Widget>[
@@ -176,6 +174,7 @@ class PartEditCardState extends State<PartEditCard> {
       children.removeLast();
 
       return ListView(
+        shrinkWrap: true,
         controller: ScrollController(),
         physics: NeverScrollableScrollPhysics(),
         children: children,

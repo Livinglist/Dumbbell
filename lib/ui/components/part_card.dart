@@ -73,12 +73,9 @@ class PartCardState extends State<PartCard> {
                     ),
                   ),
                   Padding(
-                      padding: EdgeInsets.only(left: 12, right: 12, top: 4, bottom: 4),
-                      child: Container(
-                        height: _getHeight(_part.setType),
-                        child: _buildExerciseListView(_part),
-                      ) //_buildExerciseListView(_part)
-                      ),
+                    padding: EdgeInsets.only(left: 12, right: 12, top: 4, bottom: 4),
+                    child: _buildExerciseListView(_part),
+                  ),
                   SizedBox(
                     height: 12,
                   )
@@ -87,23 +84,6 @@ class PartCardState extends State<PartCard> {
             ),
           )),
     );
-  }
-
-  double _getHeight(SetType setType) {
-    switch (setType) {
-      case SetType.Regular:
-        return 40;
-      case SetType.Drop:
-        return 40;
-      case SetType.Super:
-        return 60;
-      case SetType.Tri:
-        return 90;
-      case SetType.Giant:
-        return 125;
-      default:
-        throw Exception('Unmatched SetType in _getHight');
-    }
   }
 
   Widget _buildExerciseListView(Part part) {
@@ -128,84 +108,21 @@ class PartCardState extends State<PartCard> {
               flex: 2,
               child: RichText(
                   text: TextSpan(style: _defaultTextStyle, children: [
-                TextSpan(text: ex.sets.toString(), style: TextStyle(color: Colors.black)),
-                TextSpan(text: ' sets', style: TextStyle(color: Colors.black54)),
+                TextSpan(text: ex.sets.toString(), style: TextStyle(color: Colors.black, fontSize: 16)),
+                TextSpan(text: ' sets', style: TextStyle(color: Colors.black54, fontSize: 12)),
               ]))),
           Expanded(
               flex: 2,
               child: RichText(
                   text: TextSpan(style: _defaultTextStyle, children: [
-                TextSpan(text: ex.reps, style: TextStyle(color: Colors.black)),
-                TextSpan(text: (ex.workoutType == WorkoutType.Weight ? ' reps' : ' secs'), style: TextStyle(color: Colors.black54)),
+                TextSpan(text: ex.reps, style: TextStyle(color: Colors.black, fontSize: 16)),
+                TextSpan(text: (ex.workoutType == WorkoutType.Weight ? ' reps' : ' secs'), style: TextStyle(color: Colors.black54, fontSize: 12)),
               ]))),
         ],
       ));
       children.add(Divider());
     }
     children.removeLast();
-    return Column(children: children);
-  }
-}
-
-class RoutineDescriptionCard extends StatefulWidget {
-  final Routine routine;
-
-  RoutineDescriptionCard({@required this.routine});
-
-  @override
-  RoutineDescriptionCardState createState() => new RoutineDescriptionCardState();
-}
-
-class RoutineDescriptionCardState extends State<RoutineDescriptionCard> {
-  @override
-  Widget build(BuildContext context) {
-    final Routine routine = widget.routine;
-    // TODO: implement build
-    return Padding(
-      padding: EdgeInsets.only(top: 6, bottom: 6, left: 8, right: 8),
-      child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
-          elevation: 12,
-          color: Colors.grey[700],
-          child: Padding(
-            padding: EdgeInsets.only(top: 4, bottom: 4, left: 8, right: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Text(
-                  routine.routineName,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 24, color: Colors.white),
-                ),
-                Text(
-                  'You have done this workout',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.white),
-                ),
-                Text(
-                  routine.completionCount.toString(),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 36, color: Colors.white),
-                ),
-                Text(
-                  'times',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.white),
-                ),
-                Text(
-                  'since',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.white),
-                ),
-                Text(
-                  '${routine.createdDate.month}/${routine.createdDate.day}/${routine.createdDate.year}',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.white),
-                ),
-              ],
-            ),
-          )),
-    );
+    return ListView(shrinkWrap: true, physics: NeverScrollableScrollPhysics(), children: children);
   }
 }

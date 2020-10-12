@@ -56,7 +56,6 @@ class _SettingPageState extends State<SettingPage> {
               stream: routinesBloc.allRecRoutines,
               builder: (_, AsyncSnapshot<List<Routine>> snapshot) {
                 if (snapshot.hasData) {
-                  var routines = snapshot.data;
                   return StreamBuilder(
                     stream: firebaseProvider.firebaseAuth.authStateChanges(),
                     builder: (_, sp) {

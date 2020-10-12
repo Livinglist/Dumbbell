@@ -12,10 +12,9 @@ import 'package:share/share.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import 'package:workout_planner/resource/db_provider.dart';
 import 'package:workout_planner/resource/firebase_provider.dart';
 import 'package:workout_planner/utils/routine_helpers.dart';
-import 'package:workout_planner/ui/components/part_detail_page_widgets.dart';
+import 'package:workout_planner/ui/components/part_card.dart';
 import 'package:workout_planner/ui/part_history_page.dart';
 import 'package:workout_planner/ui/routine_edit_page.dart';
 import 'package:workout_planner/ui/routine_step_page.dart';

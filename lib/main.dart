@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'resource/db_provider.dart';
@@ -23,14 +22,15 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         theme: ThemeData(
-            //fontFamily: 'Staa',
-            primaryColor: Colors.orange,
-            primarySwatch: Colors.deepOrange
-            //buttonColor: Colors.orange[300],
-            //toggleableActiveColor: Colors.orangeAccent,
-            //indicatorColor: Colors.orangeAccent,
-            //bottomSheetTheme: BottomSheetThemeData(backgroundColor: Colors.transparent)
-            ,fontFamily: 'Staa'),
+          primaryColor: Colors.orange,
+          primarySwatch: Colors.deepOrange,
+          fontFamily: 'Staa',
+          textTheme: TextTheme(
+            bodyText2: TextStyle(
+              fontSize: 16
+            ),
+          )
+        ),
         debugShowCheckedModeBanner: false,
         title: 'Dumbbell',
         routes: {
@@ -92,31 +92,20 @@ class MainPageState extends State<MainPage> {
       bottomNavigationBar: BottomNavigationBar(
         items: [
           BottomNavigationBarItem(
-              icon: Icon(
-                Icons.wrap_text,
-              ),
-              title: Center(
-                child: Text(
-                  'Routines',
-                  textAlign: TextAlign.center,
-                ),
-              )),
+            icon: Icon(
+              Icons.wrap_text,
+            ),
+            label: 'Routines',
+          ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.history),
-              title: Center(
-                child: Text(
-                  'Progress',
-                  textAlign: TextAlign.center,
-                ),
-              )),
+            icon: Icon(Icons.history),
+            label: 'Progress',
+          ),
           BottomNavigationBarItem(
             icon: Icon(
               Icons.settings,
             ),
-            title: Text(
-              'Settings',
-              textAlign: TextAlign.center,
-            ),
+            label: 'Settings',
           ),
         ],
         currentIndex: selectedIndex,

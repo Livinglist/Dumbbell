@@ -3,7 +3,7 @@
 ![iOS](https://img.shields.io/badge/iOS-12%20-blue)
 [![App Store](https://img.shields.io/itunes/v/1462586545?label=App%20Store)](https://apps.apple.com/us/app/dumbbell-workout-planner/id1462586545)
 [![App Store](https://img.shields.io/badge/Price-Free-orange)](https://img.shields.io/badge/Price-Free-orange)
-[![GitHub](https://img.shields.io/github/stars/livinglist/Tasky?style=social)](https://img.shields.io/github/stars/livinglist/Dumbbell?style=social)
+[![GitHub](https://img.shields.io/github/stars/livinglist/Dumbbell?style=social)](https://img.shields.io/github/stars/livinglist/Dumbbell?style=social)
 
 <p align="center">
 <img width="280" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/90872289-43f1d600-e351-11ea-9027-149a5b740834.png">

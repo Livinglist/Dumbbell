@@ -3,6 +3,7 @@
 ![iOS](https://img.shields.io/badge/iOS-12%20-blue)
 [![App Store](https://img.shields.io/itunes/v/1462586545?label=App%20Store)](https://apps.apple.com/us/app/dumbbell-workout-planner/id1462586545)
 [![App Store](https://img.shields.io/badge/Price-Free-orange)](https://img.shields.io/badge/Price-Free-orange)
+[![Visits Badge](https://badges.pufler.dev/visits/livinglist/Dumbbell)](https://badges.pufler.dev)
 [![GitHub](https://img.shields.io/github/stars/livinglist/Dumbbell?style=social)](https://img.shields.io/github/stars/livinglist/Dumbbell?style=social)
 
 <p align="center">

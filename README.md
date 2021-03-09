@@ -7,9 +7,9 @@
 [![GitHub](https://img.shields.io/github/stars/livinglist/Dumbbell?style=social)](https://img.shields.io/github/stars/livinglist/Dumbbell?style=social)
 
 <p align="center">
-<img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110429163-5c141300-805f-11eb-9250-833fb47a40e2.png">
-  <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110429207-6b935c00-805f-11eb-8346-f1c0f15b6527.png">
-  <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110435244-a5686080-8067-11eb-94d4-018f9514eb5c.png">
+<img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110511062-b1c8d980-80b8-11eb-84b1-e65079fe2983.png">
+  <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110511061-b1304300-80b8-11eb-91ce-93fe0dacdd8c.png">
+  <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110511055-afff1600-80b8-11eb-8b1e-58954922fdaf.png">
 <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110460982-be7f0a80-8083-11eb-9180-1675e2c6b4fb.png">
 <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110429249-7bab3b80-805f-11eb-8159-2dccfb54a717.png">
 <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110429273-81a11c80-805f-11eb-9351-11a87f0819f6.png">

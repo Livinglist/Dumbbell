@@ -88,6 +88,15 @@ class RoutinesBloc {
     });
   }
 
+  void addPartToRoutine({int routineId, Part part}){
+    var routine = this.routines.singleWhere((r) => r.id == routineId, orElse: ()=>null);
+    routine.parts.add(part);
+  }
+
+  void updatePartInRoutine({int routineId, Part part}){
+
+  }
+
   void setCurrentRoutine(Routine routine) {
     _currentRoutine = routine;
     _currentRoutineFetcher.sink.add(_currentRoutine);

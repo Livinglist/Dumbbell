@@ -232,7 +232,6 @@ class _RoutineDetailPageState extends State<RoutineDetailPage>{
   void updateWorkWeekdays(List<int> checkedWeekdays) {
     routine.weekdays.clear();
     routine.weekdays.addAll(checkedWeekdays);
-    //DBProvider.db.updateRoutine(routine);
     routinesBloc.updateRoutine(routine);
   }
 
@@ -262,7 +261,7 @@ class _RoutineDetailPageState extends State<RoutineDetailPage>{
     List<Widget> exerciseDetails = <Widget>[];
     //_exerciseDetails.add(RoutineDescriptionCard(routine: routine));
     exerciseDetails.add(Padding(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
         elevation: 12,

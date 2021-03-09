@@ -38,7 +38,7 @@ class PartEditCardState extends State<PartEditCard> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(top: 6, bottom: 6, left: 8, right: 8),
+      padding: EdgeInsets.only(top: 2, bottom: 2, left: 8, right: 8),
       child: Card(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
           elevation: 12,

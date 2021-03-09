@@ -274,15 +274,28 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
             routinesBloc.updateRoutine(routine);
           }
         },
-        steps: exs
-            .map((ex) => Step(
-          title: Text(
-            ex.name,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w300),
-          ),
-          content: buildStep(ex),
-        ))
+        steps: List.generate(exs.length, (index) => index)
+            .map((i){
+              var isCurrent = i == stepperIndexes[currentStep];
+
+              return Step(
+                title: Text(
+                  exs[i].name,
+                  style: TextStyle(fontSize: isCurrent? 24:16, fontWeight: FontWeight.w300, color: isCurrent ? Colors.white: Colors.black),
+                ),
+                content: buildStep(exs[i]),
+              );
+        })
             .toList(),
+        // steps: exs
+        //     .map((ex) => Step(
+        //   title: Text(
+        //     ex.name,
+        //     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w300),
+        //   ),
+        //   content: buildStep(ex),
+        // ))
+        //     .toList(),
       ),
     );
   }

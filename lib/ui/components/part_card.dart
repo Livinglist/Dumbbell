@@ -36,15 +36,11 @@ class PartCardState extends State<PartCard> {
     super.initState();
   }
 
-  //final Workout workout;
-  //bool visible = true;
   @override
   Widget build(BuildContext context) {
-    //if(MoveDetail.part != null) print('hello'+MoveDetail.part.partName);
-    //else print('is null!!');
     _part = widget.part;
     return Padding(
-      padding: EdgeInsets.only(top: 6, bottom: 6, left: 8, right: 8),
+      padding: EdgeInsets.only(top: 2, bottom: 2, left: 8, right: 8),
       child: Card(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
           elevation: 12,

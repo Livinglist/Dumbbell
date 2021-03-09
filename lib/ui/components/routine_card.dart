@@ -51,8 +51,8 @@ class _RoutineCardState extends State<RoutineCard> {
       ));
     }
 
-    exList.removeLast();
-    exInfoList.removeLast();
+    //exList.removeLast();
+    //exInfoList.removeLast();
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),

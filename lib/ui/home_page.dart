@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:workout_planner/bloc/routines_bloc.dart';
+import 'package:workout_planner/ui/recommend_page.dart';
 import 'package:workout_planner/ui/routine_edit_page.dart';
 import 'package:workout_planner/utils/routine_helpers.dart';
 
@@ -86,10 +87,14 @@ class _HomePageState extends State<HomePage>{
                       }).toList(),
                       ListTile(
                         title: Text(
-                          'Cancel',
+                          'Template',
                           style: TextStyle(color: Colors.red),
                         ),
-                        onTap: () => Navigator.pop(context),
+                        onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => RecommendPage(
+                                )))
                       )
                     ],
                   ),

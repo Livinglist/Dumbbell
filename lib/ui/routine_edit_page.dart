@@ -20,6 +20,7 @@ class RoutineEditPage extends StatefulWidget {
 }
 
 class _RoutineEditPageState extends State<RoutineEditPage> {
+  final scaffoldKey = GlobalKey<ScaffoldState>();
   final formKey = GlobalKey<FormState>();
   final TextEditingController textEditingController = TextEditingController();
   ScrollController scrollController = ScrollController();
@@ -56,6 +57,7 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
               } else if (widget.addOrEdit == AddOrEdit.add) {}
 
               return Scaffold(
+                key: scaffoldKey,
                   appBar: AppBar(
                     actions: <Widget>[
                       if (widget.addOrEdit == AddOrEdit.edit)
@@ -109,6 +111,10 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
   }
 
   void onDonePressed() {
+    if(widget.addOrEdit == AddOrEdit.add && routineCopy.parts.isEmpty){
+      scaffoldKey.currentState.showSnackBar(SnackBar(content: Text('Routine is empty.')));
+      return;
+    }
     formKey.currentState.save();
 
     if (widget.addOrEdit == AddOrEdit.add) {

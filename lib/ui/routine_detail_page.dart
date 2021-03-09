@@ -30,11 +30,10 @@ class RoutineDetailPage extends StatefulWidget {
   State<StatefulWidget> createState() => _RoutineDetailPageState();
 }
 
-class _RoutineDetailPageState extends State<RoutineDetailPage> with SingleTickerProviderStateMixin {
+class _RoutineDetailPageState extends State<RoutineDetailPage>{
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   final ScrollController scrollController = ScrollController();
 
-  AnimationController animationController;
 
   GlobalKey globalKey = GlobalKey();
   String dataString;
@@ -43,8 +42,6 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> with SingleTicker
   @override
   void initState() {
     dataString = '-r' + FirebaseProvider.generateId();
-
-    animationController = AnimationController(vsync: this, lowerBound: 0, upperBound: 1, duration: Duration(milliseconds: 300));
 
     routinesBloc.fetchAllRoutines();
 
@@ -115,10 +112,7 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> with SingleTicker
                     ),
                   if (widget.isRecRoutine)
                     IconButton(
-                        icon: AnimatedIcon(
-                          icon: AnimatedIcons.add_event,
-                          progress: animationController,
-                        ),
+                        icon: Icon(Icons.add),
                         onPressed: onAddRecPressed),
                 ],
               ),
@@ -154,7 +148,7 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> with SingleTicker
         }).then((val) {
       if (val != null && val) {
         routinesBloc.addRoutine(routine);
-        animationController.forward();
+        Navigator.pop(context);
       }
     });
   }
@@ -284,7 +278,7 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> with SingleTicker
               padding: EdgeInsets.only(bottom: 8),
               child: Text(routine.routineName,
                   textAlign: TextAlign.center,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.fade,
                   softWrap: true,
                   style: TextStyle(

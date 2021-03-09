@@ -272,7 +272,7 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> with SingleTicker
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
         elevation: 12,
-        color: Colors.orange,
+        color: Theme.of(context).primaryColor,
         child: Column(
           mainAxisSize: MainAxisSize.max,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -284,12 +284,12 @@ class _RoutineDetailPageState extends State<RoutineDetailPage> with SingleTicker
               padding: EdgeInsets.only(bottom: 8),
               child: Text(routine.routineName,
                   textAlign: TextAlign.center,
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.fade,
                   softWrap: true,
                   style: TextStyle(
                     fontFamily: 'Staa',
-                    fontSize: getFontSize(routine.routineName),
+                    fontSize: 26,
                   )),
             ),
             widget.isRecRoutine
@@ -411,7 +411,7 @@ class _WeekdayModalBottomSheetState extends State<WeekdayModalBottomSheet> with 
                   index = index - 1;
                   return CheckboxListTile(
                     checkColor: Colors.white,
-                    activeColor: Colors.orange,
+                    activeColor: Colors.grey,
                     title: Text(weekDays[index]),
                     value: isCheckedList[index],
                     onChanged: (val) {

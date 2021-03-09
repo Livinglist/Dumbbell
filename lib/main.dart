@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -22,15 +21,12 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         theme: ThemeData(
-          primaryColor: Colors.orange,
-          primarySwatch: Colors.deepOrange,
-          fontFamily: 'Staa',
-          textTheme: TextTheme(
-            bodyText2: TextStyle(
-              fontSize: 16
-            ),
-          )
-        ),
+            primaryColor: Colors.blueGrey[800],
+            primarySwatch: Colors.grey,
+            fontFamily: 'Staa',
+            textTheme: TextTheme(
+              bodyText2: TextStyle(fontSize: 16),
+            )),
         debugShowCheckedModeBanner: false,
         title: 'Dumbbell',
         routes: {
@@ -79,48 +75,22 @@ class MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: PageView(
-        controller: pageController,
-        onPageChanged: (index) {
-          setState(() {
-            selectedIndex = index;
-          });
-        },
-        children: tabs,
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.wrap_text,
+    return DefaultTabController(
+        length: 3,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text('Dumbbell'),
+            toolbarHeight: 72,
+            centerTitle: false,
+            bottom: TabBar(
+              tabs: [
+                Tab(icon: Icon(Icons.wrap_text)),
+                Tab(icon: Icon(Icons.history)),
+                Tab(icon: Icon(Icons.settings)),
+              ],
             ),
-            label: 'Routines',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'Progress',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.settings,
-            ),
-            label: 'Settings',
-          ),
-        ],
-        currentIndex: selectedIndex,
-        onTap: (index) {
-          setState(() {
-            if ((selectedIndex - index).abs() > 1) {
-              selectedIndex = index;
-              pageController.jumpToPage(index);
-            } else {
-              selectedIndex = index;
-              pageController.animateToPage(index, duration: Duration(milliseconds: 500), curve: Curves.ease);
-            }
-          });
-        },
-      ),
-    );
+          body: TabBarView(children: tabs),
+        ));
   }
 }

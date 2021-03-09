@@ -22,8 +22,7 @@ class PartEditCard extends StatefulWidget {
 }
 
 class PartEditCardState extends State<PartEditCard> {
-  final defaultTextStyle = TextStyle();
-  final subTextStyle = TextStyle(color: Colors.black54);
+  final defaultTextStyle = TextStyle(fontFamily: 'Staa');
   final textController = TextEditingController();
   final textSetController = TextEditingController();
   final textRepController = TextEditingController();
@@ -43,7 +42,7 @@ class PartEditCardState extends State<PartEditCard> {
       child: Card(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
           elevation: 12,
-          color: setTypeToColorConverter(part.setType),
+          color: Theme.of(context).primaryColor,
           child: Padding(
             padding: EdgeInsets.only(top: 4, bottom: 4, left: 8, right: 8),
             child: Column(
@@ -53,30 +52,33 @@ class PartEditCardState extends State<PartEditCard> {
                   leading: targetedBodyPartToImageConverter(part.targetedBodyPart ?? TargetedBodyPart.Arm),
                   title: Text(
                     part.setType == null ? 'To be edited' : setTypeToStringConverter(part.setType),
+                    style: TextStyle(color: Colors.white70),
                   ),
                   subtitle: Text(
                     part.targetedBodyPart == null ? 'To be edited' : targetedBodyPartToStringConverter(part.targetedBodyPart),
+                    style: TextStyle(color: Colors.white54),
                   ),
                 ),
                 Padding(
-                    padding: EdgeInsets.only(left: 12, right: 12, top: 4, bottom: 4),
+                    padding: EdgeInsets.only(left: 12, right: 12, top: 4, bottom: 0),
                     child: _buildExerciseListView(part),
                     ),
-                ButtonBar(
+                Row(
                   children: <Widget>[
+                    Spacer(),
                     FlatButton(
                         child: Text(
                           'EDIT',
-                          style: TextStyle(color: Colors.black),
+                          style: TextStyle(color: Colors.white),
                         ),
                         onPressed: () {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => PartEditPage(
-                                        addOrEdit: AddOrEdit.edit,
-                                        part: part,
-                                      ))).then((value) {
+                                    addOrEdit: AddOrEdit.edit,
+                                    part: part,
+                                  ))).then((value) {
                             setState(() {
                               if (value != null) this.part = value;
                             });
@@ -84,7 +86,7 @@ class PartEditCardState extends State<PartEditCard> {
                         }),
                     FlatButton(
                         child: Text(
-                          'DELETE',style: TextStyle(color: Colors.black),
+                          'DELETE',style: TextStyle(color: Colors.red),
                         ),
                         onPressed: () {
                           showDialog(
@@ -117,70 +119,41 @@ class PartEditCardState extends State<PartEditCard> {
     );
   }
 
-  double _getHeight(SetType setType) {
-    switch (setType) {
-      case SetType.Regular:
-        return 20;
-      case SetType.Drop:
-        return 20;
-      case SetType.Super:
-        return 50;
-      case SetType.Tri:
-        return 80;
-      case SetType.Giant:
-        return 120;
-      default:
-        throw Exception('Unmatched SetType in _getHight');
-    }
-  }
-
   Widget _buildExerciseListView(Part part) {
-    if (part.exercises.length != 0) {
-      var children = <Widget>[];
+    var children = List<Widget>();
 
-      for (var ex in part.exercises) {
-        children.add(Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            Expanded(
-              flex: 6,
-              child: Text(
-                ex.name,
-                maxLines: 1,
-                style: defaultTextStyle,
-              ),
+    for (var ex in part.exercises) {
+      children.add(Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Expanded(
+            flex: 6,
+            child: Text(
+              ex.name,
+              maxLines: 1,
+              overflow: TextOverflow.clip,
+              style: TextStyle(color: Colors.white),
             ),
-            Expanded(
+          ),
+          Expanded(
               flex: 2,
-              child: Text(
-                ex.sets.toString() + ' Set${ex.sets == 1 ? '' : 's'}',
-                style: defaultTextStyle,
-              ),
-            ),
-            Expanded(
+              child: RichText(
+                  text: TextSpan(style: defaultTextStyle, children: [
+                    TextSpan(text: ex.sets.toString(), style: TextStyle(color: Colors.white, fontSize: 16)),
+                    TextSpan(text: ' sets', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                  ]))),
+          Expanded(
               flex: 2,
-              child: Text(
-                ex.reps + (ex.workoutType == WorkoutType.Weight ? ' Reps' : ' Sec'),
-                style: defaultTextStyle,
-              ),
-            )
-          ],
-        ));
-        children.add(Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Divider(),
-        ));
-      }
-      children.removeLast();
-
-      return ListView(
-        shrinkWrap: true,
-        controller: ScrollController(),
-        physics: NeverScrollableScrollPhysics(),
-        children: children,
-      );
-    } else {
-      return null;
+              child: RichText(
+                  text: TextSpan(style: defaultTextStyle, children: [
+                    TextSpan(text: ex.reps, style: TextStyle(color: Colors.white, fontSize: 16)),
+                    TextSpan(text: (ex.workoutType == WorkoutType.Weight ? ' reps' : ' secs'), style: TextStyle(color: Colors.white54, fontSize: 12)),
+                  ]))),
+        ],
+      ));
+      children.add(Divider());
     }
+    return Column(children: children);
   }
 }

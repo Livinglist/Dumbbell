@@ -30,10 +30,10 @@ class CalenderPageState extends State<CalenderPage> {
     showCupertinoModalPopup(
         context: context,
         builder: (BuildContext context) {
-          return Padding(
+          return SafeArea(child: Padding(
             padding: EdgeInsets.only(bottom: 12),
             child: Container(color: Colors.transparent, width: MediaQuery.of(context).size.width, child: RoutineCard(routine: routine)),
-          );
+          ));
         });
   }
 
@@ -78,7 +78,7 @@ class CalenderPageState extends State<CalenderPage> {
               }
             }),
             decoration: BoxDecoration(
-                color: isWorkoutDay(j, i) ? Colors.orange : Colors.transparent,
+                color: isWorkoutDay(j, i) ? Colors.grey : Colors.transparent,
                 shape: BoxShape.rectangle,
                 border: Border.all(color: Colors.grey[500], width: 0.3)),
           ),

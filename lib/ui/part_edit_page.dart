@@ -28,11 +28,8 @@ class Item {
   Item({this.isExpanded, this.header, this.body, this.iconpic, this.callback});
 }
 
-double discretevalue = 2.0;
-double hospitaldiscretevalue = 25.0;
-
 class _PartEditPageState extends State<PartEditPage> {
-  final addtionalNotesTextEditingController = TextEditingController();
+  final additionalNotesTextEditingController = TextEditingController();
   final formKey = GlobalKey<FormState>();
   final scaffoldKey = GlobalKey<ScaffoldState>();
   Routine curRoutine;
@@ -54,7 +51,7 @@ class _PartEditPageState extends State<PartEditPage> {
     ///copy the content of exercises of the Part
     additionalNotesIsExpanded = false;
 
-    addtionalNotesTextEditingController.text = widget.part.additionalNotes;
+    additionalNotesTextEditingController.text = widget.part.additionalNotes;
 
     //Determine whether or not the exercise is newly created.
     if (widget.part.exercises.length == 0) {
@@ -193,27 +190,27 @@ class _PartEditPageState extends State<PartEditPage> {
           padding: EdgeInsets.symmetric(horizontal: 12),
           child: Column(children: <Widget>[
             RadioListTile(
-                activeColor: Colors.orange, value: 0, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Abs')),
+                 value: 0, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Abs')),
             RadioListTile(
-                activeColor: Colors.orange, value: 1, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Arm')),
+                 value: 1, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Arm')),
             RadioListTile(
-                activeColor: Colors.orange, value: 2, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Back')),
+                 value: 2, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Back')),
             RadioListTile(
-                activeColor: Colors.orange, value: 3, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Chest')),
+                 value: 3, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Chest')),
             RadioListTile(
-                activeColor: Colors.orange, value: 4, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Leg')),
+                 value: 4, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Leg')),
             RadioListTile(
-                activeColor: Colors.orange,
+
                 value: 5,
                 groupValue: radioValueTargetedBodyPart,
                 onChanged: onRadioValueChanged,
                 title: Text('Shoulder')),
             RadioListTile(
-                activeColor: Colors.orange, value: 6, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Bicep')),
+                 value: 6, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Bicep')),
             RadioListTile(
-                activeColor: Colors.orange, value: 7, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Tricep')),
+                value: 7, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Tricep')),
             RadioListTile(
-                activeColor: Colors.orange,
+
                 value: 8,
                 groupValue: radioValueTargetedBodyPart,
                 onChanged: onRadioValueChanged,
@@ -489,7 +486,7 @@ class _PartEditPageState extends State<PartEditPage> {
                         workoutType: tempExs[i].workoutType,
                         exHistory: tempExs[i].exHistory));
                   }
-                  widget.part.additionalNotes = addtionalNotesTextEditingController.text;
+                  widget.part.additionalNotes = additionalNotesTextEditingController.text;
                   Navigator.pop(context, widget.part);
                 } else {}
               },

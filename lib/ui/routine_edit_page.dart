@@ -156,8 +156,8 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
       child: SizedBox(
         width: 120,
         child: RaisedButton(
-          child: Icon(Icons.add),
-          color: Colors.orange,
+          child: Icon(Icons.add, color: Colors.white,),
+          color: Theme.of(context).primaryColor,
           onPressed: onAddExercisePressed,
           shape: StadiumBorder(),
         ),

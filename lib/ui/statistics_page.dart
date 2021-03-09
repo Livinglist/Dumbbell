@@ -132,7 +132,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17.0, color: Colors.white),
                   ),
                   circularStrokeCap: CircularStrokeCap.round,
-                  progressColor: Colors.orangeAccent,
+                  progressColor: Colors.grey,
                 ),
               )),
         )

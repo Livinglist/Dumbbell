@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:confetti/confetti.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -8,7 +9,8 @@ import 'package:workout_planner/ui/components//custom_snack_bars.dart';
 import 'package:workout_planner/utils/routine_helpers.dart';
 import 'package:workout_planner/bloc/routines_bloc.dart';
 
-typedef int Operation(int);
+/// Note:
+/// Some really bad design decision made in the early stage of this project has led to this incredibly messy code.
 
 class RoutineStepPage extends StatefulWidget {
   final Routine routine;
@@ -26,283 +28,270 @@ const SmallBoldTextStyle = TextStyle(color: Colors.white, fontSize: 36, fontWeig
 
 class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final _duration = Duration(milliseconds: 50);
+  final ConfettiController confettiController = ConfettiController(duration: Duration(seconds: 10));
+  final timerDuration = Duration(milliseconds: 50);
   var stepperKey = GlobalKey();
 
-  AnimationController opacityController;
-  Animation<double> opacity;
-
-  bool finished = false;
-
-  double maxOffset;
+  List<Exercise> exercises;
+  bool finished = false,initialized = false;
+  
   Routine routine;
-  Routine routineCopy;
-  MediaQueryData queryData;
-  bool upEnabled = true;
-  bool downEnabled = true;
-  Color appBarColors = Colors.grey[800];
-  int curExIndex = 0;
   String title;
-  List<int> currentSteps;
-  bool initialized = false;
-  List<int> setsLeft;
-  bool fabEnabled = false;
-
-  //List<Part> _partsCopy;
-  int totalLength = 0;
-  int position = 0;
-
+  
   Timer incrementTimer;
   Timer decrementTimer;
+
+  List<int> setsLeft = [];
+  List<int> currentPartIndexes = [];
+  List<int> stepperIndexes = [];
+  int currentStep = 0;
 
   var timeout = const Duration(seconds: 1);
   var ms = const Duration(milliseconds: 1);
 
-  startDownTimeout([int milliseconds]) {
-    var duration = milliseconds == null ? timeout : ms * milliseconds;
-    return new Timer(duration, () {
-      downEnabled = true;
-    });
-  }
-
-  startUpTimeout([int milliseconds]) {
-    var duration = milliseconds == null ? Duration(seconds: 1) : ms * milliseconds;
-    return new Timer(duration, () {
-      upEnabled = true;
-    });
-  }
-
-  keepDecre(Exercise ex) {
-    decrementTimer = Timer.periodic(_duration, (Timer t) {
-      setState(() {
-        ex.weight = decrementWeight(ex.weight);
-      });
-    });
-  }
-
-  keepIncre(Exercise ex) {
-    incrementTimer = Timer.periodic(_duration, (Timer t) {
-      setState(() {
-        ex.weight = incrementWeight(ex.weight);
-      });
-    });
-  }
-
   @override
   void initState() {
     super.initState();
+    routine = Routine.copyFromRoutine(widget.routine);
 
-    opacityController = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
-    opacity = CurvedAnimation(parent: opacityController, curve: Curves.easeInOut)
-      ..addStatusListener((status) {
-//      if (status == AnimationStatus.completed) {
-//        _opacityController.reverse();
-//      } else if (status == AnimationStatus.dismissed) {
-//        _opacityController.forward();
-//      }
-        if (status == AnimationStatus.dismissed) {
-          opacityController.forward();
+    String tempDateStr = dateTimeToStringConverter(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
+    for (var part in routine.parts) {
+
+      for (var ex in part.exercises) {
+        if (ex.exHistory.containsKey(tempDateStr)) {
+          ex.exHistory.remove(tempDateStr);
         }
-      });
-    opacityController.forward();
+      }
+    }
+
+    exercises = widget.routine.parts.expand((p) => p.exercises).toList();
+    generateStepperIndexes();
   }
 
   @override
   Widget build(BuildContext context) {
-    queryData = MediaQuery.of(context);
-    //routine = RoutinesContext.of(context).curRoutine;
-    routine = widget.routine;
-    maxOffset = routine.parts.length * queryData.size.height;
-    appBarColors = curExIndex == routine.parts.length ? Colors.orange : setTypeToColorConverter(routine.parts[curExIndex].setType);
-    title = curExIndex < routine.parts.length
-        ? targetedBodyPartToStringConverter(routine.parts[curExIndex].targetedBodyPart) +
+    title = currentStep < stepperIndexes.length
+        ? targetedBodyPartToStringConverter(routine.parts[currentPartIndexes[currentStep]].targetedBodyPart) +
             ' - ' +
-            setTypeToStringConverter(routine.parts[curExIndex].setType)
+            setTypeToStringConverter(routine.parts[currentPartIndexes[currentStep]].setType)
         : 'Finished!';
 
-    if (!initialized) {
-      currentSteps = routine.parts.map((p) => 0).toList();
-      setsLeft = routine.parts.map((p) => p.exercises.first.sets - 1).toList();
-
-      routineCopy = Routine.copyFromRoutine(routine);
-
-      String tempDateStr = dateTimeToStringConverter(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
-      for (var part in routineCopy.parts) {
-        totalLength += part.exercises.length * part.exercises.first.sets;
-
-        for (var ex in part.exercises) {
-          if (ex.exHistory.containsKey(tempDateStr)) {
-            ex.exHistory.remove(tempDateStr);
-          }
-        }
-      }
-      opacityController.reverse();
-      initialized = true;
-    }
 
     return WillPopScope(
         onWillPop: onWillPop,
-        child: FadeTransition(
-          opacity: opacity,
-          child: Scaffold(
-            key: _scaffoldKey,
-            appBar: AppBar(
-              //iconTheme: IconThemeData(color: Colors.white),
-              leading: IconButton(
-                icon: Icon(Icons.arrow_back_ios),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              ),
-              title: Text(
-                title,
-                style: TextStyle(color: Colors.white54),
-              ),
-              bottom: PreferredSize(
-                  child: LinearProgressIndicator(
-                    value: position / totalLength,
-                  ),
-                  preferredSize: null),
-              backgroundColor: appBarColors,
+        child: Scaffold(
+          key: _scaffoldKey,
+          appBar: AppBar(
+            title: Text(
+              title,
+              style: TextStyle(color: Colors.white54),
             ),
-            body: buildMainLayout(),
+            bottom: PreferredSize(
+                child: LinearProgressIndicator(
+                  value: currentStep / stepperIndexes.length,
+                ),
+                preferredSize: null),
+            backgroundColor: Theme.of(context).primaryColor,
           ),
+          backgroundColor: Theme.of(context).primaryColor,
+          body: buildMainLayout(),
         ));
   }
 
   Widget buildMainLayout() {
-    if (curExIndex < routine.parts.length) {
-      return buildRow();
-    } else {}
+    if (!finished) {
+      return buildStepper(exercises);
+    }
 
-    return Container(
-      alignment: Alignment.center,
-      height: queryData.size.height,
-      width: queryData.size.width,
-      color: Colors.orange,
-      child: Container(
-        alignment: Alignment.center,
-        color: Colors.transparent,
-        child: Text(
-          'You finished it!',
-          style: TextStyle(color: Colors.white, fontSize: 24),
+    return Stack(
+      children: [
+        Container(
+          alignment: Alignment.center,
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
+          color: Theme.of(context).primaryColor,
+          child: Container(
+            alignment: Alignment.center,
+            color: Colors.transparent,
+            child: Text(
+              'You finished it!',
+              style: TextStyle(color: Colors.white, fontSize: 24),
+            ),
+          ),
         ),
+        Align(
+          alignment: Alignment.topCenter,
+          child: ConfettiWidget(
+            confettiController: confettiController,
+            blastDirectionality: BlastDirectionality
+                .explosive, // don't specify a direction, blast randomly
+            shouldLoop:
+            false, // start again as soon as the animation is finished
+            blastDirection: 3.14 / 2,
+            maxBlastForce: 8, // set a lower max blast force
+            minBlastForce: 4, // set a lower min blast force
+            emissionFrequency: 0.05,
+            colors: const [
+              Colors.green,
+              Colors.blue,
+              Colors.pink,
+              Colors.orange,
+              Colors.purple
+            ], // manually specify the colors to be used
+             // define a custom shape/path.
+          ),
+        ),
+
+      ],
+    );
+  }
+
+  void generateStepperIndexes() {
+    var parts = widget.routine.parts;
+    var indexes = <int>[];
+
+    for (int i = 0, k = 0; k < parts.length; k++) {
+      var part = parts[k];
+      var ex = exercises[i];
+      var sets = ex.sets;
+      switch (part.setType) {
+        case SetType.Drop:
+          for (var j = 0; j < sets; j++) {
+            indexes.add(i);
+            currentPartIndexes.add(k);
+            setsLeft.add(sets - j);
+          }
+          i += 1;
+          break;
+        case SetType.Regular:
+          for (var j = 0; j < ex.sets; j++) {
+            indexes.add(i);
+            currentPartIndexes.add(k);
+            setsLeft.add(sets-j);
+          }
+          i += 1;
+          break;
+        case SetType.Super:
+          for (var j = 0; j < ex.sets; j++) {
+            indexes.add(i);
+            indexes.add(i + 1);
+            currentPartIndexes.add(k);
+            currentPartIndexes.add(k);
+            setsLeft.add(sets-j);
+            setsLeft.add(sets-j);
+          }
+          i += 2;
+          break;
+        case SetType.Tri:
+          for (var j = 0; j < ex.sets; j++) {
+            indexes.add(i);
+            indexes.add(i + 1);
+            indexes.add(i + 2);
+            currentPartIndexes.add(k);
+            currentPartIndexes.add(k);
+            currentPartIndexes.add(k);
+            setsLeft.add(sets-j);
+            setsLeft.add(sets-j);
+            setsLeft.add(sets-j);
+          }
+          i += 3;
+          break;
+        case SetType.Giant:
+          for (var j = 0; j < ex.sets; j++) {
+            indexes.add(i);
+            indexes.add(i + 1);
+            indexes.add(i + 2);
+            indexes.add(i + 3);
+            currentPartIndexes.add(k);
+            currentPartIndexes.add(k);
+            currentPartIndexes.add(k);
+            currentPartIndexes.add(k);
+            setsLeft.add(sets-j);
+            setsLeft.add(sets-j);
+            setsLeft.add(sets-j);
+            setsLeft.add(sets-j);
+          }
+          i += 4;
+          break;
+      }
+    }
+
+    stepperIndexes = indexes;
+  }
+
+  void updateExHistory() {
+    String tempDateStr = dateTimeToStringConverter(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
+    var partIndex = currentPartIndexes[currentStep];
+    var exIndex = routine.parts[partIndex].exercises.indexWhere((e) => e.name == exercises[stepperIndexes[currentStep]].name);
+
+    if (routine.parts[partIndex].exercises[exIndex].exHistory.containsKey(tempDateStr)) {
+      routine.parts[partIndex].exercises[exIndex].exHistory[tempDateStr] += '/' + routine.parts[partIndex].exercises[exIndex].weight.toString();
+    } else {
+      routine.parts[partIndex].exercises[exIndex].exHistory[tempDateStr] = routine.parts[partIndex].exercises[exIndex].weight.toString();
+    }
+  }
+
+  Widget buildStepper(List<Exercise> exs) {
+    return SingleChildScrollView(
+      child: Stepper(
+        key: stepperKey,
+        physics: NeverScrollableScrollPhysics(),
+        controlsBuilder: (context, {onStepContinue, onStepCancel}) {
+          return ButtonBar(
+            alignment: MainAxisAlignment.center,
+            children: <Widget>[
+              RaisedButton(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 48, vertical: 12),
+                  child: Text(
+                    'Next',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                ),
+                onPressed: onStepContinue,
+              )
+            ],
+          );
+        },
+        currentStep: stepperIndexes[currentStep],
+        onStepContinue: () {
+          if (!finished && currentStep < stepperIndexes.length - 1) {
+            setState(() {
+              currentStep += 1;
+            });
+            updateExHistory();
+          }else{
+            setState(() {
+              finished = true;
+              currentStep += 1;
+            });
+            confettiController.play();
+            routine.completionCount++;
+            if (!routine.routineHistory.contains(getTimestampNow())) {
+                    routine.routineHistory.add(getTimestampNow());
+            }
+
+            routinesBloc.updateRoutine(routine);
+          }
+        },
+        steps: exs
+            .map((ex) => Step(
+          title: Text(
+            ex.name,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w300),
+          ),
+          content: buildStep(ex),
+        ))
+            .toList(),
       ),
     );
   }
 
-  Widget buildRow() {
-    return AnimatedContainer(
-      duration: Duration(milliseconds: 500),
-      alignment: Alignment.topCenter,
-      height: queryData.size.height,
-      width: queryData.size.width,
-      color: setTypeToColorConverter(routine.parts[curExIndex].setType),
-      child: Container(
-          alignment: Alignment.topCenter,
-          color: Colors.transparent,
-          child: Padding(
-            padding: EdgeInsets.only(top: 0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: <Widget>[
-                Container(
-                    height: queryData.size.height * 0.8,
-                    child: Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: buildExerciseDetailRow(curExIndex, routineCopy.parts[curExIndex].exercises, routineCopy.parts[curExIndex].setType),
-                    ))
-              ],
-            ),
-          )),
-    );
-  }
-
-  void updateExHistory(int curEx, int setLeft) {
-    String tempDateStr = dateTimeToStringConverter(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
-    if (routineCopy.parts[curExIndex].exercises[curEx].exHistory.containsKey(tempDateStr)) {
-      routineCopy.parts[curExIndex].exercises[curEx].exHistory[tempDateStr] += '/' + routineCopy.parts[curExIndex].exercises[curEx].weight.toString();
-    } else {
-      routineCopy.parts[curExIndex].exercises[curEx].exHistory[tempDateStr] = routineCopy.parts[curExIndex].exercises[curEx].weight.toString();
-    }
-  }
-
-  Widget buildExerciseDetailRow(int i, List<Exercise> exs, SetType setType) {
-    return Stepper(
-      key: stepperKey,
-      physics: NeverScrollableScrollPhysics(),
-      controlsBuilder: (context, {onStepContinue, onStepCancel}) {
-        return ButtonBar(
-          alignment: MainAxisAlignment.center,
-          children: <Widget>[
-            RaisedButton(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 48, vertical: 12),
-                child: Text(
-                  'Next',
-                  style: TextStyle(fontSize: 20),
-                ),
-              ),
-              onPressed: onStepContinue,
-            )
-          ],
-        );
-      },
-      currentStep: currentSteps[i],
-      onStepContinue: () {
-        updateExHistory(currentSteps[i], setsLeft[i]);
-        position++;
-        if (currentSteps[i] == exs.length - 1 && setsLeft[i] == 0) {
-          opacityController.reverse();
-          if (curExIndex + 1 == routine.parts.length && finished == false) {
-            finished = true;
-            routineCopy.completionCount++;
-
-            if (!routineCopy.routineHistory.contains(getTimestampNow())) {
-              routineCopy.routineHistory.add(getTimestampNow());
-            }
-
-            routinesBloc.updateRoutine(routineCopy);
-          }
-
-          Timer(Duration(milliseconds: 500), () {
-            setState(() {
-              if (curExIndex < routine.parts.length) curExIndex++;
-              stepperKey = GlobalKey();
-            });
-          });
-        } else {
-          setState(() {
-            if (currentSteps[i] < exs.length - 1) {
-              currentSteps[i]++;
-            } else {
-              if (setsLeft[i] == 0) {
-                opacityController.reverse();
-                Timer(Duration(milliseconds: 500), () {
-                  curExIndex++;
-                  stepperKey = GlobalKey();
-                });
-              } else {
-                currentSteps[i] = 0;
-                setsLeft[i]--;
-              }
-            }
-          });
-        }
-      },
-      steps: exs
-          .map((ex) => Step(
-                title: Text(
-                  ex.name,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w300),
-                ),
-                content: buildStepContent(i, ex, setType),
-              ))
-          .toList(),
-    );
-  }
-
-  Widget buildStepContent(int i, Exercise ex, SetType setType) {
+  Widget buildStep(Exercise ex) {
+    var setType = widget.routine.parts[currentPartIndexes[currentStep]].setType;
+    var partIndex = currentPartIndexes[currentStep];
+    var exIndex = routine.parts[partIndex].exercises.indexWhere((e) => e.name == exercises[stepperIndexes[currentStep]].name);
+    var ex = routine.parts[partIndex].exercises[exIndex];
     return ListTile(
       title: Row(
         children: <Widget>[
@@ -314,7 +303,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
                 color: Colors.white,
               ),
               onPressed: () {
-                launchURL(ex.name); //TODO: detect the internet availability
+                launchURL(ex.name);
               },
             ),
           ),
@@ -342,7 +331,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
                 flex: 2,
                 child: GestureDetector(
                   onLongPress: () {
-                    keepDecre(ex);
+                    decreaseWeight(ex);
                   },
                   onLongPressUp: () {
                     decrementTimer.cancel();
@@ -376,7 +365,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
                 flex: 2,
                 child: GestureDetector(
                   onLongPress: () {
-                    keepIncre(ex);
+                    increaseWeight(ex);
                   },
                   onLongPressUp: () {
                     incrementTimer.cancel();
@@ -423,7 +412,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
                   child: RichText(
                     text: TextSpan(children: <TextSpan>[
                       TextSpan(
-                          text: setsLeft[i].toString(),
+                          text: setsLeft[currentStep].toString(),
                           style: TextStyle(color: Colors.white, fontSize: getSetRepFontSize(setType), fontWeight: FontWeight.bold))
                     ]),
                   ),
@@ -433,7 +422,9 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
                   child: Center(
                 child: RichText(
                   text: TextSpan(children: <TextSpan>[
-                    TextSpan(text: ex.reps, style: TextStyle(color: Colors.white, fontSize: getSetRepFontSize(setType), fontWeight: FontWeight.bold))
+                    TextSpan(
+                        text: ex.reps,
+                        style: TextStyle(color: Colors.white, fontSize: getSetRepFontSize(setType), fontWeight: FontWeight.bold))
                   ]),
                 ),
               )),
@@ -445,6 +436,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
   }
 
   Future<bool> onWillPop() {
+    if(finished) return Future.value(true);
     return showDialog(
         context: context,
         builder: (context) => Dialog(
@@ -512,6 +504,22 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
             ));
   }
 
+  void decreaseWeight(Exercise ex) {
+    decrementTimer = Timer.periodic(timerDuration, (Timer t) {
+      setState(() {
+        ex.weight = decrementWeight(ex.weight);
+      });
+    });
+  }
+
+  void increaseWeight(Exercise ex) {
+    incrementTimer = Timer.periodic(timerDuration, (Timer t) {
+      setState(() {
+        ex.weight = incrementWeight(ex.weight);
+      });
+    });
+  }
+
   double getWeightFontSize(SetType st) {
     switch (st) {
       case SetType.Regular:
@@ -545,22 +553,6 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
         throw Exception("Inside _getWeightFontSize()");
     }
   }
-
-//  Future launchURL(String ex) async {
-//    var connectivity = await Connectivity().checkConnectivity();
-//
-//    if (connectivity == ConnectivityResult.none) {
-//      _scaffoldKey.currentState.showSnackBar(noNetworkSnackBar);
-//    } else {
-//      String url = 'https://www.bodybuilding.com/exercises/search?query=' + ex;
-//      if (await canLaunch(url)) {
-//        print("can launch");
-//        return launch(url, forceWebView: true);
-//      } else {
-//        throw 'Could not launch $url';
-//      }
-//    }
-//  }
 
   Future launchURL(String ex) async {
     var connectivity = await Connectivity().checkConnectivity();

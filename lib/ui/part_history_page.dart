@@ -24,8 +24,8 @@ class PartHistoryPage extends StatelessWidget {
             },
           ),
           bottom: TabBar(
-            indicator: CircleTabIndicator(color: Colors.deepOrange, radius: 3),
-            indicatorColor: Colors.deepOrange,
+            indicator: CircleTabIndicator(color: Colors.grey, radius: 3),
+            indicatorColor: Colors.grey,
             isScrollable: true,
             tabs: _getTabs(part),
           ),
@@ -170,7 +170,7 @@ class HistoryExpansionTile extends StatelessWidget {
       ));
       listTiles.add(Divider());
     }
-    listTiles.removeLast();
+    //listTiles.removeLast();
     return listTiles;
   }
 }

@@ -9,8 +9,6 @@ typedef void StringCallback(String val);
 
 class PartCard extends StatefulWidget {
   final VoidCallback onDelete;
-  final VoidCallback onPartLongPressed;
-  final VoidCallback onPartLongPressedUp;
   final VoidCallback onPartTap;
   final StringCallback onTextEdited;
   final bool isEmptyMove = true;
@@ -20,13 +18,13 @@ class PartCard extends StatefulWidget {
   PartCardState createState() => new PartCardState();
 
   PartCard(
-      {Key key, @required this.onDelete, this.onPartLongPressed, this.onPartLongPressedUp, this.onPartTap, this.onTextEdited, @required this.part})
+      {Key key, @required this.onDelete, this.onPartTap, this.onTextEdited, @required this.part})
       : assert(onDelete != null),
         super(key: key);
 }
 
 class PartCardState extends State<PartCard> {
-  final _defaultTextStyle = TextStyle(fontFamily: 'Staa');
+  final defaultTextStyle = TextStyle(fontFamily: 'Staa');
   final textController = TextEditingController();
   final textSetController = TextEditingController();
   final textRepController = TextEditingController();
@@ -50,11 +48,10 @@ class PartCardState extends State<PartCard> {
       child: Card(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
           elevation: 12,
-          color: setTypeToColorConverter(_part.setType),
+          color: Theme.of(context).primaryColor,
           child: InkWell(
             onTap: widget.onPartTap,
-            onLongPress: widget.onPartLongPressed,
-            splashColor: Colors.deepOrange,
+            splashColor: Colors.grey,
             borderRadius: BorderRadius.all(Radius.circular(4)),
             child: Padding(
               padding: EdgeInsets.only(top: 4, bottom: 4, left: 8, right: 8),
@@ -65,11 +62,11 @@ class PartCardState extends State<PartCard> {
                     leading: targetedBodyPartToImageConverter(_part.targetedBodyPart ?? TargetedBodyPart.Arm),
                     title: Text(
                       _part.setType == null ? 'To be edited' : setTypeToStringConverter(_part.setType),
-                      style: _defaultTextStyle,
+                      style: TextStyle(color: Colors.white70),
                     ),
                     subtitle: Text(
                       _part.targetedBodyPart == null ? 'To be edited' : targetedBodyPartToStringConverter(_part.targetedBodyPart),
-                      style: _defaultTextStyle,
+                      style: TextStyle(color: Colors.white54),
                     ),
                   ),
                   Padding(
@@ -87,8 +84,7 @@ class PartCardState extends State<PartCard> {
   }
 
   Widget _buildExerciseListView(Part part) {
-    print('length' + part.exercises.length.toString());
-    List<Widget> children = List<Widget>();
+    var children = List<Widget>();
 
     for (var ex in part.exercises) {
       children.add(Row(
@@ -101,28 +97,28 @@ class PartCardState extends State<PartCard> {
               ex.name,
               maxLines: 1,
               overflow: TextOverflow.clip,
-              style: _defaultTextStyle,
+              style: TextStyle(color: Colors.white),
             ),
           ),
           Expanded(
               flex: 2,
               child: RichText(
-                  text: TextSpan(style: _defaultTextStyle, children: [
-                TextSpan(text: ex.sets.toString(), style: TextStyle(color: Colors.black, fontSize: 16)),
-                TextSpan(text: ' sets', style: TextStyle(color: Colors.black54, fontSize: 12)),
+                  text: TextSpan(style: defaultTextStyle, children: [
+                TextSpan(text: ex.sets.toString(), style: TextStyle(color: Colors.white, fontSize: 16)),
+                TextSpan(text: ' sets', style: TextStyle(color: Colors.white54, fontSize: 12)),
               ]))),
           Expanded(
               flex: 2,
               child: RichText(
-                  text: TextSpan(style: _defaultTextStyle, children: [
-                TextSpan(text: ex.reps, style: TextStyle(color: Colors.black, fontSize: 16)),
-                TextSpan(text: (ex.workoutType == WorkoutType.Weight ? ' reps' : ' secs'), style: TextStyle(color: Colors.black54, fontSize: 12)),
+                  text: TextSpan(style: defaultTextStyle, children: [
+                TextSpan(text: ex.reps, style: TextStyle(color: Colors.white, fontSize: 16)),
+                TextSpan(text: (ex.workoutType == WorkoutType.Weight ? ' reps' : ' secs'), style: TextStyle(color: Colors.white54, fontSize: 12)),
               ]))),
         ],
       ));
       children.add(Divider());
     }
-    children.removeLast();
-    return ListView(shrinkWrap: true, physics: NeverScrollableScrollPhysics(), children: children);
+    //children.removeLast();
+    return Column(children: children);
   }
 }

@@ -283,6 +283,7 @@ class _RoutineDetailPageState extends State<RoutineDetailPage>{
                   style: TextStyle(
                     fontFamily: 'Staa',
                     fontSize: 26,
+                    color: Colors.white
                   )),
             ),
             widget.isRecRoutine
@@ -290,35 +291,35 @@ class _RoutineDetailPageState extends State<RoutineDetailPage>{
                 : Text(
                     'You have done this workout',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.black54),
+                    style: TextStyle(fontSize: 14, color: Colors.white54),
                   ),
             widget.isRecRoutine
                 ? Container()
                 : Text(
                     routine.completionCount.toString(),
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 36, color: Colors.black),
+                    style: TextStyle(fontSize: 36, color: Colors.white),
                   ),
             widget.isRecRoutine
                 ? Container()
                 : Text(
                     'times',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.black54),
+                    style: TextStyle(fontSize: 14, color: Colors.white54),
                   ),
             widget.isRecRoutine
                 ? Container()
                 : Text(
                     'since',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.black54),
+                    style: TextStyle(fontSize: 14, color: Colors.white54),
                   ),
             widget.isRecRoutine
                 ? Container()
                 : Text(
                     '${routine.createdDate.toString().split(' ').first}',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.black),
+                    style: TextStyle(fontSize: 14, color: Colors.white),
                   ),
             SizedBox(
               height: 12,

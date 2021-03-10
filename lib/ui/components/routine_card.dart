@@ -265,7 +265,7 @@ class ExerciseNameListView extends StatefulWidget {
   _ExerciseNameListViewState createState() => _ExerciseNameListViewState(exNames: exNames, isStatic: isStatic);
 
   static List<String> getFirstThreeExerciseName(List<Part> parts) {
-    List<String> exNames = new List<String>();
+    List<String> exNames = <String>[];
 
     for (int i = 0; i < parts.length; i++) {
       if (parts[i].exercises == null) print("if you see this, the exs is null");

@@ -33,7 +33,7 @@ class Routine {
       completionCount = 0;
     }
     if (parts == null) {
-      parts = new List<Part>();
+      parts = <Part>[];
     }
     if (createdDate == null) {
       createdDate = DateTime.now();
@@ -42,10 +42,10 @@ class Routine {
       lastCompletedDate = DateTime.now();
     }
     if (routineHistory == null) {
-      routineHistory = List<int>();
+      routineHistory = <int>[];
     }
     if (weekdays == null) {
-      weekdays = List<int>();
+      weekdays = <int>[];
     }
   }
 
@@ -118,8 +118,8 @@ class Routine {
   Routine.copyFromRoutineWithoutHistory(Routine routine) {
     id = routine.id;
     routineName = routine.routineName;
-    routineHistory = List<int>();
-    weekdays = List<int>();
+    routineHistory = <int>[];
+    weekdays = <int>[];
     mainTargetedBodyPart = routine.mainTargetedBodyPart;
     parts = routine.parts.map((part) => Part.copyFromPart(part)).toList();
     lastCompletedDate = routine.lastCompletedDate;

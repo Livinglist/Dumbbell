@@ -43,13 +43,13 @@ class _ScanPageState extends State<ScanPage> {
             children: <Widget>[
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: RaisedButton(
-                    color: Colors.blueGrey, textColor: Colors.white, splashColor: Colors.blueGrey, onPressed: input, child: Text('Enter routine ID')),
+                child: ElevatedButton(
+                    onPressed: input, child: Text('Enter routine ID')),
               ),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: RaisedButton(
-                    color: Colors.blueGrey, textColor: Colors.white, splashColor: Colors.blueGrey, onPressed: scan, child: Text('Scan QR code')),
+                child: ElevatedButton(
+                    onPressed: scan, child: Text('Scan QR code')),
               ),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 0, vertical: 8.0),
@@ -72,13 +72,16 @@ class _ScanPageState extends State<ScanPage> {
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8.0),
                 child: isValidRoutineJsonStr(barcode)
                     ? Builder(
-                        builder: (context) => RaisedButton(
-                          color: Colors.blueGrey,
-                          textColor: Colors.white,
-                          splashColor: Colors.blueGrey,
+                        builder: (context) => ElevatedButton(
+                          // color: Colors.blueGrey,
+                          // textColor: Colors.white,
+                          // splashColor: Colors.blueGrey,
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: Colors.blueGrey,
+                          ),
                           onPressed: () {
                             DBProvider.db.newRoutine(routine);
-                            Scaffold.of(context).showSnackBar(SnackBar(
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                 content: Row(
                               children: <Widget>[
                                 Padding(
@@ -101,7 +104,7 @@ class _ScanPageState extends State<ScanPage> {
 
   Future input() async {
     if (await Connectivity().checkConnectivity() == ConnectivityResult.none) {
-      scaffoldKey.currentState.showSnackBar(noNetworkSnackBar);
+      ScaffoldMessenger.of(context).showSnackBar(noNetworkSnackBar);
     } else {
       showDialog(
           context: context,
@@ -133,7 +136,7 @@ class _ScanPageState extends State<ScanPage> {
 
   Future scan() async {
     if (await Connectivity().checkConnectivity() == ConnectivityResult.none) {
-      scaffoldKey.currentState.showSnackBar(noNetworkSnackBar);
+      ScaffoldMessenger.of(context).showSnackBar(noNetworkSnackBar);
     } else {
       QRCodeReader().scan().then((str) {
         setState(() {

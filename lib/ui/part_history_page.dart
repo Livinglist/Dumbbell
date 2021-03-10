@@ -39,7 +39,7 @@ class PartHistoryPage extends StatelessWidget {
   }
 
   List<Widget> _getTabs(Part part) {
-    List<Widget> widgets = List<Widget>();
+    List<Widget> widgets = <Widget>[];
 
     for (var ex in part.exercises) {
       widgets.add(Tab(
@@ -51,7 +51,7 @@ class PartHistoryPage extends StatelessWidget {
   }
 
   List<Widget> _getTabChildren(Part part) {
-    List<Widget> widgets = List<Widget>();
+    List<Widget> widgets = <Widget>[];
 
     for (var ex in part.exercises) {
       widgets.add(TabChild(ex, setTypeToThemeColorConverter(part.setType)));
@@ -103,7 +103,7 @@ class TabChild extends StatelessWidget {
 
 class Year {
   final String year;
-  final List<String> dates = List<String>();
+  final List<String> dates = <String>[];
 
   Year(this.year) : assert(year.length == 4 && year[0] == '2' && year[1] == '0');
 }
@@ -119,7 +119,7 @@ class HistoryExpansionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     //List<String> years = List<String>();
-    var years = List<Year>();
+    var years = <Year>[];
     for (var date in exHistory.keys) {
       if (years.isEmpty) {
         years.add(Year(date.toString().split('-').first));
@@ -149,7 +149,7 @@ class HistoryExpansionTile extends StatelessWidget {
   }
 
   List<Widget> _listViewBuilder(List<String> dates, Map exHistory) {
-    List<Widget> listTiles = List<Widget>();
+    List<Widget> listTiles = <Widget>[];
     for (var date in dates) {
       listTiles.add(ListTile(
         leading: Container(

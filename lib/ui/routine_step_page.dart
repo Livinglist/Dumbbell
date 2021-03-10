@@ -240,7 +240,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
           return ButtonBar(
             alignment: MainAxisAlignment.center,
             children: <Widget>[
-              RaisedButton(
+              ElevatedButton(
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 48, vertical: 12),
                   child: Text(
@@ -349,12 +349,14 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
                   onLongPressUp: () {
                     decrementTimer.cancel();
                   },
-                  child: RaisedButton(
+                  child: ElevatedButton(
                       child: Text(
                         '-',
                         style: TextStyle(fontSize: 28),
                       ),
-                      shape: CircleBorder(),
+                      style: OutlinedButton.styleFrom(
+                        shape: CircleBorder(),
+                      ),
                       onPressed: () {
                         setState(() {
                           ex.weight = decrementWeight(ex.weight);
@@ -383,12 +385,14 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
                   onLongPressUp: () {
                     incrementTimer.cancel();
                   },
-                  child: RaisedButton(
+                  child: ElevatedButton(
                       child: Text(
                         '+',
                         style: TextStyle(fontSize: 24),
                       ),
-                      shape: CircleBorder(),
+                      style: OutlinedButton.styleFrom(
+                        shape: CircleBorder(),
+                      ),
                       onPressed: () {
                         setState(() {
                           ex.weight = incrementWeight(ex.weight);
@@ -492,14 +496,14 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
                             mainAxisAlignment: MainAxisAlignment.center,
                             mainAxisSize: MainAxisSize.max,
                             children: <Widget>[
-                              FlatButton(
+                              TextButton(
                                 onPressed: () => Navigator.of(context).pop(false),
                                 child: Text(
                                   'Stay',
                                   style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 16),
                                 ),
                               ),
-                              FlatButton(
+                              TextButton(
                                 onPressed: () {
                                   Navigator.of(context).pop(true);
                                 },
@@ -571,7 +575,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
     var connectivity = await Connectivity().checkConnectivity();
 
     if (connectivity == ConnectivityResult.none) {
-      _scaffoldKey.currentState.showSnackBar(noNetworkSnackBar);
+      ScaffoldMessenger.of(context).showSnackBar(noNetworkSnackBar);
     } else {
       final url = Uri.encodeFull('https://www.bodybuilding.com/exercises/search?query=' + ex);
       if (await canLaunch(url)) {

@@ -70,8 +70,8 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
                                 title: Text('Delete this routine'),
                                 content: Text("Are you sure? You cannot undo this."),
                                 actions: <Widget>[
-                                  FlatButton(onPressed: () => Navigator.pop(_), child: Text('No')),
-                                  FlatButton(
+                                  TextButton(onPressed: () => Navigator.pop(_), child: Text('No')),
+                                  TextButton(
                                     onPressed: () {
                                       Navigator.pop(_);
                                       Navigator.popUntil(context, (Route r) {
@@ -112,7 +112,7 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
 
   void onDonePressed() {
     if(widget.addOrEdit == AddOrEdit.add && routineCopy.parts.isEmpty){
-      scaffoldKey.currentState.showSnackBar(SnackBar(content: Text('Routine is empty.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Routine is empty.')));
       return;
     }
     formKey.currentState.save();
@@ -161,11 +161,13 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
     children.add(Center(
       child: SizedBox(
         width: 120,
-        child: RaisedButton(
+        child: ElevatedButton(
           child: Icon(Icons.add, color: Colors.white,),
-          color: Theme.of(context).primaryColor,
+          style: OutlinedButton.styleFrom(
+            backgroundColor: Theme.of(context).primaryColor,
+            shape: StadiumBorder(),
+          ),
           onPressed: onAddExercisePressed,
-          shape: StadiumBorder(),
         ),
       )
     ));
@@ -216,11 +218,11 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
             title: Text('Are you sure?'),
             content: Text('Your editing will not be saved.'),
             actions: <Widget>[
-              FlatButton(
+              TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
                 child: Text('No'),
               ),
-              FlatButton(
+              TextButton(
                 onPressed: () {
                   Navigator.of(context).pop(true);
                 },

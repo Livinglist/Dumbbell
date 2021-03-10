@@ -48,7 +48,7 @@ class CalenderPageState extends State<CalenderPage> {
   }
 
   List<Widget> buildMonthRow() {
-    List<Widget> widgets = List<Widget>();
+    List<Widget> widgets = <Widget>[];
 
     widgets.add(Text(' '));
 
@@ -62,7 +62,7 @@ class CalenderPageState extends State<CalenderPage> {
   }
 
   List<Widget> buildDayRows() {
-    List<Widget> widgets = List<Widget>();
+    List<Widget> widgets = <Widget>[];
 
     for (int i = 1; i <= 31; i++) {
       widgets.add(Center(child: Text(i.toString(), style: TextStyle(fontSize: 12, color: Colors.black))));

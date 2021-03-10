@@ -73,7 +73,7 @@ class _HomePageState extends State<HomePage>{
                           onTap: () {
                             Navigator.pop(context);
                             var tempRoutine =
-                                Routine(mainTargetedBodyPart: val, routineName: null, parts: new List<Part>(), createdDate: null);
+                                Routine(mainTargetedBodyPart: val, routineName: null, parts: <Part>[], createdDate: null);
                             routinesBloc.setCurrentRoutine(tempRoutine);
                             Navigator.push(
                                 context,
@@ -107,7 +107,7 @@ class _HomePageState extends State<HomePage>{
 
   List<Widget> buildChildren(List<Routine> routines) {
     var map = <MainTargetedBodyPart, List<Routine>>{};
-    var todayRoutines = List<Routine>();
+    var todayRoutines = <Routine>[];
     int weekday = DateTime.now().weekday;
     var children = <Widget>[];
 

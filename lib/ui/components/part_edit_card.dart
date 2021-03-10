@@ -66,7 +66,7 @@ class PartEditCardState extends State<PartEditCard> {
                 Row(
                   children: <Widget>[
                     Spacer(),
-                    FlatButton(
+                    TextButton(
                         child: Text(
                           'EDIT',
                           style: TextStyle(color: Colors.white),
@@ -84,7 +84,7 @@ class PartEditCardState extends State<PartEditCard> {
                             });
                           });
                         }),
-                    FlatButton(
+                    TextButton(
                         child: Text(
                           'DELETE',style: TextStyle(color: Colors.red),
                         ),
@@ -96,11 +96,11 @@ class PartEditCardState extends State<PartEditCard> {
                               title: Text('Delete this part of routine?'),
                               content: Text('You cannot undo this.'),
                               actions: <Widget>[
-                                FlatButton(
+                                TextButton(
                                   onPressed: () => Navigator.of(context).pop(false),
                                   child: Text('No'),
                                 ),
-                                FlatButton(
+                                TextButton(
                                   onPressed: () {
                                     widget.onDelete();
                                     Navigator.of(context).pop(true);
@@ -120,7 +120,7 @@ class PartEditCardState extends State<PartEditCard> {
   }
 
   Widget _buildExerciseListView(Part part) {
-    var children = List<Widget>();
+    var children = <Widget>[];
 
     for (var ex in part.exercises) {
       children.add(Row(

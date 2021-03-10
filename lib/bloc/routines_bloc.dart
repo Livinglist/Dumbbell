@@ -20,14 +20,13 @@ class RoutinesBloc {
   Observable<List<Routine>> get allRecRoutines => _allRecRoutinesFetcher.stream;
   List<Routine> get routines => _allRoutines;
 
-  List<Routine> _allRoutines = List<Routine>();
-  List<Routine> _allRecRoutines = List<Routine>();
+  List<Routine> _allRoutines = <Routine>[];
+  List<Routine> _allRecRoutines = <Routine>[];
   Routine _currentRoutine;
 
   void fetchAllRoutines() {
     DBProvider.db.getAllRoutines().then((routines) {
       _allRoutines = routines;
-      print("!!!!!!!!!!!!!!!!!!");
       if (!_allRoutinesFetcher.isClosed) _allRoutinesFetcher.sink.add(_allRoutines);
     }).catchError((exp) {
       _allRoutinesFetcher.sink.addError(Exception());
@@ -43,9 +42,7 @@ class RoutinesBloc {
 
   void deleteRoutine({int routineId, Routine routine}) {
     if (routineId == null) {
-      print("special!!!111 ${_allRoutines.length}");
       _allRoutines.removeWhere((r) => r.id == routine.id);
-      print("special!!!222 ${_allRoutines.length}");
     } else {
       _allRoutines.removeWhere((routine) => routine.id == routineId);
     }

@@ -33,14 +33,14 @@ class _PartEditPageState extends State<PartEditPage> {
   final formKey = GlobalKey<FormState>();
   final scaffoldKey = GlobalKey<ScaffoldState>();
   Routine curRoutine;
-  List<TextEditingController> textControllers = List<TextEditingController>();
-  List<FocusNode> focusNodes = List<FocusNode>();
+  List<TextEditingController> textControllers = <TextEditingController>[];
+  List<FocusNode> focusNodes = <FocusNode>[];
   int radioValueTargetedBodyPart = 0;
   int radioValueSetType = 0;
   bool additionalNotesIsExpanded;
   bool isNewlyCreated = false;
   List<Item> items;
-  List<Exercise> tempExs = List<Exercise>();
+  List<Exercise> tempExs = <Exercise>[];
   SetType setType;
 
   ///the widgets that are gonna be displayed in the expansionPanel of exercise detail
@@ -161,11 +161,11 @@ class _PartEditPageState extends State<PartEditPage> {
         title: Text('Are you sure?'),
         content: Text('Your editing will not be saved.'),
         actions: <Widget>[
-          FlatButton(
+          TextButton(
             onPressed: () => Navigator.of(context).pop(false),
             child: Text('No'),
           ),
-          FlatButton(
+          TextButton(
             onPressed: () {
               if (widget.addOrEdit == AddOrEdit.add) widget.curRoutine.parts.removeLast();
               Navigator.of(context).pop(true);
@@ -264,7 +264,7 @@ class _PartEditPageState extends State<PartEditPage> {
   List<Widget> buildSetDetails() {
     const count = 4;
 
-    List<Widget> widgets = List<Widget>();
+    List<Widget> widgets = <Widget>[];
 
     int exCount = setTypeToExerciseCountConverter(setType);
 
@@ -347,7 +347,7 @@ class _PartEditPageState extends State<PartEditPage> {
                             tempExs[i].weight = 0;
                             return null;
                           } else if (str.contains(RegExp(r"(,|-)"))) {
-                            Scaffold.of(context).showSnackBar(SnackBar(
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                               backgroundColor: Colors.red,
                               content: Row(
                                 children: <Widget>[
@@ -390,7 +390,7 @@ class _PartEditPageState extends State<PartEditPage> {
                     tempExs[i].sets = 1; //number of sets must be none zero
                     return null;
                   } else if (str.contains(RegExp(r"(,|\.|-)"))) {
-                    Scaffold.of(context).showSnackBar(SnackBar(
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       content: Text("Sets can only contain numbers."),
                     ));
                     return "Numbers only";
@@ -476,7 +476,7 @@ class _PartEditPageState extends State<PartEditPage> {
                 if (formKey.currentState.validate()) {
                   widget.part.targetedBodyPart = PartEditPageHelper.radioValueToTargetedBodyPartConverter(radioValueTargetedBodyPart);
                   widget.part.setType = setType;
-                  widget.part.exercises = List<Exercise>();
+                  widget.part.exercises = <Exercise>[];
                   for (int i = 0; i < enabledList.where((res) => res).length; i++) {
                     widget.part.exercises.add(Exercise(
                         name: tempExs[i].name,

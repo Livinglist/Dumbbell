@@ -52,7 +52,7 @@ class Part {
     if (targetedBodyPart == null) targetedBodyPart = TargetedBodyPart.Abs;
     if (setType == null) setType = SetType.Regular;
     if (exercises == null) {
-      exercises = new List<Exercise>();
+      exercises = <Exercise>[];
     }
     if (additionalNotes == null) {
       additionalNotes = '';

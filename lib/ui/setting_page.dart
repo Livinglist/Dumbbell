@@ -102,9 +102,9 @@ class _SettingPageState extends State<SettingPage> {
                                 fit: BoxFit.contain,
                               ),
                             ),
-                            applicationVersion: 'v1.1.2',
+                            applicationVersion: 'v1.1.3',
                             aboutBoxChildren: [
-                              RaisedButton(
+                              ElevatedButton(
                                 onPressed: () {
                                   launch("https://livinglist.github.io");
                                 },
@@ -118,7 +118,7 @@ class _SettingPageState extends State<SettingPage> {
                                   ],
                                 ),
                               ),
-                              RaisedButton(
+                              ElevatedButton(
                                 onPressed: () {
                                   launch("https://github.com/Livinglist/Dumbbell");
                                 },
@@ -154,7 +154,7 @@ class _SettingPageState extends State<SettingPage> {
           return AlertDialog(
             title: Text(msg),
             actions: <Widget>[
-              FlatButton(
+              TextButton(
                 child: Text('Okay'),
                 onPressed: () {
                   Navigator.pop(_);
@@ -167,9 +167,9 @@ class _SettingPageState extends State<SettingPage> {
 
   void onBackUpTapped() {
     if (firebaseProvider.firebaseUser == null)
-      scaffoldKey.currentState.showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('No User Signed In'),
-        action: SnackBarAction(label: 'Okay', onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar()),
+        action: SnackBarAction(label: 'Okay', onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar()),
       ));
     else
       uploadRoutines().whenComplete(() {
@@ -179,7 +179,7 @@ class _SettingPageState extends State<SettingPage> {
               return AlertDialog(
                 title: Text('Data uploaded'),
                 actions: <Widget>[
-                  FlatButton(
+                  TextButton(
                     child: Text('Okay'),
                     onPressed: () {
                       Navigator.pop(_);
@@ -194,9 +194,9 @@ class _SettingPageState extends State<SettingPage> {
   Future uploadRoutines() async {
     return Connectivity().checkConnectivity().then((connectivity) {
       if (connectivity == ConnectivityResult.none) {
-        scaffoldKey.currentState.showSnackBar(SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('No Internet Connections'),
-          action: SnackBarAction(label: 'Okay', onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar()),
+          action: SnackBarAction(label: 'Okay', onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar()),
         ));
       } else {
         return routinesBloc.allRoutines.first.then((routines) {
@@ -235,13 +235,13 @@ class _SettingPageState extends State<SettingPage> {
           title: Text('Restore your data?'),
           content: Text('Looks like you have your data on the cloud, do you want to restore them to this device?'),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: Text('No'),
               onPressed: () {
                 Navigator.pop(context);
               },
             ),
-            FlatButton(
+            TextButton(
               child: Text('Yes'),
               onPressed: () {
                 routinesBloc.restoreRoutines();

@@ -4,7 +4,6 @@ import 'package:firebase_core/firebase_core.dart';
 
 import 'resource/db_provider.dart';
 import 'resource/firebase_provider.dart';
-import 'package:workout_planner/ui/routine_edit_page.dart';
 import 'package:workout_planner/ui/setting_page.dart';
 import 'package:workout_planner/ui/statistics_page.dart';
 import 'bloc/routines_bloc.dart';
@@ -30,7 +29,6 @@ class App extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Dumbbell',
         routes: {
-          '/routine_edit_page': (context) => RoutineEditPage(),
           '/home_page': (context) => HomePage(),
         },
         home: FutureBuilder(

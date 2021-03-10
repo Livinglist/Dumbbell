@@ -131,13 +131,13 @@ class _RoutineDetailPageState extends State<RoutineDetailPage>{
           return AlertDialog(
             title: Text('Add to your routines?'),
             actions: <Widget>[
-              FlatButton(
+              TextButton(
                 child: Text('No'),
                 onPressed: () {
                   Navigator.pop(context, false);
                 },
               ),
-              FlatButton(
+              TextButton(
                 child: Text('Yes'),
                 onPressed: () {
                   Navigator.pop(context, true);
@@ -155,7 +155,7 @@ class _RoutineDetailPageState extends State<RoutineDetailPage>{
 
   Future onSharePressed() async {
     if (await Connectivity().checkConnectivity() == ConnectivityResult.none) {
-      scaffoldKey.currentState.showSnackBar(noNetworkSnackBar);
+      ScaffoldMessenger.of(context).showSnackBar(noNetworkSnackBar);
     } else {
       ///update the database
       FirebaseFirestore.instance
@@ -189,7 +189,7 @@ class _RoutineDetailPageState extends State<RoutineDetailPage>{
                         child: ButtonBar(
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
-                            RaisedButton(
+                            ElevatedButton(
                               child: Text('Save'),
                               onPressed: () async {
                                 Navigator.pop(context);
@@ -207,14 +207,14 @@ class _RoutineDetailPageState extends State<RoutineDetailPage>{
                                 );
                                 final ByteData imageData = await painter.toImageData(300.0);
                                 ImageGallerySaver.save(imageData.buffer.asUint8List()).whenComplete(() {
-                                  scaffoldKey.currentState.showSnackBar(SnackBar(
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                                     content: Text('Saved to gallery.'),
-                                    action: SnackBarAction(label: 'Dismiss', onPressed: () => scaffoldKey.currentState.hideCurrentSnackBar()),
+                                    action: SnackBarAction(label: 'Dismiss', onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar()),
                                   ));
                                 });
                               },
                             ),
-                            RaisedButton(
+                            ElevatedButton(
                                 child: Text('Send'),
                                 onPressed: () async {
                                   Share.share("Check out my routine: ${dataString.replaceFirst("-r", "")}");
@@ -236,8 +236,8 @@ class _RoutineDetailPageState extends State<RoutineDetailPage>{
   }
 
   void showSyncFailSnackBar() {
-    scaffoldKey.currentState.removeCurrentSnackBar();
-    scaffoldKey.currentState.showSnackBar(SnackBar(
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       backgroundColor: Colors.yellow,
       content: Row(
         children: <Widget>[
@@ -367,7 +367,7 @@ class WeekdayModalBottomSheet extends StatefulWidget {
 class _WeekdayModalBottomSheetState extends State<WeekdayModalBottomSheet> with SingleTickerProviderStateMixin {
   final List<String> weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   final List<IconData> weekDayIcons = [Icons.looks_one, Icons.looks_two, Icons.looks_3, Icons.looks_4, Icons.looks_5, Icons.looks_6, Icons.looks];
-  final List<bool> isCheckedList = List<bool>(7);
+  final List<bool> isCheckedList = <bool>[];
   var heightOfModalBottomSheet = 100.0;
 
   @override
@@ -420,7 +420,7 @@ class _WeekdayModalBottomSheetState extends State<WeekdayModalBottomSheet> with 
   }
 
   void returnCheckedWeekdays() {
-    List<int> selectedWeekdays = List<int>();
+    List<int> selectedWeekdays = <int>[];
     for (int i = 0; i < isCheckedList.length; i++) {
       if (isCheckedList[i]) {
         selectedWeekdays.add(i + 1);

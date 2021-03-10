@@ -80,7 +80,7 @@ class PartCardState extends State<PartCard> {
   }
 
   Widget _buildExerciseListView(Part part) {
-    var children = List<Widget>();
+    var children = <Widget>[];
 
     for (var ex in part.exercises) {
       children.add(Row(

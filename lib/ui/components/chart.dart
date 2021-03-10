@@ -29,34 +29,16 @@ class StackedAreaLineChart extends StatelessWidget {
   /// Create one series with sample hard coded data.
   List<charts.Series<LinearWeightCompleted, int>> _createData() {
     List<charts.Series<LinearWeightCompleted, int>> seriesData =
-        List<charts.Series<LinearWeightCompleted, int>>();
-//    for(var date in exercise.exHistory.keys){
-//      List<LinearWeightCompleted> weightCompletedList = List<LinearWeightCompleted>(exercise.sets);
-//      for(int i =0; i<weightCompletedList.length;i++){
-//        print(exercise.exHistory[date].toString().split('/')[i]);
-//        double tempWeight = double.parse(exercise.exHistory[date].toString().split('/')[i]);
-//        print("temp weight is ${tempWeight.toString()}");
-//        weightCompletedList[i] = LinearWeightCompleted(i, tempWeight.toInt());
-//      }
-//      seriesData.add(
-//          charts.Series<LinearWeightCompleted, int>(
-//            id: date,
-//            colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-//            domainFn: (LinearWeightCompleted weightCompleted, _) => weightCompleted.month,
-//            measureFn: (LinearWeightCompleted weightCompleted, _) => weightCompleted.weight,
-//            data: weightCompletedList,
-//          )
-//      );
-//    }
+        <charts.Series<LinearWeightCompleted, int>>[];
 
     List<LinearWeightCompleted> weightCompletedList =
-        List<LinearWeightCompleted>(exercise.exHistory.length);
+        <LinearWeightCompleted>[];
     for (int i = 0; i < weightCompletedList.length; i++) {
-      //print(exercise.exHistory[date].toString().split('/')[i]);
+
       print(exercise.exHistory.values.toString());
       print(exercise.exHistory.values.toString().split('/')[0]);
       double tempWeight = _getMaxWeight(exercise.exHistory.values.toList()[i]);
-      //print("temp weight is ${tempWeight.toString()}");
+
       weightCompletedList[i] = LinearWeightCompleted(i, tempWeight.toInt());
     }
     seriesData.add(charts.Series<LinearWeightCompleted, int>(

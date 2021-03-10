@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app_review/app_review.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -35,6 +36,12 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
   @override
   void initState() {
     super.initState();
+
+    AppReview.isRequestReviewAvailable.then((value) {
+      if(value){
+        AppReview.requestReview;
+      }
+    });
   }
 
   @override

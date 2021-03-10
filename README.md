@@ -7,11 +7,11 @@
 [![GitHub](https://img.shields.io/github/stars/livinglist/Dumbbell?style=social)](https://img.shields.io/github/stars/livinglist/Dumbbell?style=social)
 
 <p align="center">
-<img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110429163-5c141300-805f-11eb-9250-833fb47a40e2.png">
-  <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110429207-6b935c00-805f-11eb-8346-f1c0f15b6527.png">
-  <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110435244-a5686080-8067-11eb-94d4-018f9514eb5c.png">
+<img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110511214-db820080-80b8-11eb-97d9-9b8c338bac57.png">
+  <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110511298-f05e9400-80b8-11eb-943f-cb7b4e913b78.png">
+  <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110511055-afff1600-80b8-11eb-8b1e-58954922fdaf.png">
 <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110460982-be7f0a80-8083-11eb-9180-1675e2c6b4fb.png">
-<img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110429249-7bab3b80-805f-11eb-8159-2dccfb54a717.png">
+<img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110512654-42ec8000-80ba-11eb-9a2e-b2be3d087829.png">
 <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110429273-81a11c80-805f-11eb-9351-11a87f0819f6.png">
 
 <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110429222-73530080-805f-11eb-8fd3-80428b335c75.png">

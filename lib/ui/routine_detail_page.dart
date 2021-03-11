@@ -367,7 +367,7 @@ class WeekdayModalBottomSheet extends StatefulWidget {
 class _WeekdayModalBottomSheetState extends State<WeekdayModalBottomSheet> with SingleTickerProviderStateMixin {
   final List<String> weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   final List<IconData> weekDayIcons = [Icons.looks_one, Icons.looks_two, Icons.looks_3, Icons.looks_4, Icons.looks_5, Icons.looks_6, Icons.looks];
-  final List<bool> isCheckedList = <bool>[];
+  final List<bool> isCheckedList = List.filled(7, false);
   var heightOfModalBottomSheet = 100.0;
 
   @override

@@ -33,7 +33,7 @@ class StackedAreaLineChart extends StatelessWidget {
 
     List<LinearWeightCompleted> weightCompletedList =
         <LinearWeightCompleted>[];
-    for (int i = 0; i < weightCompletedList.length; i++) {
+    for (int i = 0; i < exercise.exHistory.length; i++) {
 
       print(exercise.exHistory.values.toString());
       print(exercise.exHistory.values.toString().split('/')[0]);

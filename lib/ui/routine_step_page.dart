@@ -90,7 +90,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
                 child: LinearProgressIndicator(
                   value: currentStep / stepperIndexes.length,
                 ),
-                preferredSize: null),
+                preferredSize: Size.fromHeight(12)),
             backgroundColor: Theme.of(context).primaryColor,
           ),
           backgroundColor: Theme.of(context).primaryColor,

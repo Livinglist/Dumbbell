@@ -154,7 +154,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
           for (var j = 0; j < sets; j++) {
             indexes.add(i);
             currentPartIndexes.add(k);
-            setsLeft.add(sets - j);
+            setsLeft.add(sets - j - 1);
           }
           i += 1;
           break;
@@ -162,7 +162,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
           for (var j = 0; j < ex.sets; j++) {
             indexes.add(i);
             currentPartIndexes.add(k);
-            setsLeft.add(sets - j);
+            setsLeft.add(sets - j - 1);
           }
           i += 1;
           break;
@@ -172,8 +172,8 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
             indexes.add(i + 1);
             currentPartIndexes.add(k);
             currentPartIndexes.add(k);
-            setsLeft.add(sets - j);
-            setsLeft.add(sets - j);
+            setsLeft.add(sets - j - 1);
+            setsLeft.add(sets - j - 1);
           }
           i += 2;
           break;
@@ -185,9 +185,9 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
             currentPartIndexes.add(k);
             currentPartIndexes.add(k);
             currentPartIndexes.add(k);
-            setsLeft.add(sets - j);
-            setsLeft.add(sets - j);
-            setsLeft.add(sets - j);
+            setsLeft.add(sets - j - 1);
+            setsLeft.add(sets - j - 1);
+            setsLeft.add(sets - j - 1);
           }
           i += 3;
           break;
@@ -201,10 +201,10 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
             currentPartIndexes.add(k);
             currentPartIndexes.add(k);
             currentPartIndexes.add(k);
-            setsLeft.add(sets - j);
-            setsLeft.add(sets - j);
-            setsLeft.add(sets - j);
-            setsLeft.add(sets - j);
+            setsLeft.add(sets - j - 1);
+            setsLeft.add(sets - j - 1);
+            setsLeft.add(sets - j - 1);
+            setsLeft.add(sets - j - 1);
           }
           i += 4;
           break;

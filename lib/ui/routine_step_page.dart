@@ -9,6 +9,8 @@ import 'package:workout_planner/ui/components//custom_snack_bars.dart';
 import 'package:workout_planner/utils/routine_helpers.dart';
 import 'package:workout_planner/bloc/routines_bloc.dart';
 
+import 'components/number_ticker.dart';
+
 /// Note:
 /// Some really bad design decision made in the early stage of this project has led to this incredibly messy code.
 
@@ -33,11 +35,11 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
   var stepperKey = GlobalKey();
 
   List<Exercise> exercises;
-  bool finished = false,initialized = false;
-  
+  bool finished = false, initialized = false;
+
   Routine routine;
   String title;
-  
+
   Timer incrementTimer;
   Timer decrementTimer;
 
@@ -56,7 +58,6 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
 
     String tempDateStr = dateTimeToStringConverter(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
     for (var part in routine.parts) {
-
       for (var ex in part.exercises) {
         if (ex.exHistory.containsKey(tempDateStr)) {
           ex.exHistory.remove(tempDateStr);
@@ -75,7 +76,6 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
             ' - ' +
             setTypeToStringConverter(routine.parts[currentPartIndexes[currentStep]].setType)
         : 'Finished!';
-
 
     return WillPopScope(
         onWillPop: onWillPop,
@@ -123,25 +123,20 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
           alignment: Alignment.topCenter,
           child: ConfettiWidget(
             confettiController: confettiController,
-            blastDirectionality: BlastDirectionality
-                .explosive, // don't specify a direction, blast randomly
-            shouldLoop:
-            false, // start again as soon as the animation is finished
+            blastDirectionality: BlastDirectionality.explosive,
+            // don't specify a direction, blast randomly
+            shouldLoop: false,
+            // start again as soon as the animation is finished
             blastDirection: 3.14 / 2,
-            maxBlastForce: 8, // set a lower max blast force
-            minBlastForce: 4, // set a lower min blast force
+            maxBlastForce: 8,
+            // set a lower max blast force
+            minBlastForce: 4,
+            // set a lower min blast force
             emissionFrequency: 0.05,
-            colors: const [
-              Colors.green,
-              Colors.blue,
-              Colors.pink,
-              Colors.orange,
-              Colors.purple
-            ], // manually specify the colors to be used
-             // define a custom shape/path.
+            colors: const [Colors.green, Colors.blue, Colors.pink, Colors.orange, Colors.purple], // manually specify the colors to be used
+            // define a custom shape/path.
           ),
         ),
-
       ],
     );
   }
@@ -167,7 +162,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
           for (var j = 0; j < ex.sets; j++) {
             indexes.add(i);
             currentPartIndexes.add(k);
-            setsLeft.add(sets-j);
+            setsLeft.add(sets - j);
           }
           i += 1;
           break;
@@ -177,8 +172,8 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
             indexes.add(i + 1);
             currentPartIndexes.add(k);
             currentPartIndexes.add(k);
-            setsLeft.add(sets-j);
-            setsLeft.add(sets-j);
+            setsLeft.add(sets - j);
+            setsLeft.add(sets - j);
           }
           i += 2;
           break;
@@ -190,9 +185,9 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
             currentPartIndexes.add(k);
             currentPartIndexes.add(k);
             currentPartIndexes.add(k);
-            setsLeft.add(sets-j);
-            setsLeft.add(sets-j);
-            setsLeft.add(sets-j);
+            setsLeft.add(sets - j);
+            setsLeft.add(sets - j);
+            setsLeft.add(sets - j);
           }
           i += 3;
           break;
@@ -206,10 +201,10 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
             currentPartIndexes.add(k);
             currentPartIndexes.add(k);
             currentPartIndexes.add(k);
-            setsLeft.add(sets-j);
-            setsLeft.add(sets-j);
-            setsLeft.add(sets-j);
-            setsLeft.add(sets-j);
+            setsLeft.add(sets - j);
+            setsLeft.add(sets - j);
+            setsLeft.add(sets - j);
+            setsLeft.add(sets - j);
           }
           i += 4;
           break;
@@ -220,12 +215,16 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
   }
 
   void updateExHistory() {
+    print("updating ex history: $currentStep");
     String tempDateStr = dateTimeToStringConverter(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
     var partIndex = currentPartIndexes[currentStep];
     var exIndex = routine.parts[partIndex].exercises.indexWhere((e) => e.name == exercises[stepperIndexes[currentStep]].name);
 
+    print("updating ex history: $currentStep");
+
     if (routine.parts[partIndex].exercises[exIndex].exHistory.containsKey(tempDateStr)) {
-      routine.parts[partIndex].exercises[exIndex].exHistory[tempDateStr] += '/' + routine.parts[partIndex].exercises[exIndex].weight.toString();
+      routine.parts[partIndex].exercises[exIndex].exHistory[tempDateStr] +=
+          '/' + routine.parts[partIndex].exercises[exIndex].weight.toString();
     } else {
       routine.parts[partIndex].exercises[exIndex].exHistory[tempDateStr] = routine.parts[partIndex].exercises[exIndex].weight.toString();
     }
@@ -256,11 +255,12 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
         currentStep: stepperIndexes[currentStep],
         onStepContinue: () {
           if (!finished && currentStep < stepperIndexes.length - 1) {
+            updateExHistory();
             setState(() {
               currentStep += 1;
             });
+          } else {
             updateExHistory();
-          }else{
             setState(() {
               finished = true;
               currentStep += 1;
@@ -268,36 +268,34 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
             confettiController.play();
             routine.completionCount++;
             if (!routine.routineHistory.contains(getTimestampNow())) {
-                    routine.routineHistory.add(getTimestampNow());
+              routine.routineHistory.add(getTimestampNow());
             }
 
             routinesBloc.updateRoutine(routine);
           }
         },
-        steps: List.generate(exs.length, (index) => index)
-            .map((i){
-              Color exNameColor = Colors.black;
-              double exNameSize = 16;
-              var isCurrent = i == stepperIndexes[currentStep];
-              var isNext = stepperIndexes.length == currentStep + 1 ? false : (i == stepperIndexes[currentStep + 1]);
+        steps: List.generate(exs.length, (index) => index).map((i) {
+          Color exNameColor = Colors.black;
+          double exNameSize = 16;
+          var isCurrent = i == stepperIndexes[currentStep];
+          var isNext = stepperIndexes.length == currentStep + 1 ? false : (i == stepperIndexes[currentStep + 1]);
 
-              if(isCurrent){
-                exNameColor = Colors.white;
-                exNameSize = 24;
-              }else if(isNext){
-                exNameColor = Colors.white60;
-                exNameSize = 20;
-              }
+          if (isCurrent) {
+            exNameColor = Colors.white;
+            exNameSize = 24;
+          } else if (isNext) {
+            exNameColor = Colors.white60;
+            exNameSize = 20;
+          }
 
-              return Step(
-                title: Text(
-                  exs[i].name,
-                  style: TextStyle(fontSize: exNameSize, fontWeight: FontWeight.w300, color: exNameColor),
-                ),
-                content: buildStep(exs[i]),
-              );
-        })
-            .toList(),
+          return Step(
+            title: Text(
+              exs[i].name,
+              style: TextStyle(fontSize: exNameSize, fontWeight: FontWeight.w300, color: exNameColor),
+            ),
+            content: buildStep(exs[i]),
+          );
+        }).toList(),
       ),
     );
   }
@@ -307,6 +305,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
     var partIndex = currentPartIndexes[currentStep];
     var exIndex = routine.parts[partIndex].exercises.indexWhere((e) => e.name == exercises[stepperIndexes[currentStep]].name);
     var ex = routine.parts[partIndex].exercises[exIndex];
+    var tickerController = NumberTickerController();
     return ListTile(
       title: Row(
         children: <Widget>[
@@ -346,7 +345,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
                 flex: 2,
                 child: GestureDetector(
                   onLongPress: () {
-                    decreaseWeight(ex);
+                    decreaseWeight(tickerController, ex);
                   },
                   onLongPressUp: () {
                     decrementTimer.cancel();
@@ -360,29 +359,24 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
                         shape: CircleBorder(),
                       ),
                       onPressed: () {
-                        setState(() {
-                          ex.weight = decrementWeight(ex.weight);
-                        });
-                        //DBProvider.db.updateRoutine(routine);
+                        tickerController.number = tickerController.number - 1;
+                        ex.weight = tickerController.number;
                       }),
                 )),
             Expanded(
               flex: 6,
               child: Center(
-                child: RichText(
-                  text: TextSpan(children: <TextSpan>[
-                    TextSpan(
-                        text: StringHelper.weightToString(ex.weight),
-                        style: TextStyle(color: Colors.white, fontSize: 64, fontWeight: FontWeight.bold)),
-                  ]),
-                ),
-              ),
+                  child: NumberTicker(
+                controller: tickerController,
+                initialNumber: ex.weight,
+                textStyle: TextStyle(color: Colors.white, fontSize: 64, fontWeight: FontWeight.bold),
+              )),
             ),
             Expanded(
                 flex: 2,
                 child: GestureDetector(
                   onLongPress: () {
-                    increaseWeight(ex);
+                    increaseWeight(tickerController, ex);
                   },
                   onLongPressUp: () {
                     incrementTimer.cancel();
@@ -396,9 +390,9 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
                         shape: CircleBorder(),
                       ),
                       onPressed: () {
-                        setState(() {
-                          ex.weight = incrementWeight(ex.weight);
-                        });
+                        tickerController.number = tickerController.number + 1;
+
+                        ex.weight = tickerController.number;
                         //DBProvider.db.updateRoutine(routine);
                       }),
                 )),
@@ -455,7 +449,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
   }
 
   Future<bool> onWillPop() {
-    if(finished) return Future.value(true);
+    if (finished) return Future.value(true);
     return showDialog(
         context: context,
         builder: (context) => Dialog(
@@ -523,19 +517,17 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
             ));
   }
 
-  void decreaseWeight(Exercise ex) {
+  void decreaseWeight(NumberTickerController controller, Exercise ex) {
     decrementTimer = Timer.periodic(timerDuration, (Timer t) {
-      setState(() {
-        ex.weight = decrementWeight(ex.weight);
-      });
+      controller.number = controller.number - 1;
+      ex.weight = controller.number;
     });
   }
 
-  void increaseWeight(Exercise ex) {
+  void increaseWeight(NumberTickerController controller, Exercise ex) {
     incrementTimer = Timer.periodic(timerDuration, (Timer t) {
-      setState(() {
-        ex.weight = incrementWeight(ex.weight);
-      });
+      controller.number = controller.number + 1;
+      ex.weight = controller.number;
     });
   }
 
@@ -586,27 +578,5 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
         throw 'Could not launch $url';
       }
     }
-  }
-
-  double incrementWeight(double weight) {
-    if (weight < 1000) {
-      if (weight < 20) {
-        weight += 0.5;
-      } else {
-        weight += 1;
-      }
-    }
-    return weight;
-  }
-
-  double decrementWeight(double weight) {
-    if (weight > 0) {
-      if (weight < 20) {
-        weight -= 0.5;
-      } else {
-        weight -= 1;
-      }
-    }
-    return weight;
   }
 }

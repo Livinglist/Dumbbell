@@ -39,7 +39,7 @@ class StackedAreaLineChart extends StatelessWidget {
       print(exercise.exHistory.values.toString().split('/')[0]);
       double tempWeight = _getMaxWeight(exercise.exHistory.values.toList()[i]);
 
-      weightCompletedList[i] = LinearWeightCompleted(i, tempWeight.toInt());
+      weightCompletedList.add(LinearWeightCompleted(i, tempWeight.toInt()));
     }
     seriesData.add(charts.Series<LinearWeightCompleted, int>(
       id: 'Test',

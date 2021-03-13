@@ -276,26 +276,28 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
         },
         steps: List.generate(exs.length, (index) => index)
             .map((i){
+              Color exNameColor = Colors.black;
+              double exNameSize = 16;
               var isCurrent = i == stepperIndexes[currentStep];
+              var isNext = stepperIndexes.length == currentStep + 1 ? false : (i == stepperIndexes[currentStep + 1]);
+
+              if(isCurrent){
+                exNameColor = Colors.white;
+                exNameSize = 24;
+              }else if(isNext){
+                exNameColor = Colors.white60;
+                exNameSize = 20;
+              }
 
               return Step(
                 title: Text(
                   exs[i].name,
-                  style: TextStyle(fontSize: isCurrent? 24:16, fontWeight: FontWeight.w300, color: isCurrent ? Colors.white: Colors.black),
+                  style: TextStyle(fontSize: exNameSize, fontWeight: FontWeight.w300, color: exNameColor),
                 ),
                 content: buildStep(exs[i]),
               );
         })
             .toList(),
-        // steps: exs
-        //     .map((ex) => Step(
-        //   title: Text(
-        //     ex.name,
-        //     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w300),
-        //   ),
-        //   content: buildStep(ex),
-        // ))
-        //     .toList(),
       ),
     );
   }

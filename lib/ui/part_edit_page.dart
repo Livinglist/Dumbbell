@@ -220,21 +220,30 @@ class _PartEditPageState extends State<PartEditPage> {
   }
 
   Widget buildSetTypeList() {
-    return CupertinoSlidingSegmentedControl<SetType>(
-      children: {
-        SetType.Regular: Text('Regular'),
-        SetType.Super: Text('Super'),
-        SetType.Tri: Text('Tri'),
-        SetType.Giant: Text('Giant'),
-        SetType.Drop: Text('Drop')
-      },
-      onValueChanged: (setType) {
-        setState(() {
-          this.setType = setType;
-        });
-      },
-      thumbColor: setTypeToColorConverter(this.setType),
-      groupValue: setType,
+    var selectedTextStyle = TextStyle(fontSize: 16);
+    var unselectedTextStyle = TextStyle(fontSize: 14);
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 12),
+      child: Container(
+        width: double.infinity,
+        child: CupertinoSlidingSegmentedControl<SetType>(
+          children: {
+            SetType.Regular: Text('Regular', style: this.setType == SetType.Regular? selectedTextStyle:unselectedTextStyle),
+            SetType.Super: Text('Super', style: this.setType == SetType.Super? selectedTextStyle:unselectedTextStyle),
+            SetType.Tri: Text('Tri', style: this.setType == SetType.Tri? selectedTextStyle:unselectedTextStyle),
+            SetType.Giant: Text('Giant', style: this.setType == SetType.Giant? selectedTextStyle:unselectedTextStyle),
+            SetType.Drop: Text('Drop', style: this.setType == SetType.Drop? selectedTextStyle:unselectedTextStyle)
+          },
+          onValueChanged: (setType) {
+            setState(() {
+              this.setType = setType;
+            });
+          },
+          thumbColor: setTypeToColorConverter(this.setType),
+          groupValue: setType,
+        ),
+      ),
     );
   }
 

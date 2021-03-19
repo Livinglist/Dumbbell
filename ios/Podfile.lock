@@ -360,9 +360,9 @@ PODS:
     - Flutter
   - shared_preferences (0.0.1):
     - Flutter
-  - sqflite (0.0.1):
+  - sqflite (0.0.2):
     - Flutter
-    - FMDB (~> 2.7.2)
+    - FMDB (>= 2.7.5)
   - url_launcher (0.0.1):
     - Flutter
 
@@ -481,8 +481,8 @@ SPEC CHECKSUMS:
   qrcode_reader: 09b34d43b4c08fe5b63a6e56c96789bcea7b9148
   Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
   share: 0b2c3e82132f5888bccca3351c504d0003b3b410
-  shared_preferences: 1feebfa37bb57264736e16865e7ffae7fc99b523
-  sqflite: 4001a31ff81d210346b500c55b17f4d6c7589dd0
+  shared_preferences: af6bfa751691cdc24be3045c43ec037377ada40d
+  sqflite: 6d358c025f5b867b29ed92fc697fd34924e11904
   url_launcher: 6fef411d543ceb26efce54b05a0a40bfd74cbbef
 
 PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c

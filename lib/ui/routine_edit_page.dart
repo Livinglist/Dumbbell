@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:app_review/app_review.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,6 +9,8 @@ import 'package:workout_planner/utils/routine_helpers.dart';
 import 'package:workout_planner/ui/components/part_edit_card.dart';
 import 'package:workout_planner/ui/part_edit_page.dart';
 import 'package:workout_planner/bloc/routines_bloc.dart';
+
+import 'components/spring_curve.dart';
 
 class RoutineEditPage extends StatefulWidget {
   final AddOrEdit addOrEdit;
@@ -38,8 +41,15 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
     super.initState();
 
     AppReview.isRequestReviewAvailable.then((value) {
-      if(value){
+      if (value) {
         AppReview.requestReview;
+      }
+    });
+
+    Timer(Duration(milliseconds: 500), () {
+      if (scrollController.hasClients) {
+        scrollController.animateTo(scrollController.position.maxScrollExtent,
+            duration: Duration(milliseconds: 500), curve: SpringCurve.underDamped);
       }
     });
   }
@@ -65,51 +75,59 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
 
               return Scaffold(
                 key: scaffoldKey,
-                  appBar: AppBar(
-                    actions: <Widget>[
-                      if (widget.addOrEdit == AddOrEdit.edit)
-                        IconButton(
-                          icon: Icon(Icons.delete_forever),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (_) => AlertDialog(
-                                title: Text('Delete this routine'),
-                                content: Text("Are you sure? You cannot undo this."),
-                                actions: <Widget>[
-                                  TextButton(onPressed: () => Navigator.pop(_), child: Text('No')),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(_);
-                                      Navigator.popUntil(context, (Route r) {
-                                        return r.settings.name == '/';
-                                      });
-                                      if (widget.addOrEdit == AddOrEdit.edit) {
-                                        routinesBloc.deleteRoutine(routine: routineCopy);
-                                      }
-                                    },
-                                    child: Text('Yes'),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      Builder(
-                        builder: (context) => IconButton(icon: Icon(Icons.done), onPressed: onDonePressed),
-                      )
-                    ],
+                appBar: AppBar(
+                  actions: <Widget>[
+                    if (widget.addOrEdit == AddOrEdit.edit)
+                      IconButton(
+                        icon: Icon(Icons.delete_forever),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              title: Text('Delete this routine'),
+                              content: Text("Are you sure? You cannot undo this."),
+                              actions: <Widget>[
+                                TextButton(onPressed: () => Navigator.pop(_), child: Text('No')),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(_);
+                                    Navigator.popUntil(context, (Route r) {
+                                      return r.settings.name == '/';
+                                    });
+                                    if (widget.addOrEdit == AddOrEdit.edit) {
+                                      routinesBloc.deleteRoutine(routine: routineCopy);
+                                    }
+                                  },
+                                  child: Text('Yes'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    Builder(
+                      builder: (context) => IconButton(icon: Icon(Icons.done), onPressed: onDonePressed),
+                    )
+                  ],
+                ),
+                body: ReorderableListView(
+                  scrollController: scrollController,
+                  children: buildExerciseDetails(),
+                  onReorder: onReorder,
+                  header: Form(key: formKey, child: _routineDescriptionEditCard()),
+                  padding: EdgeInsets.only(bottom: 128),
+                ),
+                floatingActionButton: FloatingActionButton.extended(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  icon: Icon(
+                    Icons.add,
+                    color: Colors.white,
                   ),
-                  body: SingleChildScrollView(
-                    child: Column(
-                      children: buildExerciseDetails(),
-                    ),
-                  )
-//                backgroundColor: Colors.white,
-//                body: buildExerciseDetails(),
-//                floatingActionButton: FloatingActionButton.extended(
-//                    backgroundColor: Colors.blueGrey[700], icon: Icon(Icons.add), label: Text('Add an exercise'), onPressed: onAddExercisePressed),
-                  );
+                  label: Text('ADD', style: TextStyle(color: Colors.white, fontSize: 16),),
+                  onPressed: onAddExercisePressed,
+                  isExtended: true,
+                ),
+              );
             } else {
               return Container();
             }
@@ -118,7 +136,7 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
   }
 
   void onDonePressed() {
-    if(widget.addOrEdit == AddOrEdit.add && routineCopy.parts.isEmpty){
+    if (widget.addOrEdit == AddOrEdit.add && routineCopy.parts.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Routine is empty.')));
       return;
     }
@@ -137,13 +155,19 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
   void onAddExercisePressed() {
     setState(() {
       routineCopy.parts.add(Part(setType: null, targetedBodyPart: null, exercises: null));
-      //scrollController.animateTo(scrollController.position.maxScrollExtent, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
       _startTimeout(300);
     });
   }
 
+  void onReorder(int oldIndex, int newIndex) {
+    var temp = routineCopy.parts.removeAt(oldIndex);
+    setState(() {
+      routineCopy.parts.insert(min(newIndex, routineCopy.parts.length), temp);
+    });
+  }
+
   List<Widget> buildExerciseDetails() {
-    var children = <Widget>[Form(key: formKey, child: _routineDescriptionEditCard())];
+    var children = <Widget>[];
 
     if (routineCopy.parts.isNotEmpty) {
       children.addAll(routineCopy.parts.map((part) {
@@ -158,30 +182,6 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
         );
       }));
     }
-
-    children.add(Container(
-      key: UniqueKey(),
-      color: Colors.transparent,
-      height: 24,
-    ));
-
-    children.add(Center(
-      child: SizedBox(
-        width: 120,
-        child: ElevatedButton(
-          child: Icon(Icons.add, color: Colors.white,),
-          style: OutlinedButton.styleFrom(
-            backgroundColor: Theme.of(context).primaryColor,
-            shape: StadiumBorder(),
-          ),
-          onPressed: onAddExercisePressed,
-        ),
-      )
-    ));
-
-    children.add(SizedBox(
-      height: 36,
-    ));
 
     return children;
   }
@@ -200,7 +200,7 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
                 TextFormField(
                     textInputAction: TextInputAction.done,
                     controller: textEditingController,
-                    //style: TextStyle(color: Colors.white, fontSize: 24),
+                    style: TextStyle(color: Colors.black, fontSize: 22),
                     decoration: InputDecoration(
                       labelText: 'Routine Title',
                       //labelStyle: TextStyle(color: Colors.white, fontSize: 18)

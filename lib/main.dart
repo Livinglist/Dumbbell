@@ -24,7 +24,7 @@ class App extends StatelessWidget {
             primarySwatch: Colors.grey,
             fontFamily: 'Staa',
             textTheme: TextTheme(
-              bodyText2: TextStyle(fontSize: 16),
+              bodyText2: TextStyle(fontSize: 18),
             )),
         debugShowCheckedModeBanner: false,
         title: 'Dumbbell',

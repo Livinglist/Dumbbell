@@ -102,7 +102,7 @@ class _SettingPageState extends State<SettingPage> {
                                 fit: BoxFit.contain,
                               ),
                             ),
-                            applicationVersion: 'v1.1.3',
+                            applicationVersion: 'v1.1.5',
                             aboutBoxChildren: [
                               ElevatedButton(
                                 onPressed: () {

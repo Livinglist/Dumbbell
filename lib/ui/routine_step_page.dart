@@ -279,6 +279,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
           double exNameSize = 16;
           var isCurrent = i == stepperIndexes[currentStep];
           var isNext = stepperIndexes.length == currentStep + 1 ? false : (i == stepperIndexes[currentStep + 1]);
+          var isPast = !stepperIndexes.sublist(currentStep).contains(i);
 
           if (isCurrent) {
             exNameColor = Colors.white;
@@ -291,7 +292,7 @@ class _RoutineStepPageState extends State<RoutineStepPage> with TickerProviderSt
           return Step(
             title: Text(
               exs[i].name,
-              style: TextStyle(fontSize: exNameSize, fontWeight: FontWeight.w300, color: exNameColor),
+              style: TextStyle(fontSize: exNameSize, fontWeight: FontWeight.w300, color: exNameColor, decoration: isPast?TextDecoration.lineThrough:TextDecoration.none),
             ),
             content: buildStep(exs[i]),
           );

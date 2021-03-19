@@ -60,7 +60,7 @@ class PartEditCardState extends State<PartEditCard> {
                   ),
                 ),
                 Padding(
-                    padding: EdgeInsets.only(left: 12, right: 12, top: 4, bottom: 0),
+                    padding: EdgeInsets.only(left: 12, right: 12, top: 0, bottom: 0),
                     child: _buildExerciseListView(part),
                     ),
                 Row(
@@ -69,7 +69,7 @@ class PartEditCardState extends State<PartEditCard> {
                     TextButton(
                         child: Text(
                           'EDIT',
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(color: Colors.white, fontSize: 16),
                         ),
                         onPressed: () {
                           Navigator.push(
@@ -86,7 +86,7 @@ class PartEditCardState extends State<PartEditCard> {
                         }),
                     TextButton(
                         child: Text(
-                          'DELETE',style: TextStyle(color: Colors.red),
+                          'DELETE',style: TextStyle(color: Colors.red, fontSize: 16),
                         ),
                         onPressed: () {
                           showDialog(
@@ -122,13 +122,50 @@ class PartEditCardState extends State<PartEditCard> {
   Widget _buildExerciseListView(Part part) {
     var children = <Widget>[];
 
+    children.add(Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        Expanded(
+          flex: 22,
+          child: Text(
+            "",
+            maxLines: 1,
+            overflow: TextOverflow.clip,
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+        Expanded(
+            flex: 5,
+            child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(style: defaultTextStyle, children: [
+                  TextSpan(text: 'sets', style: TextStyle(color: Colors.white54, fontSize: 14)),
+                ]))),
+        Expanded(
+            flex: 1,
+            child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(style: defaultTextStyle, children: [
+                  TextSpan(text: ' ', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                ]))),
+        Expanded(
+            flex: 5,
+            child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(style: defaultTextStyle, children: [
+                  TextSpan(text: 'reps', style: TextStyle(color: Colors.white54, fontSize: 14)),
+                ]))),
+      ],
+    ));
+
     for (var ex in part.exercises) {
       children.add(Row(
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Expanded(
-            flex: 6,
+            flex: 22,
             child: Text(
               ex.name,
               maxLines: 1,
@@ -137,23 +174,34 @@ class PartEditCardState extends State<PartEditCard> {
             ),
           ),
           Expanded(
-              flex: 2,
+              flex: 5,
               child: RichText(
+                  textAlign: TextAlign.center,
                   text: TextSpan(style: defaultTextStyle, children: [
-                    TextSpan(text: ex.sets.toString(), style: TextStyle(color: Colors.white, fontSize: 16)),
-                    TextSpan(text: ' sets', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                    TextSpan(text: ex.sets.toString(), style: TextStyle(color: Colors.white, fontSize: 18)),
+                    //TextSpan(text: ' sets', style: TextStyle(color: Colors.white54, fontSize: 14)),
                   ]))),
           Expanded(
-              flex: 2,
+              flex: 1,
               child: RichText(
+                  textAlign: TextAlign.center,
                   text: TextSpan(style: defaultTextStyle, children: [
-                    TextSpan(text: ex.reps, style: TextStyle(color: Colors.white, fontSize: 16)),
-                    TextSpan(text: (ex.workoutType == WorkoutType.Weight ? ' reps' : ' secs'), style: TextStyle(color: Colors.white54, fontSize: 12)),
+                    TextSpan(text: 'x', style: TextStyle(color: Colors.white70, fontSize: 16)),
+                    //TextSpan(text: ' sets', style: TextStyle(color: Colors.white54, fontSize: 14)),
+                  ]))),
+          Expanded(
+              flex: 5,
+              child: RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(style: defaultTextStyle, children: [
+                    TextSpan(text: ex.reps, style: TextStyle(color: Colors.white, fontSize: 18)),
+                    //TextSpan(text: (ex.workoutType == WorkoutType.Weight ? ' reps' : ' secs'), style: TextStyle(color: Colors.white54, fontSize: 14)),
                   ]))),
         ],
       ));
-      children.add(Divider());
+      children.add(Divider(color: Colors.white38));
     }
+    //children.removeLast();
     return Column(children: children);
   }
 }

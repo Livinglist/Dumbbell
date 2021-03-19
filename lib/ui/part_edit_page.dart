@@ -497,7 +497,7 @@ class _PartEditPageState extends State<PartEditPage> {
                   }
                   widget.part.additionalNotes = additionalNotesTextEditingController.text;
                   Navigator.pop(context, widget.part);
-                } else {}
+                }
               },
             );
           },

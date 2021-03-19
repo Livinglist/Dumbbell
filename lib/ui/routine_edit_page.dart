@@ -123,7 +123,10 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
                     Icons.add,
                     color: Colors.white,
                   ),
-                  label: Text('ADD', style: TextStyle(color: Colors.white, fontSize: 16),),
+                  label: Text(
+                    'ADD',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
                   onPressed: onAddExercisePressed,
                   isExtended: true,
                 ),
@@ -255,11 +258,11 @@ class _RoutineEditPageState extends State<RoutineEditPage> {
                     part: routineCopy.parts.last,
                     curRoutine: routineCopy,
                   ))).then((value) {
-        if (value != null) {
-          setState(() {
+        setState(() {
+          if (value != null) {
             routineCopy.parts.last = value;
-          });
-        }
+          }
+        });
       });
     });
   }

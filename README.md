@@ -8,15 +8,15 @@
 
 <p align="center">
 <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110511214-db820080-80b8-11eb-97d9-9b8c338bac57.png">
-  <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110511298-f05e9400-80b8-11eb-943f-cb7b4e913b78.png">
-  <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110511055-afff1600-80b8-11eb-8b1e-58954922fdaf.png">
-<img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110460982-be7f0a80-8083-11eb-9180-1675e2c6b4fb.png">
-<img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110512654-42ec8000-80ba-11eb-9a2e-b2be3d087829.png">
-<img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110429273-81a11c80-805f-11eb-9351-11a87f0819f6.png">
+  <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/111752809-613d4300-8853-11eb-8ec5-030f5d639f2c.png">
+  <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/111752807-60a4ac80-8853-11eb-90f5-5daa415a24e8.png">
+<img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/111752805-60a4ac80-8853-11eb-85d6-9404bc04afe2.png">
+<img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/111752804-600c1600-8853-11eb-9530-676c70c50aff.png">
+<img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/111752800-600c1600-8853-11eb-9240-e09d345f2c16.png">
 
-<img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110429222-73530080-805f-11eb-8fd3-80428b335c75.png">
-<img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110429317-8e257500-805f-11eb-9338-534869bc155e.png">
-<img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110429637-17d54280-8060-11eb-9bb2-859cce3aafdb.png">
+<img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/111752798-5f737f80-8853-11eb-9a8b-bc23947ed9ad.png">
+<img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/111752796-5edae900-8853-11eb-8785-154b45a19ed2.png">
+<img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/111752792-5e425280-8853-11eb-9433-7a2eac1b1bae.png">
 <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110429311-8cf44800-805f-11eb-8cab-4f67d357638c.png">
 <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110429481-e0669600-805f-11eb-9ec5-297914cf4c2b.png">
 <img width="360" alt="Screen Shot 2020-08-20 at 5 50 28 PM" src="https://user-images.githubusercontent.com/7277662/110429472-dd6ba580-805f-11eb-8a25-5d2c4ab475e2.png">

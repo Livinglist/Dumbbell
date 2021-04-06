@@ -65,7 +65,8 @@ class _PartEditPageState extends State<PartEditPage> {
       for (int i = 0; i < 4; i++) {
         if (i < widget.part.exercises.length) {
           var ex = widget.part.exercises[i];
-          var exCopy = Exercise(name: ex.name, weight: ex.weight, sets: ex.sets, reps: ex.reps, workoutType: ex.workoutType, exHistory: ex.exHistory);
+          var exCopy = Exercise(
+              name: ex.name, weight: ex.weight, sets: ex.sets, reps: ex.reps, workoutType: ex.workoutType, exHistory: ex.exHistory);
           tempExs.add(exCopy);
         } else {
           tempExs.add(Exercise(name: null, weight: null, sets: null, reps: null, exHistory: {}));
@@ -146,7 +147,11 @@ class _PartEditPageState extends State<PartEditPage> {
     //_widgets = buildSetDetails(isNewlyCreated ? SetType.Regular : widget.part.setType);
 
     items = <Item>[
-      Item(isExpanded: true, header: 'Targeted Muscle Group', callback: buildTargetedBodyPartRadioList, iconpic: Icon(Icons.accessibility_new)),
+      Item(
+          isExpanded: true,
+          header: 'Targeted Muscle Group',
+          callback: buildTargetedBodyPartRadioList,
+          iconpic: Icon(Icons.accessibility_new)),
       Item(isExpanded: false, header: 'Set Type', callback: buildSetTypeList, iconpic: Icon(Icons.blur_linear)),
       Item(isExpanded: true, header: 'Set Details', callback: buildSetDetailsList, iconpic: Icon(Icons.fitness_center))
     ];
@@ -189,32 +194,15 @@ class _PartEditPageState extends State<PartEditPage> {
       child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 12),
           child: Column(children: <Widget>[
-            RadioListTile(
-                 value: 0, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Abs')),
-            RadioListTile(
-                 value: 1, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Arm')),
-            RadioListTile(
-                 value: 2, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Back')),
-            RadioListTile(
-                 value: 3, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Chest')),
-            RadioListTile(
-                 value: 4, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Leg')),
-            RadioListTile(
-
-                value: 5,
-                groupValue: radioValueTargetedBodyPart,
-                onChanged: onRadioValueChanged,
-                title: Text('Shoulder')),
-            RadioListTile(
-                 value: 6, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Bicep')),
-            RadioListTile(
-                value: 7, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Tricep')),
-            RadioListTile(
-
-                value: 8,
-                groupValue: radioValueTargetedBodyPart,
-                onChanged: onRadioValueChanged,
-                title: Text('Full Body')),
+            RadioListTile(value: 0, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Abs')),
+            RadioListTile(value: 1, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Arm')),
+            RadioListTile(value: 2, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Back')),
+            RadioListTile(value: 3, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Chest')),
+            RadioListTile(value: 4, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Leg')),
+            RadioListTile(value: 5, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Shoulder')),
+            RadioListTile(value: 6, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Bicep')),
+            RadioListTile(value: 7, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Tricep')),
+            RadioListTile(value: 8, groupValue: radioValueTargetedBodyPart, onChanged: onRadioValueChanged, title: Text('Full Body')),
           ])),
     );
   }
@@ -229,11 +217,11 @@ class _PartEditPageState extends State<PartEditPage> {
         width: double.infinity,
         child: CupertinoSlidingSegmentedControl<SetType>(
           children: {
-            SetType.Regular: Text('Regular', style: this.setType == SetType.Regular? selectedTextStyle:unselectedTextStyle),
-            SetType.Super: Text('Super', style: this.setType == SetType.Super? selectedTextStyle:unselectedTextStyle),
-            SetType.Tri: Text('Tri', style: this.setType == SetType.Tri? selectedTextStyle:unselectedTextStyle),
-            SetType.Giant: Text('Giant', style: this.setType == SetType.Giant? selectedTextStyle:unselectedTextStyle),
-            SetType.Drop: Text('Drop', style: this.setType == SetType.Drop? selectedTextStyle:unselectedTextStyle)
+            SetType.Regular: Text('Regular', style: this.setType == SetType.Regular ? selectedTextStyle : unselectedTextStyle),
+            SetType.Super: Text('Super', style: this.setType == SetType.Super ? selectedTextStyle : unselectedTextStyle),
+            SetType.Tri: Text('Tri', style: this.setType == SetType.Tri ? selectedTextStyle : unselectedTextStyle),
+            SetType.Giant: Text('Giant', style: this.setType == SetType.Giant ? selectedTextStyle : unselectedTextStyle),
+            SetType.Drop: Text('Drop', style: this.setType == SetType.Drop ? selectedTextStyle : unselectedTextStyle)
           },
           onValueChanged: (setType) {
             setState(() {
@@ -304,7 +292,6 @@ class _PartEditPageState extends State<PartEditPage> {
                   onChanged: (res) {
                     setState(() {
                       tempExs[i].workoutType = res ? WorkoutType.Cardio : WorkoutType.Weight;
-                      //_widgets = buildSetDetails(setType); //TODO: fuck this shit
                     });
                   },
                   inactiveThumbColor: Colors.red,
@@ -324,6 +311,7 @@ class _PartEditPageState extends State<PartEditPage> {
           builder: (context) => TextFormField(
             controller: textControllers[j],
             focusNode: focusNodes[j],
+            style: TextStyle(fontSize: 18),
             onFieldSubmitted: (str) {
               setState(() {
                 //widget.part.exercises[i].name = str;
@@ -351,6 +339,7 @@ class _PartEditPageState extends State<PartEditPage> {
                         keyboardType: TextInputType.numberWithOptions(signed: false, decimal: false),
                         textInputAction: TextInputAction.done,
                         decoration: InputDecoration(labelText: 'Weight'),
+                        style: TextStyle(fontSize: 20),
                         validator: (str) {
                           if (str.isEmpty) {
                             tempExs[i].weight = 0;
@@ -394,6 +383,7 @@ class _PartEditPageState extends State<PartEditPage> {
                 onFieldSubmitted: (str) {},
                 keyboardType: TextInputType.numberWithOptions(signed: false, decimal: false),
                 decoration: InputDecoration(labelText: 'Sets'),
+                style: TextStyle(fontSize: 20),
                 validator: (str) {
                   if (str.isEmpty) {
                     tempExs[i].sets = 1; //number of sets must be none zero
@@ -418,6 +408,7 @@ class _PartEditPageState extends State<PartEditPage> {
                 onFieldSubmitted: (str) {},
                 keyboardType: TextInputType.numberWithOptions(signed: false, decimal: false),
                 decoration: InputDecoration(labelText: tempExs[i].workoutType == WorkoutType.Weight ? 'Reps' : 'Seconds'),
+                style: TextStyle(fontSize: 20),
                 validator: (str) {
                   if (str.isEmpty) {
                     return 'Cannot be empty';
@@ -449,7 +440,7 @@ class _PartEditPageState extends State<PartEditPage> {
           title: Text(item.header,
               textAlign: TextAlign.left,
               style: TextStyle(
-                fontSize: 16.0,
+                fontSize: 18.0,
                 fontWeight: FontWeight.w400,
               ))));
       children.add(item.callback());
